@@ -1,9 +1,14 @@
+export type Role = 'owner' | 'manager' | 'staff';
+
 export interface User {
   id: number;
   name: string;
   email: string;
   password_hash: string;
-  role: 'admin' | 'staff';
+  role: Role;
+  phone?: string;
+  position?: string;
+  active: boolean;
   created_at: Date;
 }
 
@@ -73,5 +78,5 @@ export interface ShiftNote {
 export interface JwtPayload {
   id: number;
   email: string;
-  role: 'admin' | 'staff';
+  role: Role;
 }

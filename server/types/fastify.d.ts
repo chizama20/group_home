@@ -1,10 +1,10 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { fastifyMysql } from '@fastify/mysql';
+import { Role } from './index';
 
 declare module '@fastify/jwt' {
   interface FastifyJWT {
-    payload: { id: number; email: string; role: 'admin' | 'staff' };
-    user:    { id: number; email: string; role: 'admin' | 'staff' };
+    payload: { id: number; email: string; role: Role };
+    user:    { id: number; email: string; role: Role };
   }
 }
 
