@@ -1,0 +1,77 @@
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  password_hash: string;
+  role: 'admin' | 'staff';
+  created_at: Date;
+}
+
+export interface Resident {
+  id: number;
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;
+  room_number?: string;
+  notes?: string;
+  active: boolean;
+  created_at: Date;
+}
+
+export interface DailyLog {
+  id: number;
+  resident_id: number;
+  user_id: number;
+  mood: 'great' | 'good' | 'neutral' | 'upset' | 'crisis';
+  behavior: 'calm' | 'agitated' | 'aggressive' | 'withdrawn' | 'other';
+  notes?: string;
+  logged_at: Date;
+}
+
+export interface Medication {
+  id: number;
+  resident_id: number;
+  name: string;
+  dosage: string;
+  frequency: 'daily' | 'twice_daily' | 'three_times_daily' | 'as_needed' | 'weekly';
+  instructions?: string;
+  active: boolean;
+  created_at: Date;
+}
+
+export interface MedicationLog {
+  id: number;
+  medication_id: number;
+  user_id: number;
+  status: 'given' | 'refused' | 'missed';
+  notes?: string;
+  administered_at: Date;
+}
+
+export interface Incident {
+  id: number;
+  resident_id: number;
+  user_id: number;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  type: 'behavioral' | 'medical' | 'property' | 'safety' | 'other';
+  description: string;
+  action_taken?: string;
+  reported_to_supervisor: boolean;
+  occurred_at: Date;
+  created_at: Date;
+}
+
+export interface ShiftNote {
+  id: number;
+  user_id: number;
+  shift: 'morning' | 'afternoon' | 'overnight';
+  content: string;
+  flagged: boolean;
+  created_at: Date;
+}
+
+export interface JwtPayload {
+  id: number;
+  email: string;
+  role: 'admin' | 'staff';
+}
