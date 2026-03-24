@@ -6,6 +6,14 @@ export interface Organization {
   slug: string;
 }
 
+export interface Home {
+  id: number;
+  organization_id: number;
+  name: string;
+  address?: string;
+  created_at: string;
+}
+
 export interface User {
   id: number;
   name: string;

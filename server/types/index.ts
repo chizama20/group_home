@@ -1,5 +1,15 @@
 export type Role = 'owner' | 'manager' | 'staff';
 
+export interface Home {
+  id: number;
+  organization_id: number;
+  name: string;
+  address?: string;
+  phone?: string;
+  active: boolean;
+  created_at: Date;
+}
+
 export interface Organization {
   id: number;
   name: string;
@@ -83,6 +93,7 @@ export interface Incident {
 export interface ShiftNote {
   id: number;
   organization_id: number;
+  home_id: number;
   user_id: number;
   shift: 'morning' | 'afternoon' | 'overnight';
   content: string;

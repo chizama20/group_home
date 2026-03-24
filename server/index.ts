@@ -13,6 +13,7 @@ import medicationsRoutes from './routes/medications';
 import incidentsRoutes   from './routes/incidents';
 import shiftNotesRoutes    from './routes/shiftNotes';
 import organizationsRoutes from './routes/organizations';
+import homesRoutes         from './routes/homes';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ fastify.register(medicationsRoutes, { prefix: '/medications' });
 fastify.register(incidentsRoutes,   { prefix: '/incidents' });
 fastify.register(shiftNotesRoutes,    { prefix: '/shift-notes' });
 fastify.register(organizationsRoutes, { prefix: '/organizations' });
+fastify.register(homesRoutes,         { prefix: '/homes' });
 
 const start = async (): Promise<void> => {
   try {

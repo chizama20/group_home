@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import { success, failure } from '../utils/response';
+import { canAccessHome } from '../utils/homeAccess';
 import { Medication, MedicationLog } from '../types';
 
 type MedicationBody = Omit<Medication, 'id' | 'organization_id' | 'resident_id' | 'active' | 'created_at'>;
@@ -15,11 +16,13 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
       const { organizationId } = request.user;
-      // Verify resident belongs to org
       const [check] = await fastify.mysql.query<RowDataPacket[]>(
-        'SELECT id FROM residents WHERE id = ? AND organization_id = ?', [request.params.id, organizationId]
+        'SELECT id, home_id FROM residents WHERE id = ? AND organization_id = ?',
+        [request.params.id, organizationId]
       );
       if (!check[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+      if (!await canAccessHome(fastify, request.user, check[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
 
       const [rows] = await fastify.mysql.query<RowDataPacket[]>(
         'SELECT * FROM medications WHERE resident_id = ? AND organization_id = ? AND active = 1',
@@ -40,9 +43,12 @@ export default async (fastify: FastifyInstance): Promise<void> => {
         return reply.code(400).send(failure('MISSING_FIELDS', 'name, dosage, and frequency are required'));
 
       const [check] = await fastify.mysql.query<RowDataPacket[]>(
-        'SELECT id FROM residents WHERE id = ? AND organization_id = ?', [request.params.id, organizationId]
+        'SELECT id, home_id FROM residents WHERE id = ? AND organization_id = ?',
+        [request.params.id, organizationId]
       );
       if (!check[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+      if (!await canAccessHome(fastify, request.user, check[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
 
       const [result] = await fastify.mysql.query<ResultSetHeader>(
         'INSERT INTO medications (organization_id, resident_id, name, dosage, frequency, instructions) VALUES (?, ?, ?, ?, ?, ?)',
@@ -62,14 +68,15 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       if (!status)
         return reply.code(400).send(failure('MISSING_FIELDS', 'status is required'));
 
-      // Verify medication belongs to this org via its resident
       const [check] = await fastify.mysql.query<RowDataPacket[]>(
-        `SELECT m.id FROM medications m
+        `SELECT m.id, r.home_id FROM medications m
          JOIN residents r ON m.resident_id = r.id
          WHERE m.id = ? AND r.organization_id = ?`,
         [request.params.id, organizationId]
       );
       if (!check[0]) return reply.code(404).send(failure('NOT_FOUND', 'Medication not found'));
+      if (!await canAccessHome(fastify, request.user, check[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Medication not found'));
 
       const [result] = await fastify.mysql.query<ResultSetHeader>(
         'INSERT INTO medication_logs (organization_id, medication_id, user_id, status, notes) VALUES (?, ?, ?, ?, ?)',
