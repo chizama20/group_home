@@ -83,6 +83,15 @@ body {
 .required { color: #d63031; }
 .optional { color: #aaa; font-weight: 400; font-size: .8rem; }
 
+.auth-footer {
+  margin-top: 1.25rem;
+  text-align: center;
+  font-size: .85rem;
+  color: #888;
+}
+.auth-footer a { color: #4f6ef7; text-decoration: none; font-weight: 600; }
+.auth-footer a:hover { text-decoration: underline; }
+
 .back-link {
   background: none;
   border: none;

@@ -11,7 +11,8 @@ import residentsRoutes   from './routes/residents';
 import logsRoutes        from './routes/logs';
 import medicationsRoutes from './routes/medications';
 import incidentsRoutes   from './routes/incidents';
-import shiftNotesRoutes  from './routes/shiftNotes';
+import shiftNotesRoutes    from './routes/shiftNotes';
+import organizationsRoutes from './routes/organizations';
 
 dotenv.config();
 
@@ -28,7 +29,8 @@ fastify.register(residentsRoutes,   { prefix: '/residents' });
 fastify.register(logsRoutes,        { prefix: '/logs' });
 fastify.register(medicationsRoutes, { prefix: '/medications' });
 fastify.register(incidentsRoutes,   { prefix: '/incidents' });
-fastify.register(shiftNotesRoutes,  { prefix: '/shift-notes' });
+fastify.register(shiftNotesRoutes,    { prefix: '/shift-notes' });
+fastify.register(organizationsRoutes, { prefix: '/organizations' });
 
 const start = async (): Promise<void> => {
   try {

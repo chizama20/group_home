@@ -3,8 +3,8 @@ import { Role } from './index';
 
 declare module '@fastify/jwt' {
   interface FastifyJWT {
-    payload: { id: number; email: string; role: Role };
-    user:    { id: number; email: string; role: Role };
+    payload: { id: number; email: string; role: Role; organizationId: number };
+    user:    { id: number; email: string; role: Role; organizationId: number };
   }
 }
 

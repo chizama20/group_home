@@ -13,30 +13,35 @@ interface IdParam { id: string; }
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
-  fastify.get('/', { preHandler: [fastify.authenticate] }, async (_request, reply) => {
+  fastify.get('/', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { organizationId } = request.user;
     const [rows] = await fastify.mysql.query<RowDataPacket[]>(
-      'SELECT id, first_name, last_name, room_number, active FROM residents WHERE active = 1'
+      'SELECT id, first_name, last_name, room_number, active FROM residents WHERE active = 1 AND organization_id = ?',
+      [organizationId]
     );
     return reply.send(success(rows));
   });
 
   fastify.get<{ Params: IdParam }>('/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { organizationId } = request.user;
     const [rows] = await fastify.mysql.query<RowDataPacket[]>(
-      'SELECT * FROM residents WHERE id = ?', [request.params.id]
+      'SELECT * FROM residents WHERE id = ? AND organization_id = ?',
+      [request.params.id, organizationId]
     );
     if (!rows[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
     return reply.send(success(rows[0]));
   });
 
   fastify.post<{ Body: ResidentBody }>('/', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { organizationId } = request.user;
     const { first_name, last_name, date_of_birth, room_number, notes } = request.body;
 
     if (!first_name || !last_name || !date_of_birth)
       return reply.code(400).send(failure('MISSING_FIELDS', 'first_name, last_name, and date_of_birth are required'));
 
     const [result] = await fastify.mysql.query<ResultSetHeader>(
-      'INSERT INTO residents (first_name, last_name, date_of_birth, room_number, notes) VALUES (?, ?, ?, ?, ?)',
-      [first_name, last_name, date_of_birth, room_number ?? null, notes ?? null]
+      'INSERT INTO residents (organization_id, first_name, last_name, date_of_birth, room_number, notes) VALUES (?, ?, ?, ?, ?, ?)',
+      [organizationId, first_name, last_name, date_of_birth, room_number ?? null, notes ?? null]
     );
     return reply.code(201).send(success({ id: result.insertId }));
   });

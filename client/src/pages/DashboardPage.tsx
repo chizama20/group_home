@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function DashboardPage() {
-  const { user, logout, isManagerOrAbove } = useAuth();
+  const { user, organization, logout, isManagerOrAbove } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -13,7 +13,9 @@ export default function DashboardPage() {
   return (
     <div className="dashboard">
       <header className="dashboard-header">
-        <h1>Group Home</h1>
+        <div className="header-left">
+          <h1>{organization?.name ?? 'Group Home'}</h1>
+        </div>
         <div className="header-right">
           <span className="user-info">
             {user?.name}

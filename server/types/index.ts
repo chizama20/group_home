@@ -1,7 +1,16 @@
 export type Role = 'owner' | 'manager' | 'staff';
 
+export interface Organization {
+  id: number;
+  name: string;
+  slug: string;
+  plan: 'trial' | 'active' | 'suspended';
+  created_at: Date;
+}
+
 export interface User {
   id: number;
+  organization_id: number;
   name: string;
   email: string;
   password_hash: string;
@@ -14,6 +23,7 @@ export interface User {
 
 export interface Resident {
   id: number;
+  organization_id: number;
   first_name: string;
   last_name: string;
   date_of_birth: string;
@@ -25,6 +35,7 @@ export interface Resident {
 
 export interface DailyLog {
   id: number;
+  organization_id: number;
   resident_id: number;
   user_id: number;
   mood: 'great' | 'good' | 'neutral' | 'upset' | 'crisis';
@@ -35,6 +46,7 @@ export interface DailyLog {
 
 export interface Medication {
   id: number;
+  organization_id: number;
   resident_id: number;
   name: string;
   dosage: string;
@@ -46,6 +58,7 @@ export interface Medication {
 
 export interface MedicationLog {
   id: number;
+  organization_id: number;
   medication_id: number;
   user_id: number;
   status: 'given' | 'refused' | 'missed';
@@ -55,6 +68,7 @@ export interface MedicationLog {
 
 export interface Incident {
   id: number;
+  organization_id: number;
   resident_id: number;
   user_id: number;
   severity: 'low' | 'medium' | 'high' | 'critical';
@@ -68,6 +82,7 @@ export interface Incident {
 
 export interface ShiftNote {
   id: number;
+  organization_id: number;
   user_id: number;
   shift: 'morning' | 'afternoon' | 'overnight';
   content: string;
@@ -79,4 +94,5 @@ export interface JwtPayload {
   id: number;
   email: string;
   role: Role;
+  organizationId: number;
 }
