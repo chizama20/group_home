@@ -32,6 +32,7 @@ body {
 
 .field { display: flex; flex-direction: column; gap: .4rem; }
 .field label { font-size: .85rem; font-weight: 600; color: #444; }
+.field-hint { font-size: .75rem; color: #888; margin-top: -.2rem; }
 .field input,
 .field select {
   padding: .65rem .85rem;
@@ -171,3 +172,14 @@ body {
 .role-badge.staff { background: #e8f8f0; color: #00b894; }
 
 .dashboard-main { padding: 2rem; }
+
+.org-id-banner {
+  margin-top: 1.25rem;
+  padding: .85rem 1.1rem;
+  background: #eef1ff;
+  border: 1.5px solid #c5ccf9;
+  border-radius: 8px;
+  font-size: .9rem;
+  color: #3a4a9f;
+}
+.org-id-banner strong { font-family: monospace; font-size: 1rem; }

@@ -54,10 +54,11 @@ export default function LoginPage() {
               type="text"
               value={slug}
               onChange={e => setSlug(e.target.value)}
-              placeholder="your-org-name"
+              placeholder="e.g. sunrise-group-home"
               required
               autoFocus={!slug}
             />
+            <span className="field-hint">Your unique organization ID — provided when your account was created.</span>
           </div>
 
           <div className="field">

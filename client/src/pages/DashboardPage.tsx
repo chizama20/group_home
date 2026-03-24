@@ -34,6 +34,12 @@ export default function DashboardPage() {
 
       <main className="dashboard-main">
         <p>Welcome back, {user?.name}. Dashboard coming soon.</p>
+
+        {organization && (
+          <div className="org-id-banner">
+            <span>Your Organization ID is <strong>{organization.slug}</strong> — share this with staff so they can log in.</span>
+          </div>
+        )}
       </main>
     </div>
   );
