@@ -1,10 +1,10 @@
 import { FastifyInstance } from 'fastify';
+import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import { success, failure } from '../utils/response';
 import { Medication, MedicationLog } from '../types';
 
 type MedicationBody = Omit<Medication, 'id' | 'resident_id' | 'active' | 'created_at'>;
 type AdministerBody = Pick<MedicationLog, 'status' | 'notes'>;
-
 interface ResidentIdParam { id: string; }
 interface MedIdParam     { id: string; }
 
@@ -14,15 +14,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     '/residents/:id/medications',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
-      const { id } = request.params;
-      fastify.mysql.query(
-        'SELECT * FROM medications WHERE resident_id = ? AND active = 1',
-        [id],
-        (err: Error | null, results: any[]) => {
-          if (err) return reply.code(500).send(failure('DB_ERROR', 'Database error'));
-          reply.send(success(results));
-        }
+      const [rows] = await fastify.mysql.query<RowDataPacket[]>(
+        'SELECT * FROM medications WHERE resident_id = ? AND active = 1', [request.params.id]
       );
+      return reply.send(success(rows));
     }
   );
 
@@ -30,21 +25,16 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     '/residents/:id/medications',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
-      const { id } = request.params;
       const { name, dosage, frequency, instructions } = request.body;
 
-      if (!name || !dosage || !frequency) {
+      if (!name || !dosage || !frequency)
         return reply.code(400).send(failure('MISSING_FIELDS', 'name, dosage, and frequency are required'));
-      }
 
-      fastify.mysql.query(
+      const [result] = await fastify.mysql.query<ResultSetHeader>(
         'INSERT INTO medications (resident_id, name, dosage, frequency, instructions) VALUES (?, ?, ?, ?, ?)',
-        [id, name, dosage, frequency, instructions],
-        (err: Error | null, results: any) => {
-          if (err) return reply.code(500).send(failure('DB_ERROR', 'Database error'));
-          reply.code(201).send(success({ id: results.insertId }));
-        }
+        [request.params.id, name, dosage, frequency, instructions ?? null]
       );
+      return reply.code(201).send(success({ id: result.insertId }));
     }
   );
 
@@ -52,22 +42,16 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     '/:id/administer',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
-      const { id } = request.params;
       const { status, notes } = request.body;
-      const user_id = request.user.id;
 
-      if (!status) {
+      if (!status)
         return reply.code(400).send(failure('MISSING_FIELDS', 'status is required'));
-      }
 
-      fastify.mysql.query(
+      const [result] = await fastify.mysql.query<ResultSetHeader>(
         'INSERT INTO medication_logs (medication_id, user_id, status, notes) VALUES (?, ?, ?, ?)',
-        [id, user_id, status, notes],
-        (err: Error | null, results: any) => {
-          if (err) return reply.code(500).send(failure('DB_ERROR', 'Database error'));
-          reply.code(201).send(success({ id: results.insertId }));
-        }
+        [request.params.id, request.user.id, status, notes ?? null]
       );
+      return reply.code(201).send(success({ id: result.insertId }));
     }
   );
 };
