@@ -1,10 +1,16 @@
 import fp from 'fastify-plugin';
-import mysql from '@fastify/mysql';
-import { FastifyInstance } from 'fastify';
+import mysql from 'mysql2/promise';
 
-export default fp(async (fastify: FastifyInstance) => {
-  fastify.register(mysql, {
-    connectionString: `mysql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
-    promise: true
+export default fp(async (fastify) => {
+  const pool = mysql.createPool({
+    host:             process.env.DB_HOST     || '127.0.0.1',
+    port:             Number(process.env.DB_PORT) || 3306,
+    user:             process.env.DB_USER,
+    password:         process.env.DB_PASSWORD,
+    database:         process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit:  10,
   });
+
+  fastify.decorate('db', pool);
 });
