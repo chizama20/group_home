@@ -4,14 +4,14 @@ import { type ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
-  minRole?: 'managerOrAbove' | 'ownerOnly';
+  minRole?: 'managerOrAbove' | 'orgAdminOnly';
 }
 
 export default function ProtectedRoute({ children, minRole }: Props) {
-  const { user, isOwner, isManagerOrAbove } = useAuth();
+  const { user, isOrgAdmin, isManagerOrAbove } = useAuth();
 
   if (!user) return <Navigate to="/login" replace />;
-  if (minRole === 'ownerOnly'      && !isOwner)          return <Navigate to="/dashboard" replace />;
+  if (minRole === 'orgAdminOnly'   && !isOrgAdmin)       return <Navigate to="/dashboard" replace />;
   if (minRole === 'managerOrAbove' && !isManagerOrAbove) return <Navigate to="/dashboard" replace />;
 
   return <>{children}</>;

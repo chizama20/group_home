@@ -1,13 +1,13 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
-import type { User, Organization } from '../types';
+import type { User, Org } from '../types';
 
 interface AuthContextValue {
   user:             User | null;
   token:            string | null;
-  organization:     Organization | null;
-  login:            (token: string, user: User, organization: Organization) => void;
+  org:              Org | null;
+  login:            (token: string, user: User, org: Org) => void;
   logout:           () => void;
-  isOwner:          boolean;
+  isOrgAdmin:       boolean;
   isManager:        boolean;
   isManagerOrAbove: boolean;
 }
@@ -22,35 +22,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const s = localStorage.getItem('user');
     return s ? JSON.parse(s) : null;
   });
-  const [organization, setOrganization] = useState<Organization | null>(() => {
-    const s = localStorage.getItem('organization');
+  const [org, setOrg] = useState<Org | null>(() => {
+    const s = localStorage.getItem('org');
     return s ? JSON.parse(s) : null;
   });
 
-  const login = (newToken: string, newUser: User, newOrg: Organization) => {
-    localStorage.setItem('token',        newToken);
-    localStorage.setItem('user',         JSON.stringify(newUser));
-    localStorage.setItem('organization', JSON.stringify(newOrg));
+  const login = (newToken: string, newUser: User, newOrg: Org) => {
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('user',  JSON.stringify(newUser));
+    localStorage.setItem('org',   JSON.stringify(newOrg));
     setToken(newToken);
     setUser(newUser);
-    setOrganization(newOrg);
+    setOrg(newOrg);
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    localStorage.removeItem('organization');
+    localStorage.removeItem('org');
     setToken(null);
     setUser(null);
-    setOrganization(null);
+    setOrg(null);
   };
 
   return (
     <AuthContext.Provider value={{
-      user, token, organization, login, logout,
-      isOwner:          user?.role === 'owner',
+      user, token, org, login, logout,
+      isOrgAdmin:       user?.role === 'org_admin',
       isManager:        user?.role === 'manager',
-      isManagerOrAbove: user?.role === 'owner' || user?.role === 'manager',
+      isManagerOrAbove: user?.role === 'org_admin' || user?.role === 'manager',
     }}>
       {children}
     </AuthContext.Provider>

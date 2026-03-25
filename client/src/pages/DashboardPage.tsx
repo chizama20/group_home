@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function DashboardPage() {
-  const { user, organization, logout, isManagerOrAbove } = useAuth();
+  const { user, org, logout, isManagerOrAbove } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -14,11 +14,11 @@ export default function DashboardPage() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div className="header-left">
-          <h1>{organization?.name ?? 'Group Home'}</h1>
+          <h1>{org?.name ?? 'Group Home'}</h1>
         </div>
         <div className="header-right">
           <span className="user-info">
-            {user?.name}
+            {user?.first_name} {user?.last_name}
             <span className={`role-badge ${user?.role}`}>{user?.role}</span>
           </span>
           {isManagerOrAbove && (
@@ -33,11 +33,11 @@ export default function DashboardPage() {
       </header>
 
       <main className="dashboard-main">
-        <p>Welcome back, {user?.name}. Dashboard coming soon.</p>
+        <p>Welcome back, {user?.first_name}. Dashboard coming soon.</p>
 
-        {organization && (
+        {org && (
           <div className="org-id-banner">
-            <span>Your Organization ID is <strong>{organization.slug}</strong> — share this with staff so they can log in.</span>
+            <span>Your Organization ID is <strong>{org.id}</strong> — share this with staff so they can log in.</span>
           </div>
         )}
       </main>

@@ -12,10 +12,10 @@ interface FormState {
   position: string;
 }
 
-const EMPTY: FormState = { name: '', email: '', password: '', role: 'staff', phone: '', position: '' };
+const EMPTY: FormState = { name: '', email: '', password: '', role: 'employee', phone: '', position: '' };
 
 export default function RegisterPage() {
-  const { token, isOwner } = useAuth();
+  const { token, isOrgAdmin } = useAuth();
   const navigate           = useNavigate();
   const [form,    setForm]    = useState<FormState>(EMPTY);
   const [error,   setError]   = useState('');
@@ -54,12 +54,12 @@ export default function RegisterPage() {
     }
   };
 
-  // Owners can create any role; managers can only create staff
-  const roleOptions: { value: Role; label: string }[] = isOwner
-    ? [{ value: 'staff', label: 'Staff' }, { value: 'manager', label: 'Manager' }, { value: 'owner', label: 'Owner' }]
-    : [{ value: 'staff', label: 'Staff' }];
+  // Org admins can create any role; managers can only create employees
+  const roleOptions: { value: Role; label: string }[] = isOrgAdmin
+    ? [{ value: 'employee', label: 'Employee' }, { value: 'manager', label: 'Manager' }, { value: 'org_admin', label: 'Org Admin' }]
+    : [{ value: 'employee', label: 'Employee' }];
 
-  const isAdminRole = form.role === 'owner' || form.role === 'manager';
+  const isAdminRole = form.role === 'org_admin' || form.role === 'manager';
 
   return (
     <div className="auth-wrapper">

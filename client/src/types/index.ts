@@ -1,23 +1,26 @@
-export type Role = 'owner' | 'manager' | 'staff';
+export type Role = 'employee' | 'manager' | 'org_admin';
 
-export interface Organization {
-  id: number;
+export interface Org {
+  id: string;
   name: string;
-  slug: string;
+  created_at: string;
 }
 
 export interface Home {
-  id: number;
-  organization_id: number;
+  id: string;
+  org_id: string;
   name: string;
   address?: string;
+  is_active: boolean;
   created_at: string;
 }
 
 export interface User {
-  id: number;
-  name: string;
+  id: string;
+  org_id: string;
   email: string;
+  first_name: string;
+  last_name: string;
   role: Role;
-  organizationId: number;
+  is_active: boolean;
 }
