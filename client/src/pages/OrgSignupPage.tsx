@@ -6,14 +6,14 @@ export default function OrgSignupPage() {
   const { login } = useAuth();
   const navigate  = useNavigate();
 
-  const [orgName,   setOrgName]   = useState('');
-  const [ownerName, setOwnerName] = useState('');
-  const [email,     setEmail]     = useState('');
-  const [password,  setPassword]  = useState('');
-  const [confirm,   setConfirm]   = useState('');
-  const [phone,     setPhone]     = useState('');
-  const [error,     setError]     = useState('');
-  const [loading,   setLoading]   = useState(false);
+  const [orgName,    setOrgName]    = useState('');
+  const [firstName,  setFirstName]  = useState('');
+  const [lastName,   setLastName]   = useState('');
+  const [email,      setEmail]      = useState('');
+  const [password,   setPassword]   = useState('');
+  const [confirm,    setConfirm]    = useState('');
+  const [error,      setError]      = useState('');
+  const [loading,    setLoading]    = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -31,10 +31,10 @@ export default function OrgSignupPage() {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
           organizationName: orgName,
-          ownerName,
+          first_name: firstName,
+          last_name:  lastName,
           email,
-          password,
-          phone: phone || undefined
+          password
         })
       });
       const json = await res.json();
@@ -44,7 +44,7 @@ export default function OrgSignupPage() {
         return;
       }
 
-      login(json.data.token, json.data.user, json.data.organization);
+      login(json.data.token, json.data.user, json.data.org);
       navigate('/dashboard');
     } catch {
       setError('Could not connect to server');
@@ -71,21 +71,21 @@ export default function OrgSignupPage() {
           <div className="field-divider">Your account</div>
 
           <div className="field">
-            <label htmlFor="ownerName">Your Name</label>
-            <input id="ownerName" type="text" value={ownerName} onChange={e => setOwnerName(e.target.value)}
-              placeholder="Jane Doe" required />
+            <label htmlFor="firstName">First Name</label>
+            <input id="firstName" type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
+              placeholder="Jane" required />
+          </div>
+
+          <div className="field">
+            <label htmlFor="lastName">Last Name</label>
+            <input id="lastName" type="text" value={lastName} onChange={e => setLastName(e.target.value)}
+              placeholder="Doe" required />
           </div>
 
           <div className="field">
             <label htmlFor="email">Email</label>
             <input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)}
               placeholder="jane@example.com" required />
-          </div>
-
-          <div className="field">
-            <label htmlFor="phone">Phone <span className="optional">(optional)</span></label>
-            <input id="phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-              placeholder="(555) 000-0000" />
           </div>
 
           <div className="field">

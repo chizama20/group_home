@@ -1,109 +1,105 @@
-export type Role = 'owner' | 'manager' | 'staff';
+export type Role = 'employee' | 'manager' | 'org_admin';
 
-export interface Home {
-  id: number;
-  organization_id: number;
+export interface Org {
+  id: string;
   name: string;
-  address?: string;
-  phone?: string;
-  active: boolean;
   created_at: Date;
+  updated_at: Date;
 }
 
-export interface Organization {
-  id: number;
+export interface Home {
+  id: string;
+  org_id: string;
   name: string;
-  slug: string;
-  plan: 'trial' | 'active' | 'suspended';
+  address?: string;
+  is_active: boolean;
   created_at: Date;
+  updated_at: Date;
 }
 
 export interface User {
-  id: number;
-  organization_id: number;
-  name: string;
+  id: string;
+  org_id: string;
   email: string;
   password_hash: string;
+  first_name: string;
+  last_name: string;
   role: Role;
-  phone?: string;
-  position?: string;
-  active: boolean;
+  is_active: boolean;
+  invited_by?: string;
   created_at: Date;
+  updated_at: Date;
 }
 
 export interface Resident {
-  id: number;
-  organization_id: number;
+  id: string;
+  home_id: string;
   first_name: string;
   last_name: string;
   date_of_birth: string;
-  room_number?: string;
+  room?: string;
+  diagnosis?: string;
+  physician?: string;
+  primary_contact_name?: string;
+  primary_contact_phone?: string;
+  primary_contact_relation?: string;
   notes?: string;
-  active: boolean;
+  is_active: boolean;
+  created_by: string;
   created_at: Date;
-}
-
-export interface DailyLog {
-  id: number;
-  organization_id: number;
-  resident_id: number;
-  user_id: number;
-  mood: 'great' | 'good' | 'neutral' | 'upset' | 'crisis';
-  behavior: 'calm' | 'agitated' | 'aggressive' | 'withdrawn' | 'other';
-  notes?: string;
-  logged_at: Date;
+  updated_at: Date;
 }
 
 export interface Medication {
-  id: number;
-  organization_id: number;
-  resident_id: number;
+  id: string;
+  resident_id: string;
   name: string;
   dosage: string;
-  frequency: 'daily' | 'twice_daily' | 'three_times_daily' | 'as_needed' | 'weekly';
+  frequency: string;
+  scheduled_time?: string;
   instructions?: string;
-  active: boolean;
+  is_active: boolean;
   created_at: Date;
 }
 
 export interface MedicationLog {
-  id: number;
-  organization_id: number;
-  medication_id: number;
-  user_id: number;
-  status: 'given' | 'refused' | 'missed';
+  id: string;
+  medication_id: string;
+  resident_id: string;
+  administered_by: string;
+  outcome: 'given' | 'refused' | 'missed' | 'held';
   notes?: string;
   administered_at: Date;
 }
 
 export interface Incident {
-  id: number;
-  organization_id: number;
-  resident_id: number;
-  user_id: number;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  type: 'behavioral' | 'medical' | 'property' | 'safety' | 'other';
+  id: string;
+  resident_id: string;
+  home_id: string;
+  reported_by: string;
+  title: string;
   description: string;
-  action_taken?: string;
-  reported_to_supervisor: boolean;
-  occurred_at: Date;
+  status: 'open' | 'reviewed' | 'closed';
+  signed_off_by?: string;
   created_at: Date;
+  updated_at: Date;
 }
 
 export interface ShiftNote {
-  id: number;
-  organization_id: number;
-  home_id: number;
-  user_id: number;
+  id: string;
+  home_id: string;
+  user_id: string;
+  resident_id?: string;
   shift: 'morning' | 'afternoon' | 'overnight';
+  shift_date: string;
   content: string;
   flagged: boolean;
   created_at: Date;
 }
 
 export interface JwtPayload {
-  id: number;
+  id: string;
   email: string;
   role: Role;
-  organizationId: number;
+  org_id: string;
 }

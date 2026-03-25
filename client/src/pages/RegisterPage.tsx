@@ -4,15 +4,14 @@ import { useAuth } from '../contexts/AuthContext';
 import type { Role } from '../types';
 
 interface FormState {
-  name:     string;
-  email:    string;
-  password: string;
-  role:     Role;
-  phone:    string;
-  position: string;
+  first_name: string;
+  last_name:  string;
+  email:      string;
+  password:   string;
+  role:       Role;
 }
 
-const EMPTY: FormState = { name: '', email: '', password: '', role: 'employee', phone: '', position: '' };
+const EMPTY: FormState = { first_name: '', last_name: '', email: '', password: '', role: 'employee' };
 
 export default function RegisterPage() {
   const { token, isOrgAdmin } = useAuth();
@@ -45,7 +44,7 @@ export default function RegisterPage() {
         return;
       }
 
-      setSuccess(`Account created for ${json.data.name} (${json.data.role})`);
+      setSuccess(`Account created for ${json.data.first_name} ${json.data.last_name} (${json.data.role})`);
       setForm(EMPTY);
     } catch {
       setError('Could not connect to server');
@@ -58,8 +57,6 @@ export default function RegisterPage() {
   const roleOptions: { value: Role; label: string }[] = isOrgAdmin
     ? [{ value: 'employee', label: 'Employee' }, { value: 'manager', label: 'Manager' }, { value: 'org_admin', label: 'Org Admin' }]
     : [{ value: 'employee', label: 'Employee' }];
-
-  const isAdminRole = form.role === 'org_admin' || form.role === 'manager';
 
   return (
     <div className="auth-wrapper">
@@ -84,9 +81,15 @@ export default function RegisterPage() {
           </div>
 
           <div className="field">
-            <label htmlFor="name">Full Name</label>
-            <input id="name" type="text" value={form.name} onChange={set('name')}
-              placeholder="Jane Doe" required autoFocus />
+            <label htmlFor="first_name">First Name</label>
+            <input id="first_name" type="text" value={form.first_name} onChange={set('first_name')}
+              placeholder="Jane" required autoFocus />
+          </div>
+
+          <div className="field">
+            <label htmlFor="last_name">Last Name</label>
+            <input id="last_name" type="text" value={form.last_name} onChange={set('last_name')}
+              placeholder="Doe" required />
           </div>
 
           <div className="field">
@@ -101,23 +104,8 @@ export default function RegisterPage() {
               placeholder="••••••••" required />
           </div>
 
-          {isAdminRole && (
-            <>
-              <div className="field-divider">Additional details</div>
-              <div className="field">
-                <label htmlFor="phone">Phone <span className="required">*</span></label>
-                <input id="phone" type="tel" value={form.phone} onChange={set('phone')}
-                  placeholder="(555) 000-0000" required />
-              </div>
-              <div className="field">
-                <label htmlFor="position">Job Title <span className="optional">(optional)</span></label>
-                <input id="position" type="text" value={form.position} onChange={set('position')}
-                  placeholder="e.g. Facility Director" />
-              </div>
-            </>
-          )}
 
-          {error   && <p className="auth-error">{error}</p>}
+{error   && <p className="auth-error">{error}</p>}
           {success && <p className="auth-success">{success}</p>}
 
           <button type="submit" className="btn-primary" disabled={loading}>

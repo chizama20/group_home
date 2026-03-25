@@ -1,50 +1,50 @@
 import { FastifyInstance } from 'fastify';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
+import { RowDataPacket } from 'mysql2';
+import { v4 as uuidv4 } from 'uuid';
 import { success, failure } from '../utils/response';
 import { getAccessibleHomeIds, homeFilter, canAccessHome } from '../utils/homeAccess';
-import { DailyLog } from '../types';
 
-type LogBody = Omit<DailyLog, 'id' | 'organization_id' | 'user_id' | 'logged_at'>;
+interface IposLogBody {
+  resident_id: string;
+  home_id: string;
+  shift: 'morning' | 'afternoon' | 'overnight';
+  log_date: string;
+  content: string;
+}
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
   fastify.get('/', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { organizationId } = request.user;
     const homeIds = await getAccessibleHomeIds(fastify, request.user);
-    const filter  = homeFilter(homeIds, 'r.home_id');
+    const filter  = homeFilter(homeIds, 'il.home_id');
 
-    const [rows] = await fastify.mysql.query<RowDataPacket[]>(
-      `SELECT dl.*, r.first_name, r.last_name, u.name as staff_name
-       FROM daily_logs dl
-       JOIN residents r ON dl.resident_id = r.id
-       JOIN users u ON dl.user_id = u.id
-       WHERE dl.organization_id = ?${filter}
-       ORDER BY dl.logged_at DESC`,
-      homeIds === null ? [organizationId] : [organizationId, ...homeIds]
+    const [rows] = await fastify.db.execute<RowDataPacket[]>(
+      `SELECT il.*, r.first_name, r.last_name, u.first_name as staff_first, u.last_name as staff_last
+       FROM ipos_logs il
+       JOIN residents r ON il.resident_id = r.id
+       JOIN users u ON il.user_id = u.id
+       WHERE 1=1${filter}
+       ORDER BY il.log_date DESC`,
+      homeIds === null ? [] : homeIds
     );
     return reply.send(success(rows));
   });
 
-  fastify.post<{ Body: LogBody }>('/', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { organizationId, id: user_id } = request.user;
-    const { resident_id, mood, behavior, notes } = request.body;
+  fastify.post<{ Body: IposLogBody }>('/', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { id: user_id } = request.user;
+    const { resident_id, home_id, shift, log_date, content } = request.body;
 
-    if (!resident_id || !mood || !behavior)
-      return reply.code(400).send(failure('MISSING_FIELDS', 'resident_id, mood, and behavior are required'));
+    if (!resident_id || !home_id || !shift || !log_date || !content)
+      return reply.code(400).send(failure('MISSING_FIELDS', 'resident_id, home_id, shift, log_date, and content are required'));
 
-    const [check] = await fastify.mysql.query<RowDataPacket[]>(
-      'SELECT id, home_id FROM residents WHERE id = ? AND organization_id = ?',
-      [resident_id, organizationId]
+    if (!await canAccessHome(fastify, request.user, home_id))
+      return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+
+    const id = uuidv4();
+    await fastify.db.execute(
+      'INSERT INTO ipos_logs (id, resident_id, home_id, user_id, shift, log_date, content) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [id, resident_id, home_id, user_id, shift, log_date, content]
     );
-    if (!check[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
-
-    if (!await canAccessHome(fastify, request.user, check[0].home_id))
-      return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
-
-    const [result] = await fastify.mysql.query<ResultSetHeader>(
-      'INSERT INTO daily_logs (organization_id, resident_id, user_id, mood, behavior, notes) VALUES (?, ?, ?, ?, ?, ?)',
-      [organizationId, resident_id, user_id, mood, behavior, notes ?? null]
-    );
-    return reply.code(201).send(success({ id: result.insertId }));
+    return reply.code(201).send(success({ id }));
   });
 };

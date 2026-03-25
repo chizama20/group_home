@@ -7,7 +7,7 @@ export default function LoginPage() {
   const navigate         = useNavigate();
   const [params]         = useSearchParams();
 
-  const [slug,     setSlug]     = useState(params.get('org') ?? '');
+  const [orgId,    setOrgId]    = useState(params.get('org') ?? '');
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [error,    setError]    = useState('');
@@ -22,7 +22,7 @@ export default function LoginPage() {
       const res  = await fetch('http://localhost:3000/auth/login', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ organizationSlug: slug, email, password })
+        body:    JSON.stringify({ org_id: orgId, email, password })
       });
       const json = await res.json();
 
@@ -31,7 +31,7 @@ export default function LoginPage() {
         return;
       }
 
-      login(json.data.token, json.data.user, json.data.organization);
+      login(json.data.token, json.data.user, json.data.org);
       navigate('/dashboard');
     } catch {
       setError('Could not connect to server');
@@ -48,17 +48,17 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="field">
-            <label htmlFor="slug">Organization ID</label>
+            <label htmlFor="orgId">Organization ID</label>
             <input
-              id="slug"
+              id="orgId"
               type="text"
-              value={slug}
-              onChange={e => setSlug(e.target.value)}
-              placeholder="e.g. sunrise-group-home"
+              value={orgId}
+              onChange={e => setOrgId(e.target.value)}
+              placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
               required
-              autoFocus={!slug}
+              autoFocus={!orgId}
             />
-            <span className="field-hint">Your unique organization ID — provided when your account was created.</span>
+            <span className="field-hint">Your organization UUID — shown on the dashboard when you first sign up.</span>
           </div>
 
           <div className="field">
@@ -70,7 +70,7 @@ export default function LoginPage() {
               onChange={e => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
-              autoFocus={!!slug}
+              autoFocus={!!orgId}
             />
           </div>
 
