@@ -5,7 +5,9 @@
       "Bash(npm install:*)",
       "Bash(npx tailwindcss:*)",
       "Bash(npm run:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npx knex:*)",
+      "Bash(node -e \":*)"
     ]
   }
 }
