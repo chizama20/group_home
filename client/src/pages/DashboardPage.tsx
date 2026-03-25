@@ -13,13 +13,11 @@ export default function DashboardPage() {
   return (
     <div className="dashboard">
       <header className="dashboard-header">
-        <div className="header-left">
-          <h1>{org?.name ?? 'Group Home'}</h1>
-        </div>
+        <h1>{org?.name ?? 'Group Home'}</h1>
         <div className="header-right">
           <span className="user-info">
             {user?.first_name} {user?.last_name}
-            <span className={`role-badge ${user?.role}`}>{user?.role}</span>
+            <span className={`role-badge ${user?.role}`}>{user?.role?.replace('_', ' ')}</span>
           </span>
           {isManagerOrAbove && (
             <button className="btn-secondary" onClick={() => navigate('/register')}>
@@ -37,7 +35,9 @@ export default function DashboardPage() {
 
         {org && (
           <div className="org-id-banner">
-            <span>Your Organization ID is <strong>{org.id}</strong> — share this with staff so they can log in.</span>
+            Your Organization ID is <strong>{org.id}</strong>
+            <br />
+            Share this with staff so they can log in.
           </div>
         )}
       </main>
