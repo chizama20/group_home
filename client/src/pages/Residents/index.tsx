@@ -1,19 +1,70 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BottomNav from '../../components/BottomNav'
 import StatusBadge from '../../components/StatusBadge'
 import { useSelectedHome } from '../../hooks/useSelectedHome'
 import { useResidents } from '../../hooks/useResidents'
+import { getHomeIpos } from '../../api/logs'
+import { currentShift } from '../../types/log'
+import { todayStr } from '../../utils/date'
+import type { Resident } from '../../types/resident'
+
+function ResidentRow({ r, badge }: { r: Resident; badge: string }) {
+  const navigate = useNavigate()
+  return (
+    <button
+      onClick={() => navigate(`/residents/${r.id}`)}
+      className='w-full flex items-center gap-3 px-4 py-3 text-left min-h-[60px] hover:bg-gray-50 border-b border-gray-100 last:border-0'
+    >
+      <div className='w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex items-center justify-center shrink-0'>
+        {r.first_name[0]}{r.last_name[0]}
+      </div>
+      <div className='flex-1 min-w-0'>
+        <p className='text-sm font-medium text-gray-900'>{r.first_name} {r.last_name}</p>
+        {r.room && <p className='text-xs text-gray-500 mt-0.5'>Room {r.room}</p>}
+      </div>
+      <StatusBadge status={badge} />
+    </button>
+  )
+}
+
+function SectionHeader({ label, count, colour }: { label: string; count: number; colour: string }) {
+  return (
+    <div className={`px-4 py-2 border-b ${colour}`}>
+      <span className='text-xs font-semibold uppercase tracking-wide'>{label}</span>
+      <span className='text-xs ml-2 opacity-70'>{count}</span>
+    </div>
+  )
+}
 
 export default function ResidentsPage() {
-  const navigate = useNavigate()
   const { homes, homeId, selectHome } = useSelectedHome()
   const { residents, loading, error } = useResidents(homeId)
-  const [search, setSearch] = useState('')
+  const [search, setSearch]           = useState('')
+  const [filedIds, setFiledIds]       = useState<Set<string>>(new Set())
 
-  const filtered = residents.filter(r =>
-    `${r.first_name} ${r.last_name}`.toLowerCase().includes(search.toLowerCase())
+  // Fetch today's IPOS to compute "attention" group
+  useEffect(() => {
+    if (!homeId) return
+    getHomeIpos(homeId, { date: todayStr(), shift: currentShift() })
+      .then(res => {
+        if (res.data.success && res.data.data)
+          setFiledIds(new Set(res.data.data.map(l => l.resident_id)))
+      })
+      .catch(() => {/* non-critical */})
+  }, [homeId])
+
+  const searchLower = search.toLowerCase()
+  const active = residents.filter(r => r.is_active)
+  const filtered = active.filter(r =>
+    r.first_name.toLowerCase().includes(searchLower) ||
+    r.last_name.toLowerCase().includes(searchLower) ||
+    (r.room ?? '').toLowerCase().includes(searchLower)
   )
+
+  const urgent    = filtered.filter(r => r.status === 'urgent')
+  const attention = filtered.filter(r => r.status !== 'urgent' && !filedIds.has(r.id))
+  const allGood   = filtered.filter(r => r.status !== 'urgent' && filedIds.has(r.id))
 
   return (
     <div className='pb-20 min-h-screen bg-gray-50'>
@@ -34,34 +85,44 @@ export default function ResidentsPage() {
 
         <input
           type='search'
-          placeholder='Search residents…'
+          placeholder='Search by name or room…'
           value={search}
           onChange={e => setSearch(e.target.value)}
           className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px]'
         />
       </div>
 
-      <div className='divide-y divide-gray-100 bg-white'>
+      <div className='bg-white mt-3 mx-0'>
         {loading && <p className='p-4 text-sm text-gray-500'>Loading…</p>}
         {error   && <p className='p-4 text-sm text-red-600'>{error}</p>}
         {!loading && !homeId && <p className='p-4 text-sm text-gray-500'>No home selected</p>}
 
-        {filtered.map(r => (
-          <button
-            key={r.id}
-            onClick={() => navigate(`/residents/${r.id}`)}
-            className='w-full flex items-center justify-between p-4 text-left min-h-[60px] hover:bg-gray-50'
-          >
-            <div>
-              <p className='font-medium text-gray-900 text-sm'>{r.first_name} {r.last_name}</p>
-              {r.room && <p className='text-xs text-gray-500'>Room {r.room}</p>}
-            </div>
-            {r.status && <StatusBadge status={r.status} />}
-          </button>
-        ))}
-
-        {!loading && homeId && filtered.length === 0 && !error && (
-          <p className='p-4 text-sm text-gray-500'>No residents found</p>
+        {!loading && homeId && (
+          <>
+            {urgent.length > 0 && (
+              <>
+                <SectionHeader label='Urgent' count={urgent.length} colour='bg-red-50 border-red-100 text-red-600' />
+                {urgent.map(r => <ResidentRow key={r.id} r={r} badge='urgent' />)}
+              </>
+            )}
+            {attention.length > 0 && (
+              <>
+                <SectionHeader label='Needs Attention' count={attention.length} colour='bg-amber-50 border-amber-100 text-amber-600' />
+                {attention.map(r => <ResidentRow key={r.id} r={r} badge='attention' />)}
+              </>
+            )}
+            {allGood.length > 0 && (
+              <>
+                <SectionHeader label='All Good' count={allGood.length} colour='bg-green-50 border-green-100 text-green-600' />
+                {allGood.map(r => <ResidentRow key={r.id} r={r} badge='all_good' />)}
+              </>
+            )}
+            {filtered.length === 0 && !error && (
+              <p className='p-4 text-sm text-gray-500'>
+                {search ? 'No residents match your search' : 'No active residents'}
+              </p>
+            )}
+          </>
         )}
       </div>
 

@@ -3,27 +3,32 @@ import { useParams, useNavigate } from 'react-router-dom'
 import type { Resident } from '../../types/resident'
 import { getResident } from '../../api/residents'
 import BottomNav from '../../components/BottomNav'
+import { cn } from '../../lib/cn'
+import InfoTab         from './tabs/InfoTab'
+import MedicationsTab  from './tabs/MedicationsTab'
+import LogsTab         from './tabs/LogsTab'
+import AppointmentsTab from './tabs/AppointmentsTab'
+import IncidentsTab    from './tabs/IncidentsTab'
 
-function ageFromDob(dob: string) {
-  const diff = Date.now() - new Date(dob).getTime()
-  return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25))
-}
+const TABS = ['info', 'meds', 'logs', 'appointments', 'incidents'] as const
+type Tab = typeof TABS[number]
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className='flex justify-between items-start gap-4 text-sm py-1'>
-      <dt className='text-gray-500 shrink-0'>{label}</dt>
-      <dd className='text-gray-900 font-medium text-right'>{value}</dd>
-    </div>
-  )
+const TAB_LABELS: Record<Tab, string> = {
+  info:         'Overview',
+  meds:         'Medications',
+  logs:         'Logs',
+  appointments: 'Appointments',
+  incidents:    'Incidents',
 }
 
 export default function ResidentProfile() {
-  const { id }     = useParams<{ id: string }>()
-  const navigate   = useNavigate()
+  const { id }   = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [resident, setResident] = useState<Resident | null>(null)
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState<string | null>(null)
+  const [tab, setTab]           = useState<Tab>('info')
+  const [showAddAppt, setShowAddAppt] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -33,58 +38,90 @@ export default function ResidentProfile() {
       .finally(() => setLoading(false))
   }, [id])
 
-  if (loading) return <div className='p-4 text-sm text-gray-500'>Loading…</div>
-  if (error)   return <div className='p-4 text-sm text-red-600'>{error}</div>
+  if (loading) return (
+    <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
+      <div className='w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin' />
+    </div>
+  )
+  if (error)    return <div className='p-4 text-sm text-red-600'>{error}</div>
   if (!resident) return <div className='p-4 text-sm text-gray-500'>Resident not found</div>
 
   return (
     <div className='pb-20 min-h-screen bg-gray-50'>
-      <div className='bg-white px-4 pt-5 pb-3 border-b border-gray-100 flex items-center gap-3'>
-        <button
-          onClick={() => navigate(-1)}
-          className='text-gray-500 min-h-[44px] min-w-[44px] flex items-center justify-center text-xl'
-          aria-label='Back'
-        >
-          ←
-        </button>
-        <div>
-          <h1 className='text-xl font-bold text-gray-900'>
-            {resident.first_name} {resident.last_name}
-          </h1>
-          {resident.room && <p className='text-sm text-gray-500'>Room {resident.room}</p>}
+
+      {/* Header */}
+      <div className='bg-white px-4 pt-5 pb-0 border-b border-gray-100'>
+        <div className='flex items-center gap-3 pb-3'>
+          <button
+            onClick={() => navigate(-1)}
+            className='text-gray-500 min-h-[44px] min-w-[44px] flex items-center justify-center text-xl shrink-0'
+            aria-label='Back'
+          >
+            ←
+          </button>
+          <div className='flex-1 min-w-0'>
+            <h1 className='text-xl font-bold text-gray-900 truncate'>
+              {resident.first_name} {resident.last_name}
+            </h1>
+            {resident.room && (
+              <p className='text-sm text-gray-500'>Room {resident.room}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Tab bar */}
+        <div className='flex overflow-x-auto gap-1 pb-0 -mx-1 px-1' style={{ scrollbarWidth: 'none' }}>
+          {TABS.map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={cn(
+                'px-4 py-2.5 text-sm font-medium whitespace-nowrap rounded-t-lg min-h-[44px] transition-colors shrink-0',
+                tab === t
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                  : 'text-gray-500 hover:text-gray-700'
+              )}
+            >
+              {TAB_LABELS[t]}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className='space-y-3 p-4'>
-        <div className='bg-white rounded-xl p-4 shadow-sm'>
-          <h2 className='text-xs font-semibold text-gray-400 uppercase mb-3'>Personal</h2>
-          <dl>
-            <Row label='Date of birth' value={`${resident.date_of_birth} · age ${ageFromDob(resident.date_of_birth)}`} />
-            {resident.diagnosis && <Row label='Diagnosis' value={resident.diagnosis} />}
-            {resident.physician && <Row label='Physician' value={resident.physician} />}
-          </dl>
-        </div>
-
-        {(resident.primary_contact_name ?? resident.primary_contact_phone) && (
-          <div className='bg-white rounded-xl p-4 shadow-sm'>
-            <h2 className='text-xs font-semibold text-gray-400 uppercase mb-3'>Primary Contact</h2>
-            <dl>
-              {resident.primary_contact_name     && <Row label='Name'     value={resident.primary_contact_name} />}
-              {resident.primary_contact_phone    && <Row label='Phone'    value={resident.primary_contact_phone} />}
-              {resident.primary_contact_relation && <Row label='Relation' value={resident.primary_contact_relation} />}
-            </dl>
-          </div>
-        )}
-
-        {resident.notes && (
-          <div className='bg-white rounded-xl p-4 shadow-sm'>
-            <h2 className='text-xs font-semibold text-gray-400 uppercase mb-2'>Notes</h2>
-            <p className='text-sm text-gray-700 whitespace-pre-wrap'>{resident.notes}</p>
-          </div>
-        )}
-      </div>
+      {/* Tab content */}
+      {tab === 'info'         && <InfoTab resident={resident} />}
+      {tab === 'meds'         && <MedicationsTab residentId={resident.id} />}
+      {tab === 'logs'         && <LogsTab residentId={resident.id} />}
+      {tab === 'appointments' && (
+        <AppointmentsTab
+          residentId={resident.id}
+          onAddAppointment={() => setShowAddAppt(true)}
+        />
+      )}
+      {tab === 'incidents'    && (
+        <IncidentsTab residentId={resident.id} homeId={resident.home_id} />
+      )}
 
       <BottomNav />
+
+      {/* Add Appointment placeholder — wired in Phase 8 */}
+      {showAddAppt && (
+        <>
+          <div className='fixed inset-0 bg-black/40 z-40' onClick={() => setShowAddAppt(false)} />
+          <div className='fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 p-4 pb-8'>
+            <div className='w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4' />
+            <p className='text-center text-sm text-gray-500'>
+              Add Appointment form — wired in Phase 8
+            </p>
+            <button
+              onClick={() => setShowAddAppt(false)}
+              className='mt-4 w-full py-3 bg-gray-100 rounded-xl text-sm text-gray-600 min-h-[44px]'
+            >
+              Close
+            </button>
+          </div>
+        </>
+      )}
     </div>
   )
 }
