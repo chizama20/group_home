@@ -39,7 +39,16 @@ export function HomeProvider({ children }: { children: ReactNode }) {
           setHomes(list)
           const stored = localStorage.getItem('homeId')
           const found  = list.find(h => h.id === stored)
-          setHomeId(found ? found.id : (list[0]?.id ?? null))
+          if (found) {
+            setHomeId(found.id)
+          } else if (list.length === 1) {
+            // Single home — auto-select silently
+            setHomeId(list[0].id)
+            localStorage.setItem('homeId', list[0].id)
+          } else {
+            // Multiple homes, no stored selection — let UI handle (selection screen)
+            setHomeId(null)
+          }
         }
       })
       .catch(() => setError('Failed to load homes'))

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import BottomNav from '../../components/BottomNav'
-import { useSelectedHome } from '../../hooks/useSelectedHome'
+import HomeSwitcherStrip from '../../components/HomeSwitcherStrip'
+import { useHome } from '../../context/HomeContext'
 import { useResidents } from '../../hooks/useResidents'
 import { cn } from '../../lib/cn'
 import IposTab       from './IposTab'
@@ -17,8 +18,8 @@ const TABS: { id: LogTab; label: string }[] = [
 ]
 
 export default function LogsPage() {
-  const [searchParams]              = useSearchParams()
-  const { homeId, homes, selectHome } = useSelectedHome()
+  const [searchParams]  = useSearchParams()
+  const { homeId }      = useHome()
   const { residents }               = useResidents(homeId)
 
   const initialTab = (searchParams.get('tab') as LogTab | null) ?? 'ipos'
@@ -35,19 +36,11 @@ export default function LogsPage() {
   return (
     <div className='pb-20 min-h-screen bg-gray-50'>
       {/* Header */}
-      <div className='bg-white px-4 pt-5 pb-0 border-b border-gray-200'>
-        <div className='flex items-center justify-between mb-3'>
-          <h1 className='text-xl font-bold text-gray-900'>Logs</h1>
-          {homes.length > 1 && (
-            <select
-              value={homeId ?? ''}
-              onChange={e => selectHome(e.target.value)}
-              className='border border-gray-300 rounded-lg px-2 py-1.5 text-sm bg-white min-h-[36px]'
-            >
-              {homes.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
-            </select>
-          )}
+      <div className='bg-white border-b border-gray-200'>
+        <div className='px-4 pt-5 pb-0'>
+          <h1 className='text-xl font-bold text-gray-900 mb-3'>Logs</h1>
         </div>
+        <HomeSwitcherStrip />
 
         {/* Sub-nav tabs */}
         <div className='flex gap-1'>

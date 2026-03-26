@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BottomNav from '../../components/BottomNav'
+import HomeSwitcherStrip from '../../components/HomeSwitcherStrip'
 import StatusBadge from '../../components/StatusBadge'
-import { useSelectedHome } from '../../hooks/useSelectedHome'
+import { useHome } from '../../context/HomeContext'
 import { useResidents } from '../../hooks/useResidents'
 import { getHomeIpos } from '../../api/logs'
 import { currentShift } from '../../types/log'
@@ -38,7 +39,7 @@ function SectionHeader({ label, count, colour }: { label: string; count: number;
 }
 
 export default function ResidentsPage() {
-  const { homes, homeId, selectHome } = useSelectedHome()
+  const { homeId } = useHome()
   const { residents, loading, error } = useResidents(homeId)
   const [search, setSearch]           = useState('')
   const [filedIds, setFiledIds]       = useState<Set<string>>(new Set())
@@ -68,31 +69,23 @@ export default function ResidentsPage() {
 
   return (
     <div className='pb-20 min-h-screen bg-gray-50'>
-      <div className='bg-white px-4 pt-5 pb-3 border-b border-gray-100'>
-        <h1 className='text-xl font-bold text-gray-900 mb-3'>Residents</h1>
-
-        {homes.length > 1 && (
-          <select
-            value={homeId ?? ''}
-            onChange={e => selectHome(e.target.value)}
-            className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] mb-3 bg-white'
-          >
-            {homes.map(h => (
-              <option key={h.id} value={h.id}>{h.name}</option>
-            ))}
-          </select>
-        )}
-
-        <input
-          type='search'
-          placeholder='Search by name or room…'
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px]'
-        />
+      {/* Header */}
+      <div className='bg-white border-b border-gray-100'>
+        <div className='px-4 pt-5 pb-3'>
+          <h1 className='text-xl font-bold text-gray-900 mb-3'>Residents</h1>
+          <input
+            type='search'
+            placeholder='Search by name or room…'
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px]'
+          />
+        </div>
+        <HomeSwitcherStrip />
       </div>
 
-      <div className='bg-white mt-3 mx-0'>
+      {/* List */}
+      <div className='bg-white mt-3'>
         {loading && <p className='p-4 text-sm text-gray-500'>Loading…</p>}
         {error   && <p className='p-4 text-sm text-red-600'>{error}</p>}
         {!loading && !homeId && <p className='p-4 text-sm text-gray-500'>No home selected</p>}

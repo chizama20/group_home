@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { useSelectedHome } from '../../hooks/useSelectedHome'
+import { useHome } from '../../context/HomeContext'
+import { useRole } from '../../utils/role'
 import { useDashboard } from '../../hooks/useDashboard'
 import BottomNav from '../../components/BottomNav'
+import HomeSwitcherStrip from '../../components/HomeSwitcherStrip'
 import AnnouncementBanner from './AnnouncementBanner'
 import NeedsAttention from './NeedsAttention'
 import UpcomingAppointments from './UpcomingAppointments'
@@ -29,9 +31,10 @@ function initials(first: string, last: string): string {
 }
 
 export default function DashboardPage() {
-  const { user, logout }       = useAuth()
-  const navigate               = useNavigate()
-  const { homeId, selectedHome } = useSelectedHome()
+  const { user, logout }                  = useAuth()
+  const navigate                          = useNavigate()
+  const { homeId, selectedHome, homes, isLoading: homeIsLoading } = useHome()
+  const { isManager }                     = useRole()
   const {
     announcements, appointments, tasks,
     overdueMedCount, unfiledIposCount, isShiftActive,
@@ -42,6 +45,14 @@ export default function DashboardPage() {
   const [showAddAppt, setShowAddAppt] = useState(false)
 
   const shift = currentShift()
+
+  // Redirect multi-home managers to home selection screen when no home chosen
+  useEffect(() => {
+    if (homeIsLoading) return
+    if (isManager && homes.length > 1 && !homeId) {
+      navigate('/select-home', { replace: true })
+    }
+  }, [homeIsLoading, isManager, homes.length, homeId, navigate])
 
   return (
     <div className='pb-24 min-h-screen bg-gray-50'>
@@ -66,6 +77,9 @@ export default function DashboardPage() {
           </button>
         </div>
       </div>
+
+      {/* Home Switcher Strip (multi-home only) */}
+      <HomeSwitcherStrip />
 
       {/* Section B: Shift Strip */}
       <div className='mx-4 mt-4 bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-center justify-between'>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import BottomNav from '../../components/BottomNav'
-import { useSelectedHome } from '../../hooks/useSelectedHome'
+import HomeSwitcherStrip from '../../components/HomeSwitcherStrip'
+import { useHome } from '../../context/HomeContext'
 import { useAuth } from '../../context/AuthContext'
 import { clockIn, clockOut } from '../../api/homes'
 import { getShiftNotes, createShiftNote } from '../../api/logs'
@@ -21,8 +22,8 @@ function prevShift(s: Shift): Shift {
 }
 
 export default function ShiftPage() {
-  const { user }                    = useAuth()
-  const { homeId, homes, selectHome } = useSelectedHome()
+  const { user }  = useAuth()
+  const { homeId } = useHome()
 
   const [shift, setShift]           = useState<Shift>(currentShift())
   const date                        = todayStr()
@@ -84,28 +85,20 @@ export default function ShiftPage() {
   return (
     <div className='pb-48 min-h-screen bg-gray-50'>
       {/* Header */}
-      <div className='bg-white px-4 pt-5 pb-3 border-b border-gray-100'>
-        <h1 className='text-xl font-bold text-gray-900 mb-3'>Shift</h1>
-
-        {homes.length > 1 && (
+      <div className='bg-white border-b border-gray-100'>
+        <div className='px-4 pt-5 pb-3'>
+          <h1 className='text-xl font-bold text-gray-900 mb-3'>Shift</h1>
           <select
-            value={homeId ?? ''}
-            onChange={e => selectHome(e.target.value)}
-            className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] mb-3 bg-white'
+            value={shift}
+            onChange={e => { setShift(e.target.value as Shift); setClockStatus('idle') }}
+            className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] bg-white'
           >
-            {homes.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
+            {SHIFTS.map(s => (
+              <option key={s} value={s}>{SHIFT_LABELS[s]}</option>
+            ))}
           </select>
-        )}
-
-        <select
-          value={shift}
-          onChange={e => { setShift(e.target.value as Shift); setClockStatus('idle') }}
-          className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] bg-white'
-        >
-          {SHIFTS.map(s => (
-            <option key={s} value={s}>{SHIFT_LABELS[s]}</option>
-          ))}
-        </select>
+        </div>
+        <HomeSwitcherStrip />
       </div>
 
       {/* Time clock */}
