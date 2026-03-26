@@ -32,6 +32,10 @@ export interface BehavioralLog {
   notes: string | null
   occurred_at: string
   created_at: string
+  // Joined fields returned by GET endpoints
+  behavior_name?: string
+  resident_first?: string
+  resident_last?: string
 }
 
 export interface ShiftNote {

@@ -8,8 +8,13 @@ export const getHomeIncidents = (homeId: string, params?: { status?: string }) =
 export const getIncident = (id: string) =>
   api.get<ApiResponse<Incident>>(`/incidents/${id}`)
 
-export const createIncident = (homeId: string, data: { resident_id: string; title: string; description: string }) =>
-  api.post<ApiResponse<{ id: string }>>(`/homes/${homeId}/incidents`, data)
+export const createIncident = (homeId: string, data: {
+  resident_id: string
+  incident_type: string
+  severity: 'low' | 'medium' | 'high'
+  description: string
+  occurred_at: string
+}) => api.post<ApiResponse<{ id: string }>>(`/homes/${homeId}/incidents`, data)
 
 export const signOffIncident = (id: string) =>
   api.patch<ApiResponse<{ message: string }>>(`/incidents/${id}/sign-off`)

@@ -7,6 +7,9 @@ export interface Incident {
   reported_by: string
   title: string
   description: string
+  incident_type: string | null
+  severity: 'low' | 'medium' | 'high' | null
+  occurred_at: string | null
   status: IncidentStatus
   signed_off_by: string | null
   signed_off_at: string | null

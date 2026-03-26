@@ -18,7 +18,7 @@ interface ResidentBody {
 }
 
 interface IposBody {
-  resident_id: string; shift: 'morning' | 'afternoon' | 'overnight';
+  resident_id: string; shift: 'day' | 'evening' | 'night';
   log_date: string; content: string;
 }
 
@@ -27,11 +27,12 @@ interface BehavioralLogBody {
 }
 
 interface IncidentBody {
-  resident_id: string; title: string; description: string;
+  resident_id: string; incident_type: string; severity: 'low' | 'medium' | 'high';
+  description: string; occurred_at: string;
 }
 
 interface ShiftNoteBody {
-  resident_id?: string; shift: 'morning' | 'afternoon' | 'overnight';
+  resident_id?: string; shift: 'day' | 'evening' | 'night';
   shift_date: string; content: string; flagged?: boolean;
 }
 
@@ -48,8 +49,8 @@ interface AppointmentQuery { from?: string; days?: string; }
 
 interface TaskBody { title: string; description?: string; due_date?: string; }
 
-interface RosterBody { user_id: string; shift: 'morning' | 'afternoon' | 'overnight'; shift_date: string; }
-interface ClockBody  { shift: 'morning' | 'afternoon' | 'overnight'; shift_date: string; }
+interface RosterBody { user_id: string; shift: 'day' | 'evening' | 'night'; shift_date: string; }
+interface ClockBody  { shift: 'day' | 'evening' | 'night'; shift_date: string; }
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
@@ -476,20 +477,21 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       if (!await canAccessHome(fastify, request.user, homeId))
         return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
 
-      const { resident_id, title, description } = request.body;
-      if (!resident_id || !title || !description)
-        return reply.code(400).send(failure('MISSING_FIELDS', 'resident_id, title, and description are required'));
+      const { resident_id, incident_type, severity, description, occurred_at } = request.body;
+      if (!resident_id || !incident_type || !severity || !description || !occurred_at)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'resident_id, incident_type, severity, description, and occurred_at are required'));
 
       const [resCheck] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id FROM residents WHERE id = ? AND home_id = ?', [resident_id, homeId]
       );
       if (!resCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found in this home'));
 
+      const title = `${incident_type} — ${severity.charAt(0).toUpperCase() + severity.slice(1)}`;
       const id = uuidv4();
       await fastify.db.execute(
-        `INSERT INTO incidents (id, resident_id, home_id, reported_by, title, description, status)
-         VALUES (?, ?, ?, ?, ?, ?, 'open')`,
-        [id, resident_id, homeId, reported_by, title, description]
+        `INSERT INTO incidents (id, resident_id, home_id, reported_by, title, description, incident_type, severity, occurred_at, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'open')`,
+        [id, resident_id, homeId, reported_by, title, description, incident_type, severity, occurred_at]
       );
       return reply.code(201).send(success({ id }));
     }
