@@ -9,25 +9,56 @@ interface HomeBody   { name: string; address?: string; }
 interface HomeParam  { id: string; }
 interface StaffParam { id: string; userId: string; }
 interface AssignBody { userId: string; }
+
 interface ResidentBody {
-  first_name: string;
-  last_name: string;
-  date_of_birth: string;
-  room?: string;
-  diagnosis?: string;
-  physician?: string;
-  primary_contact_name?: string;
-  primary_contact_phone?: string;
-  primary_contact_relation?: string;
-  notes?: string;
+  first_name: string; last_name: string; date_of_birth: string;
+  room?: string; diagnosis?: string; physician?: string;
+  primary_contact_name?: string; primary_contact_phone?: string;
+  primary_contact_relation?: string; notes?: string;
 }
+
+interface IposBody {
+  resident_id: string; shift: 'morning' | 'afternoon' | 'overnight';
+  log_date: string; content: string;
+}
+
+interface BehavioralLogBody {
+  resident_id: string; behavior_id: string; notes?: string; occurred_at: string;
+}
+
+interface IncidentBody {
+  resident_id: string; title: string; description: string;
+}
+
+interface ShiftNoteBody {
+  resident_id?: string; shift: 'morning' | 'afternoon' | 'overnight';
+  shift_date: string; content: string; flagged?: boolean;
+}
+
+interface AnnouncementQuery { home_id?: string; }
+
+interface AppointmentBody {
+  resident_id: string; type: string; title: string;
+  appointment_date: string; appointment_time?: string;
+  location?: string; notes?: string;
+  collector_name?: string; collector_phone?: string;
+}
+
+interface AppointmentQuery { from?: string; days?: string; }
+
+interface TaskBody { title: string; description?: string; due_date?: string; }
+
+interface RosterBody { user_id: string; shift: 'morning' | 'afternoon' | 'overnight'; shift_date: string; }
+interface ClockBody  { shift: 'morning' | 'afternoon' | 'overnight'; shift_date: string; }
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
-  // ── GET /homes — list homes the user is assigned to (manager+) ────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HOME CRUD
+  // ═══════════════════════════════════════════════════════════════════════════
+
   fastify.get('/', { preHandler: [fastify.authenticate, managerOrAbove] }, async (request, reply) => {
     const { org_id, id: userId, role } = request.user;
-
     let rows: RowDataPacket[];
     if (role === 'org_admin') {
       [rows] = await fastify.db.execute<RowDataPacket[]>(
@@ -37,25 +68,20 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       [rows] = await fastify.db.execute<RowDataPacket[]>(
         `SELECT h.* FROM homes h
          JOIN home_staff hs ON h.id = hs.home_id
-         WHERE hs.user_id = ? AND h.org_id = ? AND h.is_active = 1
-         ORDER BY h.name`,
+         WHERE hs.user_id = ? AND h.org_id = ? AND h.is_active = 1 ORDER BY h.name`,
         [userId, org_id]
       );
     }
     return reply.send(success(rows));
   });
 
-  // ── POST /homes — create home (org_admin) ─────────────────────────────────
   fastify.post<{ Body: HomeBody }>(
     '/',
     { preHandler: [fastify.authenticate, orgAdminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
       const { name, address } = request.body;
-
-      if (!name)
-        return reply.code(400).send(failure('MISSING_FIELDS', 'name is required'));
-
+      if (!name) return reply.code(400).send(failure('MISSING_FIELDS', 'name is required'));
       const id = uuidv4();
       await fastify.db.execute(
         'INSERT INTO homes (id, org_id, name, address) VALUES (?, ?, ?, ?)',
@@ -65,19 +91,16 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── PATCH /homes/:id — edit home name/address (org_admin) ─────────────────
   fastify.patch<{ Params: HomeParam; Body: HomeBody }>(
     '/:id',
     { preHandler: [fastify.authenticate, orgAdminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
       const { name, address } = request.body;
-
       const [check] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
       );
       if (!check[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
-
       await fastify.db.execute(
         'UPDATE homes SET name = ?, address = ? WHERE id = ?',
         [name, address ?? null, request.params.id]
@@ -86,68 +109,58 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── PATCH /homes/:id/archive — set is_active=0 (org_admin) ───────────────
   fastify.patch<{ Params: HomeParam }>(
     '/:id/archive',
     { preHandler: [fastify.authenticate, orgAdminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
-
       const [check] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
       );
       if (!check[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
-
       await fastify.db.execute('UPDATE homes SET is_active = 0 WHERE id = ?', [request.params.id]);
       return reply.send(success({ message: 'Home archived' }));
     }
   );
 
-  // ── GET /homes/:id/staff — list staff in home (manager+) ──────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // STAFF
+  // ═══════════════════════════════════════════════════════════════════════════
+
   fastify.get<{ Params: HomeParam }>(
     '/:id/staff',
     { preHandler: [fastify.authenticate, managerOrAbove] },
     async (request, reply) => {
       const { org_id } = request.user;
-
       const [check] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
       );
       if (!check[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
-
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
         `SELECT u.id, u.first_name, u.last_name, u.email, u.role
-         FROM users u
-         JOIN home_staff hs ON u.id = hs.user_id
-         WHERE hs.home_id = ? AND u.is_active = 1
-         ORDER BY u.last_name, u.first_name`,
+         FROM users u JOIN home_staff hs ON u.id = hs.user_id
+         WHERE hs.home_id = ? AND u.is_active = 1 ORDER BY u.last_name, u.first_name`,
         [request.params.id]
       );
       return reply.send(success(rows));
     }
   );
 
-  // ── POST /homes/:id/staff — add user to home (manager+) ───────────────────
   fastify.post<{ Params: HomeParam; Body: AssignBody }>(
     '/:id/staff',
     { preHandler: [fastify.authenticate, managerOrAbove] },
     async (request, reply) => {
       const { org_id, id: addedBy } = request.user;
       const { userId } = request.body;
-
-      if (!userId)
-        return reply.code(400).send(failure('MISSING_FIELDS', 'userId is required'));
-
+      if (!userId) return reply.code(400).send(failure('MISSING_FIELDS', 'userId is required'));
       const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
       );
       if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
-
       const [userCheck] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id FROM users WHERE id = ? AND org_id = ?', [userId, org_id]
       );
       if (!userCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'User not found'));
-
       const id = uuidv4();
       await fastify.db.execute(
         'INSERT IGNORE INTO home_staff (id, home_id, user_id, added_by) VALUES (?, ?, ?, ?)',
@@ -157,19 +170,16 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── DELETE /homes/:id/staff/:userId — remove user from home (manager+) ────
   fastify.delete<{ Params: StaffParam }>(
     '/:id/staff/:userId',
     { preHandler: [fastify.authenticate, managerOrAbove] },
     async (request, reply) => {
       const { org_id } = request.user;
       const { id: homeId, userId } = request.params;
-
       const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
       );
       if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
-
       await fastify.db.execute(
         'DELETE FROM home_staff WHERE home_id = ? AND user_id = ?', [homeId, userId]
       );
@@ -177,37 +187,31 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /homes/:id/residents — list active residents (all roles) ──────────
-  // Sorted: open incidents (urgent) first, then all good, then by name
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RESIDENTS
+  // ═══════════════════════════════════════════════════════════════════════════
+
   fastify.get<{ Params: HomeParam }>(
     '/:id/residents',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
       const { org_id } = request.user;
-
       const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
       );
       if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
-
       if (!await canAccessHome(fastify, request.user, request.params.id))
         return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
 
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
         `SELECT r.*,
-           CASE
-             WHEN (SELECT COUNT(*) FROM incidents i WHERE i.resident_id = r.id AND i.status = 'open') > 0
-               THEN 'urgent'
-             ELSE 'all_good'
-           END AS status
+           CASE WHEN (SELECT COUNT(*) FROM incidents i WHERE i.resident_id = r.id AND i.status = 'open') > 0
+                THEN 'urgent' ELSE 'all_good' END AS status
          FROM residents r
          WHERE r.home_id = ? AND r.is_active = 1
          ORDER BY
-           CASE
-             WHEN (SELECT COUNT(*) FROM incidents i WHERE i.resident_id = r.id AND i.status = 'open') > 0
-               THEN 0
-             ELSE 1
-           END,
+           CASE WHEN (SELECT COUNT(*) FROM incidents i WHERE i.resident_id = r.id AND i.status = 'open') > 0
+                THEN 0 ELSE 1 END,
            r.last_name, r.first_name`,
         [request.params.id]
       );
@@ -215,22 +219,19 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /homes/:id/residents — create resident (manager+) ────────────────
   fastify.post<{ Params: HomeParam; Body: ResidentBody }>(
     '/:id/residents',
     { preHandler: [fastify.authenticate, managerOrAbove] },
     async (request, reply) => {
       const { id: created_by, org_id } = request.user;
       const homeId = request.params.id;
-
       const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
       );
       if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
 
       const {
-        first_name, last_name, date_of_birth,
-        room, diagnosis, physician,
+        first_name, last_name, date_of_birth, room, diagnosis, physician,
         primary_contact_name, primary_contact_phone, primary_contact_relation, notes
       } = request.body;
 
@@ -252,30 +253,576 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /homes/:id/medications — all active meds grouped by scheduled_time ─
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MEDICATIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+
   fastify.get<{ Params: HomeParam }>(
     '/:id/medications',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
       const { org_id } = request.user;
-
       const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
       );
       if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
-
       if (!await canAccessHome(fastify, request.user, request.params.id))
         return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
 
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
         `SELECT m.*, r.first_name, r.last_name
-         FROM medications m
-         JOIN residents r ON m.resident_id = r.id
+         FROM medications m JOIN residents r ON m.resident_id = r.id
          WHERE r.home_id = ? AND m.is_active = 1
          ORDER BY m.scheduled_time, r.last_name, r.first_name`,
         [request.params.id]
       );
       return reply.send(success(rows));
+    }
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // IPOS LOGS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  fastify.get<{ Params: HomeParam; Querystring: { date?: string; shift?: string } }>(
+    '/:id/ipos',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, request.params.id))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const { date, shift } = request.query;
+      const filters: string[] = ['il.home_id = ?'];
+      const values: string[] = [request.params.id];
+      if (date)  { filters.push('il.log_date = ?');  values.push(date); }
+      if (shift) { filters.push('il.shift = ?');     values.push(shift); }
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT il.*, r.first_name, r.last_name, u.first_name as staff_first, u.last_name as staff_last
+         FROM ipos_logs il
+         JOIN residents r ON il.resident_id = r.id
+         JOIN users u ON il.user_id = u.id
+         WHERE ${filters.join(' AND ')}
+         ORDER BY il.log_date DESC, il.shift`,
+        values
+      );
+      return reply.send(success(rows));
+    }
+  );
+
+  fastify.post<{ Params: HomeParam; Body: IposBody }>(
+    '/:id/ipos',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { id: user_id, org_id } = request.user;
+      const homeId = request.params.id;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, homeId))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const { resident_id, shift, log_date, content } = request.body;
+      if (!resident_id || !shift || !log_date || !content)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'resident_id, shift, log_date, and content are required'));
+
+      // Verify resident belongs to this home
+      const [resCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM residents WHERE id = ? AND home_id = ?', [resident_id, homeId]
+      );
+      if (!resCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found in this home'));
+
+      try {
+        const id = uuidv4();
+        await fastify.db.execute(
+          'INSERT INTO ipos_logs (id, resident_id, home_id, user_id, shift, log_date, content) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [id, resident_id, homeId, user_id, shift, log_date, content]
+        );
+        return reply.code(201).send(success({ id }));
+      } catch (err: unknown) {
+        const e = err as { code?: string };
+        if (e.code === 'ER_DUP_ENTRY') {
+          return reply.code(409).send(failure('DUPLICATE', 'An IPOS log already exists for this resident, shift, and date'));
+        }
+        throw err;
+      }
+    }
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BEHAVIORAL LOGS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  fastify.get<{ Params: HomeParam }>(
+    '/:id/behavioral-logs',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, request.params.id))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT bl.*, tb.name as behavior_name,
+                r.first_name as resident_first, r.last_name as resident_last,
+                u.first_name as staff_first, u.last_name as staff_last
+         FROM behavioral_logs bl
+         JOIN tracked_behaviors tb ON bl.behavior_id = tb.id
+         JOIN residents r ON bl.resident_id = r.id
+         JOIN users u ON bl.user_id = u.id
+         WHERE r.home_id = ?
+         ORDER BY bl.occurred_at DESC`,
+        [request.params.id]
+      );
+      return reply.send(success(rows));
+    }
+  );
+
+  fastify.post<{ Params: HomeParam; Body: BehavioralLogBody }>(
+    '/:id/behavioral-logs',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { id: user_id, org_id } = request.user;
+      const homeId = request.params.id;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, homeId))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const { resident_id, behavior_id, notes, occurred_at } = request.body;
+      if (!resident_id || !behavior_id || !occurred_at)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'resident_id, behavior_id, and occurred_at are required'));
+
+      // Verify resident belongs to this home
+      const [resCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM residents WHERE id = ? AND home_id = ?', [resident_id, homeId]
+      );
+      if (!resCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found in this home'));
+
+      // Verify behavior_id belongs to this resident
+      const [bCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM tracked_behaviors WHERE id = ? AND resident_id = ?', [behavior_id, resident_id]
+      );
+      if (!bCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Behavior not found for this resident'));
+
+      const id = uuidv4();
+      await fastify.db.execute(
+        'INSERT INTO behavioral_logs (id, behavior_id, resident_id, user_id, notes, occurred_at) VALUES (?, ?, ?, ?, ?, ?)',
+        [id, behavior_id, resident_id, user_id, notes ?? null, occurred_at]
+      );
+      return reply.code(201).send(success({ id }));
+    }
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INCIDENTS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  fastify.get<{ Params: HomeParam; Querystring: { status?: string } }>(
+    '/:id/incidents',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, request.params.id))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const { status } = request.query;
+      const filters: string[] = ['i.home_id = ?'];
+      const values: string[] = [request.params.id];
+      if (status) { filters.push('i.status = ?'); values.push(status); }
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT i.*, r.first_name as resident_first, r.last_name as resident_last,
+                u.first_name as reporter_first, u.last_name as reporter_last
+         FROM incidents i
+         JOIN residents r ON i.resident_id = r.id
+         JOIN users u ON i.reported_by = u.id
+         WHERE ${filters.join(' AND ')}
+         ORDER BY i.created_at DESC`,
+        values
+      );
+      return reply.send(success(rows));
+    }
+  );
+
+  fastify.post<{ Params: HomeParam; Body: IncidentBody }>(
+    '/:id/incidents',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { id: reported_by, org_id } = request.user;
+      const homeId = request.params.id;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, homeId))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const { resident_id, title, description } = request.body;
+      if (!resident_id || !title || !description)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'resident_id, title, and description are required'));
+
+      const [resCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM residents WHERE id = ? AND home_id = ?', [resident_id, homeId]
+      );
+      if (!resCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found in this home'));
+
+      const id = uuidv4();
+      await fastify.db.execute(
+        `INSERT INTO incidents (id, resident_id, home_id, reported_by, title, description, status)
+         VALUES (?, ?, ?, ?, ?, ?, 'open')`,
+        [id, resident_id, homeId, reported_by, title, description]
+      );
+      return reply.code(201).send(success({ id }));
+    }
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SHIFT NOTES
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  fastify.get<{ Params: HomeParam; Querystring: { shift?: string; date?: string } }>(
+    '/:id/shift-notes',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, request.params.id))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const { shift, date } = request.query;
+      const filters: string[] = ['sn.home_id = ?'];
+      const values: string[] = [request.params.id];
+      if (shift) { filters.push('sn.shift = ?');      values.push(shift); }
+      if (date)  { filters.push('sn.shift_date = ?'); values.push(date); }
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT sn.*, u.first_name, u.last_name
+         FROM shift_notes sn JOIN users u ON sn.user_id = u.id
+         WHERE ${filters.join(' AND ')}
+         ORDER BY sn.shift_date DESC, sn.created_at DESC`,
+        values
+      );
+      return reply.send(success(rows));
+    }
+  );
+
+  // All roles can post shift notes
+  fastify.post<{ Params: HomeParam; Body: ShiftNoteBody }>(
+    '/:id/shift-notes',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { id: user_id, org_id } = request.user;
+      const homeId = request.params.id;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, homeId))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const { resident_id, shift, shift_date, content, flagged } = request.body;
+      if (!shift || !shift_date || !content)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'shift, shift_date, and content are required'));
+
+      const id = uuidv4();
+      await fastify.db.execute(
+        'INSERT INTO shift_notes (id, home_id, user_id, resident_id, shift, shift_date, content, flagged) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [id, homeId, user_id, resident_id ?? null, shift, shift_date, content, flagged ?? false]
+      );
+      return reply.code(201).send(success({ id }));
+    }
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ANNOUNCEMENTS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Returns home-specific AND org-wide (home_id IS NULL) announcements
+  fastify.get<{ Params: HomeParam }>(
+    '/:id/announcements',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, request.params.id))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT a.*, u.first_name as poster_first, u.last_name as poster_last
+         FROM announcements a JOIN users u ON a.posted_by = u.id
+         WHERE a.org_id = ? AND (a.home_id = ? OR a.home_id IS NULL)
+         ORDER BY a.is_pinned DESC, a.created_at DESC`,
+        [org_id, request.params.id]
+      );
+      return reply.send(success(rows));
+    }
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // APPOINTMENTS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  fastify.get<{ Params: HomeParam; Querystring: AppointmentQuery }>(
+    '/:id/appointments',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, request.params.id))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const { from, days } = request.query;
+      const filters: string[] = ['a.home_id = ?'];
+      const values: (string | number)[] = [request.params.id];
+
+      if (from === 'today') {
+        const numDays = days ? parseInt(days, 10) : 1;
+        filters.push('a.appointment_date >= CURDATE()');
+        filters.push(`a.appointment_date < DATE_ADD(CURDATE(), INTERVAL ? DAY)`);
+        values.push(numDays);
+      }
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT a.*, r.first_name as resident_first, r.last_name as resident_last,
+                u.first_name as scheduled_by_first, u.last_name as scheduled_by_last
+         FROM appointments a
+         JOIN residents r ON a.resident_id = r.id
+         JOIN users u ON a.scheduled_by = u.id
+         WHERE ${filters.join(' AND ')}
+         ORDER BY a.appointment_date, a.appointment_time`,
+        values
+      );
+      return reply.send(success(rows));
+    }
+  );
+
+  fastify.post<{ Params: HomeParam; Body: AppointmentBody }>(
+    '/:id/appointments',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { id: scheduled_by, org_id } = request.user;
+      const homeId = request.params.id;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, homeId))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const { resident_id, type, title, appointment_date, appointment_time, location, notes, collector_name, collector_phone } = request.body;
+      if (!resident_id || !type || !title || !appointment_date)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'resident_id, type, title, and appointment_date are required'));
+
+      const [resCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM residents WHERE id = ? AND home_id = ?', [resident_id, homeId]
+      );
+      if (!resCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found in this home'));
+
+      const id = uuidv4();
+      await fastify.db.execute(
+        `INSERT INTO appointments
+         (id, resident_id, home_id, scheduled_by, type, title, appointment_date, appointment_time, location, notes, collector_name, collector_phone)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, resident_id, homeId, scheduled_by, type, title, appointment_date,
+         appointment_time ?? null, location ?? null, notes ?? null,
+         collector_name ?? null, collector_phone ?? null]
+      );
+      return reply.code(201).send(success({ id }));
+    }
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // TASKS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  fastify.get<{ Params: HomeParam }>(
+    '/:id/tasks',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, request.params.id))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT t.*, u.first_name as created_by_first, u.last_name as created_by_last
+         FROM tasks t JOIN users u ON t.created_by = u.id
+         WHERE t.home_id = ? AND t.completed_at IS NULL
+         ORDER BY t.due_date, t.created_at`,
+        [request.params.id]
+      );
+      return reply.send(success(rows));
+    }
+  );
+
+  fastify.post<{ Params: HomeParam; Body: TaskBody }>(
+    '/:id/tasks',
+    { preHandler: [fastify.authenticate, managerOrAbove] },
+    async (request, reply) => {
+      const { id: created_by, org_id } = request.user;
+      const homeId = request.params.id;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+
+      const { title, description, due_date } = request.body;
+      if (!title) return reply.code(400).send(failure('MISSING_FIELDS', 'title is required'));
+
+      const id = uuidv4();
+      await fastify.db.execute(
+        'INSERT INTO tasks (id, home_id, created_by, title, description, due_date) VALUES (?, ?, ?, ?, ?, ?)',
+        [id, homeId, created_by, title, description ?? null, due_date ?? null]
+      );
+      return reply.code(201).send(success({ id }));
+    }
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ROSTER
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  fastify.get<{ Params: HomeParam }>(
+    '/:id/roster',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, request.params.id))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT sr.*, u.first_name, u.last_name, u.role
+         FROM shift_roster sr JOIN users u ON sr.user_id = u.id
+         WHERE sr.home_id = ? AND sr.shift_date = CURDATE()
+         ORDER BY sr.shift, u.last_name`,
+        [request.params.id]
+      );
+      return reply.send(success(rows));
+    }
+  );
+
+  // Add staff to shift — emergency override (manager+)
+  fastify.post<{ Params: HomeParam; Body: RosterBody }>(
+    '/:id/roster',
+    { preHandler: [fastify.authenticate, managerOrAbove] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const homeId = request.params.id;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+
+      const { user_id, shift, shift_date } = request.body;
+      if (!user_id || !shift || !shift_date)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'user_id, shift, and shift_date are required'));
+
+      const id = uuidv4();
+      await fastify.db.execute(
+        `INSERT IGNORE INTO shift_roster (id, home_id, user_id, shift, shift_date) VALUES (?, ?, ?, ?, ?)`,
+        [id, homeId, user_id, shift, shift_date]
+      );
+      return reply.code(201).send(success({ message: 'Staff added to roster' }));
+    }
+  );
+
+  // Clock in — sets clocked_in_at for current user (employee+)
+  fastify.post<{ Params: HomeParam; Body: ClockBody }>(
+    '/:id/roster/clockin',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { id: user_id, org_id } = request.user;
+      const homeId = request.params.id;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+
+      const { shift, shift_date } = request.body;
+      if (!shift || !shift_date)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'shift and shift_date are required'));
+
+      // Upsert: create row if not exists, then set clocked_in_at
+      const id = uuidv4();
+      await fastify.db.execute(
+        `INSERT INTO shift_roster (id, home_id, user_id, shift, shift_date, clocked_in_at)
+         VALUES (?, ?, ?, ?, ?, NOW())
+         ON DUPLICATE KEY UPDATE clocked_in_at = NOW()`,
+        [id, homeId, user_id, shift, shift_date]
+      );
+      return reply.send(success({ message: 'Clocked in' }));
+    }
+  );
+
+  // Clock out — sets clocked_out_at for current user (employee+)
+  fastify.post<{ Params: HomeParam; Body: ClockBody }>(
+    '/:id/roster/clockout',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { id: user_id, org_id } = request.user;
+      const homeId = request.params.id;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+
+      const { shift, shift_date } = request.body;
+      if (!shift || !shift_date)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'shift and shift_date are required'));
+
+      const [rosterCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM shift_roster WHERE home_id = ? AND user_id = ? AND shift = ? AND shift_date = ?',
+        [homeId, user_id, shift, shift_date]
+      );
+      if (!rosterCheck[0])
+        return reply.code(404).send(failure('NOT_FOUND', 'No roster entry found — clock in first'));
+
+      await fastify.db.execute(
+        'UPDATE shift_roster SET clocked_out_at = NOW() WHERE home_id = ? AND user_id = ? AND shift = ? AND shift_date = ?',
+        [homeId, user_id, shift, shift_date]
+      );
+      return reply.send(success({ message: 'Clocked out' }));
     }
   );
 };
