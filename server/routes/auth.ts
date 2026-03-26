@@ -4,29 +4,21 @@ import { v4 as uuidv4 } from 'uuid';
 import { hashPassword, comparePassword } from '../utils/password';
 import { success, failure } from '../utils/response';
 
-interface LoginBody  { org_id: string; email: string; password: string; }
+interface LoginBody  { email: string; password: string; }
 interface SignupBody { organizationName: string; first_name: string; last_name: string; email: string; password: string; }
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
   // ── Login ────────────────────────────────────────────────────────────────
   fastify.post<{ Body: LoginBody }>('/login', async (request, reply) => {
-    const { org_id, email, password } = request.body;
+    const { email, password } = request.body;
 
-    if (!org_id || !email || !password)
-      return reply.code(400).send(failure('MISSING_FIELDS', 'org_id, email, and password are required'));
-
-    const [orgs] = await fastify.db.execute<RowDataPacket[]>(
-      'SELECT id, name FROM orgs WHERE id = ?', [org_id]
-    );
-    if (!orgs[0])
-      return reply.code(401).send(failure('INVALID_CREDENTIALS', 'Invalid email or password'));
-
-    const org = orgs[0];
+    if (!email || !password)
+      return reply.code(400).send(failure('MISSING_FIELDS', 'email and password are required'));
 
     const [rows] = await fastify.db.execute<RowDataPacket[]>(
-      'SELECT id, email, password_hash, first_name, last_name, role, is_active FROM users WHERE email = ? AND org_id = ? AND is_active = 1',
-      [email, org.id]
+      'SELECT u.id, u.email, u.password_hash, u.first_name, u.last_name, u.role, u.is_active, u.org_id, o.name as org_name FROM users u JOIN orgs o ON u.org_id = o.id WHERE u.email = ? AND u.is_active = 1',
+      [email]
     );
     const user = rows[0];
 
@@ -37,16 +29,16 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     if (!valid)
       return reply.code(401).send(failure('INVALID_CREDENTIALS', 'Invalid email or password'));
 
-    const token = fastify.jwt.sign({ id: user.id, role: user.role, org_id: org.id });
+    const token = fastify.jwt.sign({ id: user.id, role: user.role, org_id: user.org_id });
 
     return reply.send(success({
       token,
       user: {
         id: user.id, email: user.email, role: user.role,
         first_name: user.first_name, last_name: user.last_name,
-        org_id: org.id
+        org_id: user.org_id
       },
-      org: { id: org.id, name: org.name }
+      org: { id: user.org_id, name: user.org_name }
     }));
   });
 

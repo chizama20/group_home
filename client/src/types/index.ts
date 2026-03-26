@@ -5,6 +5,8 @@ export type { Resident, TrackedBehavior } from './resident'
 export type { Medication, MedicationLog, MedicationOutcome } from './medication'
 export type { Incident, IncidentStatus } from './incident'
 export type { Shift, IposLog, BehavioralLog, ShiftNote, Announcement } from './log'
+export type { Task } from './task'
+export type { Appointment, AppointmentFormData } from './appointment'
 
 // Legacy types kept for backwards compatibility
 export type Role = 'employee' | 'manager' | 'org_admin'

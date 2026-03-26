@@ -1,4 +1,17 @@
-export type Shift = 'morning' | 'afternoon' | 'overnight'
+export type Shift = 'day' | 'evening' | 'night'
+
+export function currentShift(): Shift {
+  const h = new Date().getHours()
+  if (h >= 7 && h < 15) return 'day'
+  if (h >= 15 && h < 23) return 'evening'
+  return 'night'
+}
+
+export const SHIFT_LABELS: Record<Shift, string> = {
+  day:     'Day (07:00–14:59)',
+  evening: 'Evening (15:00–22:59)',
+  night:   'Night (23:00–06:59)',
+}
 
 export interface IposLog {
   id: string

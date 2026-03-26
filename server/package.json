@@ -7,9 +7,9 @@
     "dev": "nodemon --exec ts-node index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "migrate": "ts-node node_modules/.bin/knex --knexfile knexfile.ts migrate:latest",
-    "migrate:rollback": "ts-node node_modules/.bin/knex --knexfile knexfile.ts migrate:rollback",
-    "seed": "ts-node node_modules/.bin/knex --knexfile knexfile.ts seed:run"
+    "migrate": "node -r ts-node/register node_modules/knex/bin/cli.js --knexfile knexfile.ts migrate:latest",
+    "migrate:rollback": "node -r ts-node/register node_modules/knex/bin/cli.js --knexfile knexfile.ts migrate:rollback",
+    "seed": "node -r ts-node/register node_modules/knex/bin/cli.js --knexfile knexfile.ts seed:run"
   },
   "keywords": [],
   "author": "",

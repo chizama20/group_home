@@ -8,8 +8,8 @@ interface LoginResponse {
   org: { id: string; name: string }
 }
 
-export const login = (orgId: string, email: string, password: string) =>
-  api.post<ApiResponse<LoginResponse>>('/auth/login', { org_id: orgId, email, password })
+export const login = (email: string, password: string) =>
+  api.post<ApiResponse<LoginResponse>>('/auth/login', { email, password })
 
 export const logout = () =>
   api.post<ApiResponse<{ message: string }>>('/auth/logout')

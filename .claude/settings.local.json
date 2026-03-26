@@ -14,7 +14,8 @@
       "Bash(mysql:*)",
       "Bash(od:*)",
       "Bash(/Applications/XAMPP/xamppfiles/bin/mysql:*)",
-      "Bash(kill:*)"
+      "Bash(kill:*)",
+      "Bash(ls -la /c/Users/Chi/Documents/GitHub/group_home/client/src/context*)"
     ]
   }
 }

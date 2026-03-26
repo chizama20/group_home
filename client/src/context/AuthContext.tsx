@@ -6,7 +6,7 @@ interface AuthContextValue {
   user: AuthUser | null
   token: string | null
   org: { id: string; name: string } | null
-  login: (orgId: string, email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<void>
   logout: () => void
   isLoading: boolean
 }
@@ -32,8 +32,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  async function login(orgId: string, email: string, password: string) {
-    const res  = await apiLogin(orgId, email, password)
+  async function login(email: string, password: string) {
+    const res  = await apiLogin(email, password)
     const data = res.data
     if (!data.success || !data.data) throw new Error(data.error?.message ?? 'Login failed')
 

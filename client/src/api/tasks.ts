@@ -1,18 +1,8 @@
 import api from './client'
 import type { ApiResponse } from '../types/api'
+import type { Task } from '../types/task'
 
-export interface Task {
-  id: string
-  home_id: string
-  created_by: string
-  title: string
-  description: string | null
-  due_date: string | null
-  claimed_by: string | null
-  claimed_at: string | null
-  completed_at: string | null
-  created_at: string
-}
+export type { Task }
 
 export const getHomeTasks = (homeId: string) =>
   api.get<ApiResponse<Task[]>>(`/homes/${homeId}/tasks`)
