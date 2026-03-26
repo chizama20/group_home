@@ -1,30 +1,44 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import ProtectedRoute  from './components/ProtectedRoute';
-import LoginPage       from './pages/LoginPage';
-import OrgSignupPage   from './pages/OrgSignupPage';
-import RegisterPage    from './pages/RegisterPage';
-import DashboardPage   from './pages/DashboardPage';
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute  from './components/ProtectedRoute'
+
+import LoginPage       from './pages/Login/index'
+import DashboardPage   from './pages/Dashboard/index'
+import ResidentsPage   from './pages/Residents/index'
+import ResidentProfile from './pages/Residents/ResidentProfile'
+import LogsPage        from './pages/Logs/index'
+import MedicationsPage from './pages/Medications/index'
+import ShiftPage       from './pages/Shift/index'
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/login"  element={<LoginPage />} />
-          <Route path="/signup" element={<OrgSignupPage />} />
+          {/* Public */}
+          <Route path='/login' element={<LoginPage />} />
 
-          <Route path="/dashboard" element={
+          {/* Employee and above */}
+          <Route path='/' element={
             <ProtectedRoute><DashboardPage /></ProtectedRoute>
           } />
-
-          <Route path="/register" element={
-            <ProtectedRoute minRole="managerOrAbove"><RegisterPage /></ProtectedRoute>
+          <Route path='/residents' element={
+            <ProtectedRoute><ResidentsPage /></ProtectedRoute>
           } />
-
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path='/residents/:id' element={
+            <ProtectedRoute><ResidentProfile /></ProtectedRoute>
+          } />
+          <Route path='/logs' element={
+            <ProtectedRoute><LogsPage /></ProtectedRoute>
+          } />
+          <Route path='/medications' element={
+            <ProtectedRoute><MedicationsPage /></ProtectedRoute>
+          } />
+          <Route path='/shift' element={
+            <ProtectedRoute><ShiftPage /></ProtectedRoute>
+          } />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
-  );
+  )
 }

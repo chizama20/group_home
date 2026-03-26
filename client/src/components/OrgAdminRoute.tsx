@@ -2,9 +2,9 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import type { ReactNode } from 'react'
 
-export default function ProtectedRoute({ children }: { children: ReactNode }) {
+export default function OrgAdminRoute({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth()
   if (isLoading) return <div className='flex items-center justify-center h-screen text-gray-500'>Loading…</div>
-  if (!user) return <Navigate to='/login' replace />
+  if (!user || user.role !== 'org_admin') return <Navigate to='/' replace />
   return <>{children}</>
 }
