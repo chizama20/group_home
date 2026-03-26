@@ -5,6 +5,7 @@ import { getHomeTasks } from '../api/tasks'
 import { getResidents } from '../api/residents'
 import { getHomeMedications } from '../api/medications'
 import { getHomeRoster } from '../api/homes'
+import { getHomeIncidents } from '../api/incidents'
 import type { RosterEntry } from '../api/homes'
 import { currentShift } from '../types/log'
 import { todayStr } from '../utils/date'
@@ -33,17 +34,23 @@ function shiftIsActive(roster: RosterEntry[]): boolean {
   return roster.some(r => r.clocked_in_at && !r.clocked_out_at)
 }
 
+function countStaffOnShift(roster: RosterEntry[]): number {
+  return roster.filter(r => r.clocked_in_at && !r.clocked_out_at).length
+}
+
 interface DashboardData {
-  announcements:    Announcement[]
-  appointments:     Appointment[]
-  tasks:            Task[]
-  residents:        Resident[]
-  overdueMedCount:  number
-  unfiledIposCount: number
-  isShiftActive:    boolean
-  isLoading:        boolean
-  error:            string | null
-  refresh:          () => void
+  announcements:     Announcement[]
+  appointments:      Appointment[]
+  tasks:             Task[]
+  residents:         Resident[]
+  overdueMedCount:   number
+  unfiledIposCount:  number
+  openIncidentCount: number
+  staffOnShiftCount: number
+  isShiftActive:     boolean
+  isLoading:         boolean
+  error:             string | null
+  refresh:           () => void
 }
 
 export function useDashboard(homeId: string | null): DashboardData {
@@ -53,10 +60,12 @@ export function useDashboard(homeId: string | null): DashboardData {
   const [residents,        setResidents]        = useState<Resident[]>([])
   const [overdueMedCount,  setOverdueMedCount]  = useState(0)
   const [unfiledIposCount, setUnfiledIposCount] = useState(0)
-  const [isShiftActive,    setIsShiftActive]    = useState(false)
-  const [isLoading,        setIsLoading]        = useState(false)
-  const [error,            setError]            = useState<string | null>(null)
-  const [tick,             setTick]             = useState(0)
+  const [openIncidentCount, setOpenIncidentCount] = useState(0)
+  const [staffOnShiftCount, setStaffOnShiftCount] = useState(0)
+  const [isShiftActive,     setIsShiftActive]     = useState(false)
+  const [isLoading,         setIsLoading]         = useState(false)
+  const [error,             setError]             = useState<string | null>(null)
+  const [tick,              setTick]              = useState(0)
 
   const refresh = useCallback(() => setTick(t => t + 1), [])
 
@@ -76,7 +85,8 @@ export function useDashboard(homeId: string | null): DashboardData {
       getHomeMedications(homeId),
       getHomeIpos(homeId, { date, shift }),
       getHomeRoster(homeId, { shift, date }),
-    ]).then(([ann, appt, tsks, res, meds, ipos, roster]) => {
+      getHomeIncidents(homeId, { status: 'open' }),
+    ]).then(([ann, appt, tsks, res, meds, ipos, roster, incidents]) => {
       if (ann.status   === 'fulfilled' && ann.value.data.success)
         setAnnouncements(ann.value.data.data ?? [])
       if (appt.status  === 'fulfilled' && appt.value.data.success)
@@ -89,16 +99,21 @@ export function useDashboard(homeId: string | null): DashboardData {
         if (ipos.status === 'fulfilled' && ipos.value.data.success)
           setUnfiledIposCount(countUnfiledIpos(r, ipos.value.data.data ?? []))
       }
-      if (meds.status   === 'fulfilled' && meds.value.data.success)
+      if (meds.status     === 'fulfilled' && meds.value.data.success)
         setOverdueMedCount(countOverdueMeds(meds.value.data.data ?? []))
-      if (roster.status === 'fulfilled' && roster.value.data.success)
-        setIsShiftActive(shiftIsActive(roster.value.data.data ?? []))
+      if (roster.status   === 'fulfilled' && roster.value.data.success) {
+        const r = roster.value.data.data ?? []
+        setIsShiftActive(shiftIsActive(r))
+        setStaffOnShiftCount(countStaffOnShift(r))
+      }
+      if (incidents.status === 'fulfilled' && incidents.value.data.success)
+        setOpenIncidentCount(incidents.value.data.data?.length ?? 0)
     }).finally(() => setIsLoading(false))
   }, [homeId, tick])
 
   return {
     announcements, appointments, tasks, residents,
-    overdueMedCount, unfiledIposCount, isShiftActive,
-    isLoading, error, refresh,
+    overdueMedCount, unfiledIposCount, openIncidentCount, staffOnShiftCount,
+    isShiftActive, isLoading, error, refresh,
   }
 }

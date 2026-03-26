@@ -7,7 +7,11 @@ import { useDashboard } from '../../hooks/useDashboard'
 import BottomNav from '../../components/BottomNav'
 import HomeSwitcherStrip from '../../components/HomeSwitcherStrip'
 import AnnouncementBanner from './AnnouncementBanner'
+import AnnouncementComposer from './AnnouncementComposer'
 import NeedsAttention from './NeedsAttention'
+import ManagerStatsBar from './ManagerStatsBar'
+import ManagerNeedsAttention from './ManagerNeedsAttention'
+import OtherHomesSummary from './OtherHomesSummary'
 import UpcomingAppointments from './UpcomingAppointments'
 import ShiftTasksSection from './ShiftTasksSection'
 import QuickActions from './QuickActions'
@@ -34,11 +38,11 @@ export default function DashboardPage() {
   const { user, logout }                  = useAuth()
   const navigate                          = useNavigate()
   const { homeId, selectedHome, homes, isLoading: homeIsLoading } = useHome()
-  const { isManager }                     = useRole()
+  const { isManagerOrAbove }              = useRole()
   const {
-    announcements, appointments, tasks,
-    overdueMedCount, unfiledIposCount, isShiftActive,
-    isLoading, refresh,
+    announcements, appointments, tasks, residents,
+    overdueMedCount, unfiledIposCount, openIncidentCount, staffOnShiftCount,
+    isShiftActive, isLoading, refresh,
   } = useDashboard(homeId)
 
   const [showProfile, setShowProfile] = useState(false)
@@ -49,10 +53,10 @@ export default function DashboardPage() {
   // Redirect multi-home managers to home selection screen when no home chosen
   useEffect(() => {
     if (homeIsLoading) return
-    if (isManager && homes.length > 1 && !homeId) {
+    if (isManagerOrAbove && homes.length > 1 && !homeId) {
       navigate('/select-home', { replace: true })
     }
-  }, [homeIsLoading, isManager, homes.length, homeId, navigate])
+  }, [homeIsLoading, isManagerOrAbove, homes.length, homeId, navigate])
 
   return (
     <div className='pb-24 min-h-screen bg-gray-50'>
@@ -81,6 +85,15 @@ export default function DashboardPage() {
       {/* Home Switcher Strip (multi-home only) */}
       <HomeSwitcherStrip />
 
+      {/* Manager: Stats Bar */}
+      {isManagerOrAbove && (
+        <ManagerStatsBar
+          residentCount={residents.length}
+          overdueMedCount={overdueMedCount}
+          unfiledIposCount={unfiledIposCount}
+        />
+      )}
+
       {/* Section B: Shift Strip */}
       <div className='mx-4 mt-4 bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-center justify-between'>
         <div>
@@ -97,11 +110,24 @@ export default function DashboardPage() {
       {/* Section C: Announcements */}
       <AnnouncementBanner announcements={announcements} />
 
+      {/* Manager: Announcement Composer (between From Management and Needs Attention) */}
+      {isManagerOrAbove && homeId && (
+        <AnnouncementComposer homeId={homeId} onPosted={refresh} />
+      )}
+
       {/* Section D: Needs Attention */}
-      <NeedsAttention
-        overdueMedCount={overdueMedCount}
-        unfiledIposCount={unfiledIposCount}
-      />
+      {isManagerOrAbove ? (
+        <ManagerNeedsAttention
+          openIncidentCount={openIncidentCount}
+          unfiledIposCount={unfiledIposCount}
+          staffOnShiftCount={staffOnShiftCount}
+        />
+      ) : (
+        <NeedsAttention
+          overdueMedCount={overdueMedCount}
+          unfiledIposCount={unfiledIposCount}
+        />
+      )}
 
       {/* Section E: Appointments */}
       <UpcomingAppointments
@@ -120,6 +146,9 @@ export default function DashboardPage() {
 
       {/* Section G: Quick Actions */}
       <QuickActions />
+
+      {/* Manager: Other Homes (multi-home only) */}
+      {isManagerOrAbove && <OtherHomesSummary />}
 
       {isLoading && !announcements.length && (
         <div className='flex justify-center mt-10'>
