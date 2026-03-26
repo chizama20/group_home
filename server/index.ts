@@ -7,13 +7,13 @@ import dbPlugin          from './plugins/db';
 import authPlugin        from './plugins/auth';
 
 import authRoutes        from './routes/auth';
+import orgsRoutes        from './routes/orgs';
+import usersRoutes       from './routes/users';
+import homesRoutes       from './routes/homes';
 import residentsRoutes   from './routes/residents';
-import logsRoutes        from './routes/logs';
 import medicationsRoutes from './routes/medications';
 import incidentsRoutes   from './routes/incidents';
-import shiftNotesRoutes    from './routes/shiftNotes';
-import organizationsRoutes from './routes/organizations';
-import homesRoutes         from './routes/homes';
+import shiftNotesRoutes  from './routes/shiftNotes';
 
 dotenv.config();
 
@@ -26,13 +26,13 @@ fastify.register(authPlugin);
 
 // Routes
 fastify.register(authRoutes,        { prefix: '/auth' });
+fastify.register(orgsRoutes,        { prefix: '/orgs' });
+fastify.register(usersRoutes,       { prefix: '/users' });
+fastify.register(homesRoutes,       { prefix: '/homes' });
 fastify.register(residentsRoutes,   { prefix: '/residents' });
-fastify.register(logsRoutes,        { prefix: '/logs' });
 fastify.register(medicationsRoutes, { prefix: '/medications' });
 fastify.register(incidentsRoutes,   { prefix: '/incidents' });
-fastify.register(shiftNotesRoutes,    { prefix: '/shift-notes' });
-fastify.register(organizationsRoutes, { prefix: '/organizations' });
-fastify.register(homesRoutes,         { prefix: '/homes' });
+fastify.register(shiftNotesRoutes,  { prefix: '/shift-notes' });
 
 const start = async (): Promise<void> => {
   try {
