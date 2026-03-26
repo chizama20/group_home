@@ -4,6 +4,7 @@ import type { Resident } from '../../types/resident'
 import { getResident } from '../../api/residents'
 import BottomNav from '../../components/BottomNav'
 import { cn } from '../../lib/cn'
+import AddAppointmentForm from '../../components/AddAppointmentForm'
 import InfoTab         from './tabs/InfoTab'
 import MedicationsTab  from './tabs/MedicationsTab'
 import LogsTab         from './tabs/LogsTab'
@@ -28,7 +29,8 @@ export default function ResidentProfile() {
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState<string | null>(null)
   const [tab, setTab]           = useState<Tab>('info')
-  const [showAddAppt, setShowAddAppt] = useState(false)
+  const [showAddAppt, setShowAddAppt]   = useState(false)
+  const [apptKey,    setApptKey]        = useState(0)
 
   useEffect(() => {
     if (!id) return
@@ -94,6 +96,7 @@ export default function ResidentProfile() {
       {tab === 'logs'         && <LogsTab residentId={resident.id} />}
       {tab === 'appointments' && (
         <AppointmentsTab
+          key={apptKey}
           residentId={resident.id}
           onAddAppointment={() => setShowAddAppt(true)}
         />
@@ -104,23 +107,17 @@ export default function ResidentProfile() {
 
       <BottomNav />
 
-      {/* Add Appointment placeholder — wired in Phase 8 */}
       {showAddAppt && (
-        <>
-          <div className='fixed inset-0 bg-black/40 z-40' onClick={() => setShowAddAppt(false)} />
-          <div className='fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 p-4 pb-8'>
-            <div className='w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4' />
-            <p className='text-center text-sm text-gray-500'>
-              Add Appointment form — wired in Phase 8
-            </p>
-            <button
-              onClick={() => setShowAddAppt(false)}
-              className='mt-4 w-full py-3 bg-gray-100 rounded-xl text-sm text-gray-600 min-h-[44px]'
-            >
-              Close
-            </button>
-          </div>
-        </>
+        <AddAppointmentForm
+          homeId={resident.home_id}
+          residentId={resident.id}
+          onSuccess={() => {
+            setShowAddAppt(false)
+            setApptKey(k => k + 1)
+            setTab('appointments')
+          }}
+          onCancel={() => setShowAddAppt(false)}
+        />
       )}
     </div>
   )

@@ -10,9 +10,12 @@ export interface Medication {
   is_active: boolean
   created_by: string | null
   created_at: string
+  // Joined fields returned by GET /homes/:id/medications
+  first_name?: string
+  last_name?: string
 }
 
-export type MedicationOutcome = 'given' | 'refused' | 'missed' | 'held'
+export type MedicationOutcome = 'given' | 'partial' | 'refused' | 'missed' | 'held'
 
 export interface MedicationLog {
   id: string

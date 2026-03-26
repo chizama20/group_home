@@ -2,45 +2,53 @@ import { useState, useEffect } from 'react'
 import BottomNav from '../../components/BottomNav'
 import { useSelectedHome } from '../../hooks/useSelectedHome'
 import { useAuth } from '../../context/AuthContext'
-import { getHomeTasks, claimTask, completeTask, type Task } from '../../api/tasks'
 import { clockIn, clockOut } from '../../api/homes'
-import type { Shift } from '../../types/log'
+import { getShiftNotes, createShiftNote } from '../../api/logs'
+import { getResidents } from '../../api/residents'
+import { currentShift, SHIFT_LABELS } from '../../types/log'
+import type { Shift, ShiftNote } from '../../types/log'
+import type { Resident } from '../../types/resident'
+import { todayStr } from '../../utils/date'
+import ShiftNotesFeed from './ShiftNotesFeed'
+import ComposeBar from './ComposeBar'
 
-const SHIFTS: Shift[] = ['morning', 'afternoon', 'overnight']
+const SHIFTS: Shift[] = ['day', 'evening', 'night']
 
-function todayStr() {
-  return new Date().toISOString().split('T')[0]!
-}
-
-function currentShift(): Shift {
-  const h = new Date().getHours()
-  if (h >= 6 && h < 14) return 'morning'
-  if (h >= 14 && h < 22) return 'afternoon'
-  return 'overnight'
-}
-
-async function refreshTasks(homeId: string, setTasks: (t: Task[]) => void) {
-  const res = await getHomeTasks(homeId).catch(() => null)
-  if (res) setTasks(res.data.data ?? [])
+function prevShift(s: Shift): Shift {
+  if (s === 'day')     return 'night'
+  if (s === 'evening') return 'day'
+  return 'evening'
 }
 
 export default function ShiftPage() {
-  const { user } = useAuth()
+  const { user }                    = useAuth()
   const { homeId, homes, selectHome } = useSelectedHome()
-  const [tasks, setTasks]     = useState<Task[]>([])
-  const [loading, setLoading] = useState(false)
-  const [shift, setShift]     = useState<Shift>(currentShift())
-  const date                  = todayStr()
+
+  const [shift, setShift]           = useState<Shift>(currentShift())
+  const date                        = todayStr()
   const [clockStatus, setClockStatus] = useState<'idle' | 'in' | 'out'>('idle')
+
+  const [currentNotes, setCurrentNotes]   = useState<ShiftNote[]>([])
+  const [previousNotes, setPreviousNotes] = useState<ShiftNote[]>([])
+  const [residents, setResidents]         = useState<Resident[]>([])
+  const [loading, setLoading]             = useState(false)
+  const [submitting, setSubmitting]       = useState(false)
 
   useEffect(() => {
     if (!homeId) return
     setLoading(true)
-    getHomeTasks(homeId)
-      .then(res => setTasks(res.data.data ?? []))
-      .catch(() => { /* ignore */ })
-      .finally(() => setLoading(false))
-  }, [homeId])
+
+    const prev = prevShift(shift)
+    Promise.allSettled([
+      getShiftNotes(homeId, { shift, date }),
+      getShiftNotes(homeId, { shift: prev, date }),
+      getResidents(homeId),
+    ]).then(([cur, pre, res]) => {
+      setCurrentNotes(cur.status  === 'fulfilled' ? (cur.value.data.data  ?? []) : [])
+      setPreviousNotes(pre.status === 'fulfilled' ? (pre.value.data.data ?? []) : [])
+      setResidents(res.status     === 'fulfilled' ? (res.value.data.data ?? []) : [])
+    }).finally(() => setLoading(false))
+  }, [homeId, shift, date])
 
   async function handleClock(action: 'in' | 'out') {
     if (!homeId) return
@@ -55,28 +63,27 @@ export default function ShiftPage() {
     } catch { /* ignore */ }
   }
 
-  async function handleClaim(id: string) {
-    await claimTask(id).catch(() => { /* ignore */ })
-    if (homeId) await refreshTasks(homeId, setTasks)
+  async function handlePost(content: string, residentId: string | null, flagged: boolean) {
+    if (!homeId || !user) return
+    setSubmitting(true)
+    try {
+      await createShiftNote(homeId, {
+        resident_id: residentId,
+        shift,
+        shift_date: date,
+        content,
+        flagged,
+      })
+      // Refresh current shift notes
+      const res = await getShiftNotes(homeId, { shift, date })
+      setCurrentNotes(res.data.data ?? [])
+    } catch { /* ignore */ }
+    setSubmitting(false)
   }
-
-  async function handleComplete(id: string) {
-    await completeTask(id).catch(() => { /* ignore */ })
-    if (homeId) await refreshTasks(homeId, setTasks)
-  }
-
-  const unclaimed = tasks.filter(t => !t.claimed_by && !t.completed_at)
-  const myTasks   = tasks.filter(t => t.claimed_by === user?.id && !t.completed_at)
-  const done      = tasks.filter(t => !!t.completed_at)
-
-  const taskGroups = [
-    { label: 'My tasks',  items: myTasks },
-    { label: 'Unclaimed', items: unclaimed },
-    { label: 'Completed', items: done },
-  ].filter(g => g.items.length > 0)
 
   return (
-    <div className='pb-20 min-h-screen bg-gray-50'>
+    <div className='pb-48 min-h-screen bg-gray-50'>
+      {/* Header */}
       <div className='bg-white px-4 pt-5 pb-3 border-b border-gray-100'>
         <h1 className='text-xl font-bold text-gray-900 mb-3'>Shift</h1>
 
@@ -86,19 +93,17 @@ export default function ShiftPage() {
             onChange={e => selectHome(e.target.value)}
             className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] mb-3 bg-white'
           >
-            {homes.map(h => (
-              <option key={h.id} value={h.id}>{h.name}</option>
-            ))}
+            {homes.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
           </select>
         )}
 
         <select
           value={shift}
-          onChange={e => setShift(e.target.value as Shift)}
+          onChange={e => { setShift(e.target.value as Shift); setClockStatus('idle') }}
           className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] bg-white'
         >
           {SHIFTS.map(s => (
-            <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+            <option key={s} value={s}>{SHIFT_LABELS[s]}</option>
           ))}
         </select>
       </div>
@@ -110,14 +115,14 @@ export default function ShiftPage() {
           <button
             onClick={() => void handleClock('in')}
             disabled={clockStatus === 'in' || !homeId}
-            className='flex-1 bg-green-600 text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] disabled:opacity-50 hover:bg-green-700'
+            className='flex-1 bg-green-600 text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] disabled:opacity-50'
           >
             Clock In
           </button>
           <button
             onClick={() => void handleClock('out')}
             disabled={clockStatus !== 'in' || !homeId}
-            className='flex-1 bg-red-600 text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] disabled:opacity-50 hover:bg-red-700'
+            className='flex-1 bg-red-600 text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] disabled:opacity-50'
           >
             Clock Out
           </button>
@@ -126,52 +131,23 @@ export default function ShiftPage() {
         {clockStatus === 'out' && <p className='text-xs text-gray-500 mt-2 text-center'>Clocked out</p>}
       </div>
 
-      {/* Tasks */}
-      <div className='mx-4 mt-4 space-y-3'>
-        {loading && <p className='text-sm text-gray-500'>Loading tasks…</p>}
-
-        {taskGroups.map(group => (
-          <div key={group.label} className='bg-white rounded-xl shadow-sm overflow-hidden'>
-            <h2 className='px-4 py-2 text-xs font-semibold text-gray-500 uppercase bg-gray-50 border-b border-gray-100'>
-              {group.label} ({group.items.length})
-            </h2>
-            {group.items.map(task => (
-              <div key={task.id} className='p-4 border-b border-gray-50 last:border-0'>
-                <p className='text-sm font-medium text-gray-900'>{task.title}</p>
-                {task.description && (
-                  <p className='text-xs text-gray-500 mt-0.5'>{task.description}</p>
-                )}
-                {!task.completed_at && (
-                  <div className='flex gap-2 mt-2'>
-                    {!task.claimed_by && (
-                      <button
-                        onClick={() => void handleClaim(task.id)}
-                        className='px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium min-h-[44px] hover:bg-blue-200'
-                      >
-                        Claim
-                      </button>
-                    )}
-                    {task.claimed_by === user?.id && (
-                      <button
-                        onClick={() => void handleComplete(task.id)}
-                        className='px-3 py-2 bg-green-100 text-green-700 rounded-lg text-xs font-medium min-h-[44px] hover:bg-green-200'
-                      >
-                        Complete
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        ))}
-
-        {!loading && tasks.length === 0 && homeId && (
-          <p className='text-sm text-gray-500'>No tasks for today</p>
-        )}
+      {/* Shift notes */}
+      <div className='mx-4 mt-4'>
+        <h2 className='text-sm font-semibold text-gray-700 mb-2'>Shift Notes</h2>
+        <ShiftNotesFeed
+          currentNotes={currentNotes}
+          previousNotes={previousNotes}
+          loading={loading}
+        />
       </div>
 
       <BottomNav />
+
+      <ComposeBar
+        residents={residents}
+        submitting={submitting}
+        onPost={handlePost}
+      />
     </div>
   )
 }

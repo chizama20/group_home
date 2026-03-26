@@ -9,6 +9,7 @@ import NeedsAttention from './NeedsAttention'
 import UpcomingAppointments from './UpcomingAppointments'
 import ShiftTasksSection from './ShiftTasksSection'
 import QuickActions from './QuickActions'
+import AddAppointmentForm from '../../components/AddAppointmentForm'
 import { currentShift } from '../../types/log'
 
 const SHIFT_TIME: Record<string, string> = {
@@ -167,26 +168,14 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* Add Appointment Sheet — placeholder until Phase 8 */}
-      {showAddAppt && (
-        <>
-          <div
-            className='fixed inset-0 bg-black/40 z-40'
-            onClick={() => setShowAddAppt(false)}
-          />
-          <div className='fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 p-4 pb-8'>
-            <div className='w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4' />
-            <p className='text-center text-sm text-gray-500'>
-              Add Appointment form — wired in Phase 8
-            </p>
-            <button
-              onClick={() => setShowAddAppt(false)}
-              className='mt-4 w-full py-3 bg-gray-100 rounded-xl text-sm text-gray-600 min-h-[44px]'
-            >
-              Close
-            </button>
-          </div>
-        </>
+      {/* Add Appointment Sheet */}
+      {showAddAppt && homeId && (
+        <AddAppointmentForm
+          homeId={homeId}
+          residents={residents}
+          onSuccess={() => { setShowAddAppt(false); refresh() }}
+          onCancel={() => setShowAddAppt(false)}
+        />
       )}
     </div>
   )

@@ -14,8 +14,8 @@ interface PatchBody {
   instructions?: string;
   prescriber?: string;
 }
-interface AdministerBody { outcome: 'given' | 'refused' | 'missed' | 'held'; notes?: string; }
-interface BulkAdminBody  { medication_ids: string[]; outcome: 'given' | 'refused' | 'missed' | 'held'; notes?: string; }
+interface AdministerBody { outcome: 'given' | 'partial' | 'refused' | 'missed' | 'held'; notes?: string; }
+interface BulkAdminBody  { medication_ids: string[]; outcome: 'given' | 'partial' | 'refused' | 'missed' | 'held'; notes?: string; }
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
