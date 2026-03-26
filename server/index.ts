@@ -8,6 +8,7 @@ import authPlugin          from './plugins/auth';
 
 import authRoutes          from './routes/auth';
 import orgsRoutes          from './routes/orgs';
+import organizationsRoutes from './routes/organizations';
 import usersRoutes         from './routes/users';
 import homesRoutes         from './routes/homes';
 import residentsRoutes     from './routes/residents';
@@ -29,6 +30,7 @@ fastify.register(authPlugin);
 // Routes
 fastify.register(authRoutes,         { prefix: '/auth' });
 fastify.register(orgsRoutes,         { prefix: '/orgs' });
+fastify.register(organizationsRoutes, { prefix: '/organizations' });
 fastify.register(usersRoutes,        { prefix: '/users' });
 fastify.register(homesRoutes,        { prefix: '/homes' });
 fastify.register(residentsRoutes,    { prefix: '/residents' });

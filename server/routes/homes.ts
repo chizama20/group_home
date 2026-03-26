@@ -316,6 +316,50 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
+  // IPOS compliance summary — filed vs pending per shift (manager+)
+  fastify.get<{ Params: HomeParam; Querystring: { date?: string } }>(
+    '/:id/ipos/compliance',
+    { preHandler: [fastify.authenticate, managerOrAbove] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const homeId = request.params.id;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, homeId))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const date = request.query.date ?? new Date().toISOString().split('T')[0];
+
+      const [residents] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, first_name, last_name FROM residents WHERE home_id = ? AND is_active = 1',
+        [homeId]
+      );
+
+      const shifts = ['day', 'evening', 'night'] as const;
+      const result = await Promise.all(shifts.map(async (shift) => {
+        const [filed] = await fastify.db.execute<RowDataPacket[]>(
+          'SELECT resident_id FROM ipos_logs WHERE home_id = ? AND log_date = ? AND shift = ?',
+          [homeId, date, shift]
+        );
+        const filedIds = new Set(filed.map((r: RowDataPacket) => r.resident_id));
+        const pending  = residents.filter((r: RowDataPacket) => !filedIds.has(r.id));
+        return {
+          shift,
+          total_residents: residents.length,
+          filed_count: filed.length,
+          pending_residents: pending.map((r: RowDataPacket) => ({
+            id: r.id, first_name: r.first_name, last_name: r.last_name,
+          })),
+        };
+      }));
+
+      return reply.send(success(result));
+    }
+  );
+
   fastify.post<{ Params: HomeParam; Body: IposBody }>(
     '/:id/ipos',
     { preHandler: [fastify.authenticate] },
@@ -764,6 +808,29 @@ export default async (fastify: FastifyInstance): Promise<void> => {
         [id, homeId, user_id, shift, shift_date]
       );
       return reply.code(201).send(success({ message: 'Staff added to roster' }));
+    }
+  );
+
+  // Remove a roster entry — manager override (manager+)
+  fastify.delete<{ Params: { id: string; entryId: string } }>(
+    '/:id/roster/:entryId',
+    { preHandler: [fastify.authenticate, managerOrAbove] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const { id: homeId, entryId } = request.params;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+
+      const [entryCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM shift_roster WHERE id = ? AND home_id = ?', [entryId, homeId]
+      );
+      if (!entryCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Roster entry not found'));
+
+      await fastify.db.execute('DELETE FROM shift_roster WHERE id = ?', [entryId]);
+      return reply.send(success({ message: 'Roster entry removed' }));
     }
   );
 
