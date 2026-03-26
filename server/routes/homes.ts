@@ -57,7 +57,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
   // HOME CRUD
   // ═══════════════════════════════════════════════════════════════════════════
 
-  fastify.get('/', { preHandler: [fastify.authenticate, managerOrAbove] }, async (request, reply) => {
+  fastify.get('/', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const { org_id, id: userId, role } = request.user;
     let rows: RowDataPacket[];
     if (role === 'org_admin') {
