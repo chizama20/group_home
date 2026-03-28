@@ -14,14 +14,16 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     '/:id',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
+      const { org_id } = request.user;
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
         `SELECT i.*, r.first_name as resident_first, r.last_name as resident_last,
                 u.first_name as reporter_first, u.last_name as reporter_last
          FROM incidents i
          JOIN residents r ON i.resident_id = r.id
+         JOIN homes h ON i.home_id = h.id
          JOIN users u ON i.reported_by = u.id
-         WHERE i.id = ?`,
-        [request.params.id]
+         WHERE i.id = ? AND h.org_id = ?`,
+        [request.params.id, org_id]
       );
       if (!rows[0]) return reply.code(404).send(failure('NOT_FOUND', 'Incident not found'));
 
@@ -37,10 +39,13 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     '/:id/sign-off',
     { preHandler: [fastify.authenticate, managerOrAbove] },
     async (request, reply) => {
-      const { id: signed_off_by } = request.user;
+      const { id: signed_off_by, org_id } = request.user;
 
       const [check] = await fastify.db.execute<RowDataPacket[]>(
-        'SELECT id, home_id, status FROM incidents WHERE id = ?', [request.params.id]
+        `SELECT i.id, i.home_id, i.status FROM incidents i
+         JOIN homes h ON i.home_id = h.id
+         WHERE i.id = ? AND h.org_id = ?`,
+        [request.params.id, org_id]
       );
       if (!check[0]) return reply.code(404).send(failure('NOT_FOUND', 'Incident not found'));
 
@@ -69,7 +74,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
         return reply.code(400).send(failure('MISSING_FIELDS', 'escalated_to (user id) is required'));
 
       const [check] = await fastify.db.execute<RowDataPacket[]>(
-        'SELECT id, home_id FROM incidents WHERE id = ?', [request.params.id]
+        `SELECT i.id, i.home_id FROM incidents i
+         JOIN homes h ON i.home_id = h.id
+         WHERE i.id = ? AND h.org_id = ?`,
+        [request.params.id, org_id]
       );
       if (!check[0]) return reply.code(404).send(failure('NOT_FOUND', 'Incident not found'));
 

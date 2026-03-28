@@ -87,8 +87,11 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       const { id: administered_by } = request.user;
       const { outcome, notes } = request.body;
 
+      const VALID_OUTCOMES = ['given', 'partial', 'refused', 'missed', 'held'];
       if (!outcome)
         return reply.code(400).send(failure('MISSING_FIELDS', 'outcome is required'));
+      if (!VALID_OUTCOMES.includes(outcome))
+        return reply.code(400).send(failure('INVALID_VALUE', `outcome must be one of: ${VALID_OUTCOMES.join(', ')}`));
 
       const [check] = await fastify.db.execute<RowDataPacket[]>(
         `SELECT m.id, m.resident_id, m.scheduled_time, r.home_id
@@ -134,11 +137,14 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       const { id: administered_by } = request.user;
       const { medication_ids, outcome, notes } = request.body;
 
+      const VALID_OUTCOMES = ['given', 'partial', 'refused', 'missed', 'held'];
       if (!medication_ids || !Array.isArray(medication_ids) || medication_ids.length === 0)
         return reply.code(400).send(failure('MISSING_FIELDS', 'medication_ids array is required'));
 
       if (!outcome)
         return reply.code(400).send(failure('MISSING_FIELDS', 'outcome is required'));
+      if (!VALID_OUTCOMES.includes(outcome))
+        return reply.code(400).send(failure('INVALID_VALUE', `outcome must be one of: ${VALID_OUTCOMES.join(', ')}`));
 
       const results: { id: string; medication_id: string; status: string; error?: string }[] = [];
 

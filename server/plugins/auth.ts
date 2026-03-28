@@ -4,8 +4,12 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { failure } from '../utils/response';
 
 export default fp(async (fastify: FastifyInstance) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is not set — server cannot start without it');
+  }
+
   fastify.register(jwt, {
-    secret: process.env.JWT_SECRET as string
+    secret: process.env.JWT_SECRET
   });
 
   fastify.decorate(

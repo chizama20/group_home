@@ -378,6 +378,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       if (!resident_id || !shift || !log_date || !content)
         return reply.code(400).send(failure('MISSING_FIELDS', 'resident_id, shift, log_date, and content are required'));
 
+      const VALID_SHIFTS = ['day', 'evening', 'night'];
+      if (!VALID_SHIFTS.includes(shift))
+        return reply.code(400).send(failure('INVALID_VALUE', 'shift must be day, evening, or night'));
+
       // Verify resident belongs to this home
       const [resCheck] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id FROM residents WHERE id = ? AND home_id = ?', [resident_id, homeId]
@@ -525,6 +529,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       if (!resident_id || !incident_type || !severity || !description || !occurred_at)
         return reply.code(400).send(failure('MISSING_FIELDS', 'resident_id, incident_type, severity, description, and occurred_at are required'));
 
+      const VALID_SEVERITIES = ['low', 'medium', 'high'];
+      if (!VALID_SEVERITIES.includes(severity))
+        return reply.code(400).send(failure('INVALID_VALUE', 'severity must be low, medium, or high'));
+
       const [resCheck] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id FROM residents WHERE id = ? AND home_id = ?', [resident_id, homeId]
       );
@@ -595,6 +603,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       const { resident_id, shift, shift_date, content, flagged } = request.body;
       if (!shift || !shift_date || !content)
         return reply.code(400).send(failure('MISSING_FIELDS', 'shift, shift_date, and content are required'));
+
+      const VALID_SHIFTS = ['day', 'evening', 'night'];
+      if (!VALID_SHIFTS.includes(shift))
+        return reply.code(400).send(failure('INVALID_VALUE', 'shift must be day, evening, or night'));
 
       const id = uuidv4();
       await fastify.db.execute(
