@@ -5,6 +5,8 @@ import type { Resident } from '../../types/resident'
 import { currentShift, SHIFT_LABELS } from '../../types/log'
 import { todayStr } from '../../utils/date'
 import { cn } from '../../lib/cn'
+import { useRole } from '../../utils/role'
+import IposCompliancePanel from './IposCompliancePanel'
 
 const SHIFTS: Shift[] = ['day', 'evening', 'night']
 
@@ -22,24 +24,25 @@ function encodeContent(mood: string, observations: string, notes: string): strin
   return parts.join('\n\n')
 }
 
-interface Props {
+// ── Employee form ─────────────────────────────────────────────────────────────
+
+interface EmployeeProps {
   homeId:    string
   residents: Resident[]
 }
 
-export default function IposTab({ homeId, residents }: Props) {
+function IposEmployeeView({ homeId, residents }: EmployeeProps) {
   const [shift, setShift]     = useState<Shift>(currentShift())
   const [iposLogs, setIposLogs] = useState<IposLog[]>([])
   const [loading, setLoading] = useState(false)
 
-  // Form modal state
-  const [selected, setSelected]       = useState<Resident | null>(null)
-  const [mood, setMood]               = useState<string | null>(null)
+  const [selected, setSelected]         = useState<Resident | null>(null)
+  const [mood, setMood]                 = useState<string | null>(null)
   const [observations, setObservations] = useState('')
-  const [notes, setNotes]             = useState('')
-  const [submitting, setSubmitting]   = useState(false)
-  const [formError, setFormError]     = useState<string | null>(null)
-  const [successId, setSuccessId]     = useState<string | null>(null)
+  const [notes, setNotes]               = useState('')
+  const [submitting, setSubmitting]     = useState(false)
+  const [formError, setFormError]       = useState<string | null>(null)
+  const [successId, setSuccessId]       = useState<string | null>(null)
 
   const loadLogs = useCallback(() => {
     setLoading(true)
@@ -118,7 +121,7 @@ export default function IposTab({ homeId, residents }: Props) {
 
       <div className='bg-white divide-y divide-gray-50'>
         {active.map(r => {
-          const filed = filedIds.has(r.id)
+          const filed   = filedIds.has(r.id)
           const justDone = successId === r.id
           return (
             <button
@@ -171,7 +174,6 @@ export default function IposTab({ homeId, residents }: Props) {
                 <button onClick={closeForm} className='text-gray-400 min-h-[44px] min-w-[44px] flex items-center justify-center text-xl'>✕</button>
               </div>
 
-              {/* Mood chips */}
               <p className='text-sm font-medium text-gray-700 mb-2'>
                 Mood <span className='text-red-500'>*</span>
               </p>
@@ -192,7 +194,6 @@ export default function IposTab({ homeId, residents }: Props) {
                 ))}
               </div>
 
-              {/* Observations */}
               <label className='block text-sm font-medium text-gray-700 mb-1'>Observations</label>
               <textarea
                 value={observations}
@@ -202,7 +203,6 @@ export default function IposTab({ homeId, residents }: Props) {
                 className='w-full border border-gray-300 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4'
               />
 
-              {/* Notes */}
               <label className='block text-sm font-medium text-gray-700 mb-1'>Notes</label>
               <textarea
                 value={notes}
@@ -229,4 +229,21 @@ export default function IposTab({ homeId, residents }: Props) {
       )}
     </div>
   )
+}
+
+// ── Main export ───────────────────────────────────────────────────────────────
+
+interface Props {
+  homeId:    string
+  residents: Resident[]
+}
+
+export default function IposTab({ homeId, residents }: Props) {
+  const { isManagerOrAbove } = useRole()
+
+  if (isManagerOrAbove) {
+    return <IposCompliancePanel homeId={homeId} />
+  }
+
+  return <IposEmployeeView homeId={homeId} residents={residents} />
 }

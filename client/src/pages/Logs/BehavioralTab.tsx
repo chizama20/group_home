@@ -5,6 +5,8 @@ import type { BehavioralLog } from '../../types/log'
 import type { Resident, TrackedBehavior } from '../../types/resident'
 import { formatDate, formatTime } from '../../utils/date'
 import { cn } from '../../lib/cn'
+import { useRole } from '../../utils/role'
+import ExportSheet from './ExportSheet'
 
 interface Props {
   homeId:    string
@@ -12,6 +14,8 @@ interface Props {
 }
 
 export default function BehavioralTab({ homeId, residents }: Props) {
+  const { isManagerOrAbove }          = useRole()
+  const [showExport, setShowExport]   = useState(false)
   const [logs, setLogs]               = useState<BehavioralLog[]>([])
   const [logsLoading, setLogsLoading] = useState(true)
 
@@ -82,7 +86,17 @@ export default function BehavioralTab({ homeId, residents }: Props) {
     <div>
       {/* Form */}
       <div className='bg-white border-b border-gray-100 p-4 space-y-3'>
-        <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Log Behavior</p>
+        <div className='flex items-center justify-between'>
+          <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Log Behavior</p>
+          {isManagerOrAbove && (
+            <button
+              onClick={() => setShowExport(true)}
+              className='text-xs font-medium text-blue-600 border border-blue-200 rounded-lg px-3 py-1.5 min-h-[36px] hover:bg-blue-50 transition-colors'
+            >
+              Export PDF
+            </button>
+          )}
+        </div>
 
         <div>
           <label className='block text-sm font-medium text-gray-700 mb-1'>Resident</label>
@@ -198,6 +212,14 @@ export default function BehavioralTab({ homeId, residents }: Props) {
           </div>
         ))}
       </div>
+
+      {showExport && (
+        <ExportSheet
+          homeId={homeId}
+          residents={residents}
+          onClose={() => setShowExport(false)}
+        />
+      )}
     </div>
   )
 }

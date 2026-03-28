@@ -5,6 +5,8 @@ import type { Resident } from '../../types/resident'
 import StatusBadge from '../../components/StatusBadge'
 import { formatDate } from '../../utils/date'
 import { cn } from '../../lib/cn'
+import { useRole } from '../../utils/role'
+import IncidentReviewSheet from './IncidentReviewSheet'
 
 const INCIDENT_TYPES = [
   'Physical altercation',
@@ -26,12 +28,113 @@ interface Props {
   residents: Resident[]
 }
 
-export default function IncidentTab({ homeId, residents }: Props) {
+// ── Manager oversight view ────────────────────────────────────────────────────
+
+const MANAGER_FILTERS = ['all', 'open', 'signed_off', 'escalated', 'closed'] as const
+type ManagerFilter = typeof MANAGER_FILTERS[number]
+
+const FILTER_LABELS: Record<ManagerFilter, string> = {
+  all:       'All',
+  open:      'Open',
+  signed_off: 'Signed off',
+  escalated: 'Escalated',
+  closed:    'Closed',
+}
+
+function ManagerIncidentView({ homeId }: { homeId: string }) {
+  const [incidents, setIncidents]     = useState<Incident[]>([])
+  const [loading, setLoading]         = useState(true)
+  const [filter, setFilter]           = useState<ManagerFilter>('open')
+  const [reviewing, setReviewing]     = useState<Incident | null>(null)
+
+  function load() {
+    setLoading(true)
+    getHomeIncidents(homeId)
+      .then(res => setIncidents(res.data.data ?? []))
+      .catch(() => {/* non-critical */})
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => { load() }, [homeId])
+
+  const filtered = filter === 'all'
+    ? incidents
+    : incidents.filter(i => i.status === filter)
+
+  return (
+    <div className='p-4 space-y-3'>
+      {/* Filter pills */}
+      <div className='flex gap-2 overflow-x-auto pb-1' style={{ scrollbarWidth: 'none' }}>
+        {MANAGER_FILTERS.map(f => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={cn(
+              'px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap min-h-[36px] border shrink-0',
+              filter === f
+                ? 'bg-gray-800 text-white border-gray-800'
+                : 'bg-white text-gray-600 border-gray-200'
+            )}
+          >
+            {FILTER_LABELS[f]}
+          </button>
+        ))}
+      </div>
+
+      {loading && <p className='text-sm text-gray-500'>Loading…</p>}
+      {!loading && !filtered.length && (
+        <p className='text-sm text-gray-400 py-2'>No incidents{filter !== 'all' ? ` with status "${FILTER_LABELS[filter].toLowerCase()}"` : ''}</p>
+      )}
+
+      {filtered.map(incident => (
+        <div key={incident.id} className='bg-white rounded-xl shadow-sm px-4 py-3'>
+          <div className='flex items-start justify-between gap-2 mb-1'>
+            <p className='text-sm font-semibold text-gray-900 flex-1 min-w-0'>
+              {incident.incident_type ?? incident.title}
+            </p>
+            <StatusBadge status={incident.status} />
+          </div>
+          {incident.severity && (
+            <span className={cn(
+              'inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mb-1',
+              incident.severity === 'high'   ? 'bg-red-100 text-red-700' :
+              incident.severity === 'medium' ? 'bg-amber-100 text-amber-700' :
+                                               'bg-green-100 text-green-700'
+            )}>
+              {incident.severity.charAt(0).toUpperCase() + incident.severity.slice(1)} severity
+            </span>
+          )}
+          <p className='text-xs text-gray-400 mb-2'>{formatDate(incident.created_at)}</p>
+          <p className='text-sm text-gray-700 line-clamp-2 mb-3'>{incident.description}</p>
+          {(incident.status === 'open' || incident.status === 'reviewed') && (
+            <button
+              onClick={() => setReviewing(incident)}
+              className='text-xs font-semibold text-blue-600 border border-blue-200 rounded-lg px-3 py-1.5 min-h-[36px] hover:bg-blue-50 transition-colors'
+            >
+              Review
+            </button>
+          )}
+        </div>
+      ))}
+
+      {reviewing && (
+        <IncidentReviewSheet
+          incident={reviewing}
+          onClose={() => setReviewing(null)}
+          onUpdate={load}
+        />
+      )}
+    </div>
+  )
+}
+
+// ── Employee form view ────────────────────────────────────────────────────────
+
+function EmployeeIncidentView({ homeId, residents }: Props) {
   const [incidents, setIncidents]   = useState<Incident[]>([])
   const [feedLoading, setFeedLoading] = useState(true)
   const [filter, setFilter]         = useState<string>('all')
 
-  // Form state
   const [residentId, setResidentId] = useState('')
   const [type, setType]             = useState('')
   const [severity, setSeverity]     = useState<'low' | 'medium' | 'high' | null>(null)
@@ -227,4 +330,16 @@ export default function IncidentTab({ homeId, residents }: Props) {
       </div>
     </div>
   )
+}
+
+// ── Main export ───────────────────────────────────────────────────────────────
+
+export default function IncidentTab({ homeId, residents }: Props) {
+  const { isManagerOrAbove } = useRole()
+
+  if (isManagerOrAbove) {
+    return <ManagerIncidentView homeId={homeId} />
+  }
+
+  return <EmployeeIncidentView homeId={homeId} residents={residents} />
 }
