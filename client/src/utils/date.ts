@@ -18,3 +18,9 @@ export function formatTime(iso: string): string {
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
 }
+
+export function formatDateTime(iso: string): string {
+  const d = new Date(iso)
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) +
+    ' · ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}

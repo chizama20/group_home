@@ -59,4 +59,7 @@ export interface Announcement {
   body: string
   is_pinned: boolean
   created_at: string
+  // Joined fields returned by GET endpoint
+  poster_first?: string
+  poster_last?: string
 }

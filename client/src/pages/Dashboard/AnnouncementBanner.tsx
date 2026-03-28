@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Announcement } from '../../types/log'
+import { formatDateTime } from '../../utils/date'
 
 interface Props {
   announcements: Announcement[]
@@ -34,6 +35,12 @@ export default function AnnouncementBanner({ announcements }: Props) {
           {expanded ? 'Show less' : 'Read more'}
         </button>
       )}
+      <p className='text-xs text-gray-400 mt-2'>
+        {ann.poster_first && ann.poster_last
+          ? `${ann.poster_first} ${ann.poster_last}`
+          : 'Management'
+        } · {formatDateTime(ann.created_at)}
+      </p>
     </div>
   )
 }
