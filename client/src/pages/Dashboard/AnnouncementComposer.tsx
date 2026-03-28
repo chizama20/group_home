@@ -8,11 +8,13 @@ interface Props {
 }
 
 export default function AnnouncementComposer({ homeId, onPosted }: Props) {
-  const { org }               = useAuth()
+  const { org, user }         = useAuth()
+  const isOrgAdmin            = user?.role === 'org_admin'
   const [open, setOpen]       = useState(false)
   const [title, setTitle]     = useState('')
   const [body, setBody]       = useState('')
   const [pinned, setPinned]   = useState(false)
+  const [allHomes, setAllHomes] = useState(false)
   const [posting, setPosting] = useState(false)
   const [error, setError]     = useState<string | null>(null)
 
@@ -22,10 +24,12 @@ export default function AnnouncementComposer({ homeId, onPosted }: Props) {
     setPosting(true)
     setError(null)
     try {
-      await createAnnouncement(org.id, { title: title.trim(), body: body.trim(), home_id: homeId, is_pinned: pinned })
+      const home_id = (isOrgAdmin && allHomes) ? undefined : homeId
+      await createAnnouncement(org.id, { title: title.trim(), body: body.trim(), home_id, is_pinned: pinned })
       setTitle('')
       setBody('')
       setPinned(false)
+      setAllHomes(false)
       setOpen(false)
       onPosted()
     } catch {
@@ -77,6 +81,25 @@ export default function AnnouncementComposer({ homeId, onPosted }: Props) {
           />
           Pin announcement
         </label>
+
+        {isOrgAdmin && (
+          <div className='flex rounded-lg border border-gray-200 overflow-hidden text-sm'>
+            <button
+              type='button'
+              onClick={() => setAllHomes(false)}
+              className={`flex-1 py-2 ${!allHomes ? 'bg-blue-600 text-white font-semibold' : 'text-gray-500'}`}
+            >
+              This home
+            </button>
+            <button
+              type='button'
+              onClick={() => setAllHomes(true)}
+              className={`flex-1 py-2 ${allHomes ? 'bg-blue-600 text-white font-semibold' : 'text-gray-500'}`}
+            >
+              All homes
+            </button>
+          </div>
+        )}
 
         {error && <p className='text-xs text-red-600'>{error}</p>}
 
