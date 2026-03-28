@@ -5,10 +5,12 @@ import HomeSwitcherStrip from '../../components/HomeSwitcherStrip'
 import StatusBadge from '../../components/StatusBadge'
 import { useHome } from '../../context/HomeContext'
 import { useResidents } from '../../hooks/useResidents'
+import { useRole } from '../../utils/role'
 import { getHomeIpos } from '../../api/logs'
 import { currentShift } from '../../types/log'
 import { todayStr } from '../../utils/date'
 import type { Resident } from '../../types/resident'
+import ResidentForm from './ResidentForm'
 
 function ResidentRow({ r, badge }: { r: Resident; badge: string }) {
   const navigate = useNavigate()
@@ -39,10 +41,12 @@ function SectionHeader({ label, count, colour }: { label: string; count: number;
 }
 
 export default function ResidentsPage() {
-  const { homeId } = useHome()
-  const { residents, loading, error } = useResidents(homeId)
-  const [search, setSearch]           = useState('')
-  const [filedIds, setFiledIds]       = useState<Set<string>>(new Set())
+  const { homeId }                         = useHome()
+  const { residents, loading, error, refresh } = useResidents(homeId)
+  const { isManagerOrAbove }               = useRole()
+  const [search, setSearch]                = useState('')
+  const [filedIds, setFiledIds]            = useState<Set<string>>(new Set())
+  const [showAdd, setShowAdd]              = useState(false)
 
   // Fetch today's IPOS to compute "attention" group
   useEffect(() => {
@@ -72,7 +76,17 @@ export default function ResidentsPage() {
       {/* Header */}
       <div className='bg-white border-b border-gray-100'>
         <div className='px-4 pt-5 pb-3'>
-          <h1 className='text-xl font-bold text-gray-900 mb-3'>Residents</h1>
+          <div className='flex items-center justify-between mb-3'>
+            <h1 className='text-xl font-bold text-gray-900'>Residents</h1>
+            {isManagerOrAbove && homeId && (
+              <button
+                onClick={() => setShowAdd(true)}
+                className='text-sm font-medium text-blue-600 border border-blue-200 rounded-xl px-3 py-2 min-h-[40px] hover:bg-blue-50 transition-colors'
+              >
+                + Add
+              </button>
+            )}
+          </div>
           <input
             type='search'
             placeholder='Search by name or room…'
@@ -120,6 +134,14 @@ export default function ResidentsPage() {
       </div>
 
       <BottomNav />
+
+      {showAdd && homeId && (
+        <ResidentForm
+          homeId={homeId}
+          onSuccess={() => { setShowAdd(false); refresh() }}
+          onCancel={() => setShowAdd(false)}
+        />
+      )}
     </div>
   )
 }

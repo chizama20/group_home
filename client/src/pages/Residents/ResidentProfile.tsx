@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import type { Resident } from '../../types/resident'
 import { getResident } from '../../api/residents'
+import { useRole } from '../../utils/role'
 import BottomNav from '../../components/BottomNav'
 import { cn } from '../../lib/cn'
 import AddAppointmentForm from '../../components/AddAppointmentForm'
+import ResidentForm   from './ResidentForm'
 import InfoTab         from './tabs/InfoTab'
 import MedicationsTab  from './tabs/MedicationsTab'
 import LogsTab         from './tabs/LogsTab'
@@ -23,16 +25,19 @@ const TAB_LABELS: Record<Tab, string> = {
 }
 
 export default function ResidentProfile() {
-  const { id }   = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const [resident, setResident] = useState<Resident | null>(null)
-  const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState<string | null>(null)
-  const [tab, setTab]           = useState<Tab>('info')
-  const [showAddAppt, setShowAddAppt]   = useState(false)
-  const [apptKey,    setApptKey]        = useState(0)
+  const { id }               = useParams<{ id: string }>()
+  const navigate             = useNavigate()
+  const { isManagerOrAbove } = useRole()
 
-  useEffect(() => {
+  const [resident, setResident]         = useState<Resident | null>(null)
+  const [loading, setLoading]           = useState(true)
+  const [error, setError]               = useState<string | null>(null)
+  const [tab, setTab]                   = useState<Tab>('info')
+  const [showEdit, setShowEdit]         = useState(false)
+  const [showAddAppt, setShowAddAppt]   = useState(false)
+  const [apptKey, setApptKey]           = useState(0)
+
+  const fetchResident = useCallback(() => {
     if (!id) return
     getResident(id)
       .then(res => setResident(res.data.data ?? null))
@@ -40,12 +45,14 @@ export default function ResidentProfile() {
       .finally(() => setLoading(false))
   }, [id])
 
+  useEffect(() => { fetchResident() }, [fetchResident])
+
   if (loading) return (
     <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
       <div className='w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin' />
     </div>
   )
-  if (error)    return <div className='p-4 text-sm text-red-600'>{error}</div>
+  if (error)     return <div className='p-4 text-sm text-red-600'>{error}</div>
   if (!resident) return <div className='p-4 text-sm text-gray-500'>Resident not found</div>
 
   return (
@@ -69,6 +76,16 @@ export default function ResidentProfile() {
               <p className='text-sm text-gray-500'>Room {resident.room}</p>
             )}
           </div>
+
+          {/* Manager: Edit profile button */}
+          {isManagerOrAbove && (
+            <button
+              onClick={() => setShowEdit(true)}
+              className='shrink-0 text-sm font-medium text-blue-600 border border-blue-200 rounded-xl px-3 py-2 min-h-[44px] hover:bg-blue-50 transition-colors'
+            >
+              Edit
+            </button>
+          )}
         </div>
 
         {/* Tab bar */}
@@ -91,7 +108,7 @@ export default function ResidentProfile() {
       </div>
 
       {/* Tab content */}
-      {tab === 'info'         && <InfoTab resident={resident} />}
+      {tab === 'info'         && <InfoTab resident={resident} onRefresh={fetchResident} />}
       {tab === 'meds'         && <MedicationsTab residentId={resident.id} />}
       {tab === 'logs'         && <LogsTab residentId={resident.id} />}
       {tab === 'appointments' && (
@@ -101,12 +118,22 @@ export default function ResidentProfile() {
           onAddAppointment={() => setShowAddAppt(true)}
         />
       )}
-      {tab === 'incidents'    && (
+      {tab === 'incidents' && (
         <IncidentsTab residentId={resident.id} homeId={resident.home_id} />
       )}
 
       <BottomNav />
 
+      {/* Edit resident form */}
+      {showEdit && (
+        <ResidentForm
+          resident={resident}
+          onSuccess={() => { setShowEdit(false); fetchResident() }}
+          onCancel={() => setShowEdit(false)}
+        />
+      )}
+
+      {/* Add appointment form */}
       {showAddAppt && (
         <AddAppointmentForm
           homeId={resident.home_id}
