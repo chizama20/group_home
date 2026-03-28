@@ -48,6 +48,11 @@ export interface ShiftNote {
   content: string
   flagged: boolean
   created_at: string
+  // Joined fields returned by GET endpoint
+  first_name?: string
+  last_name?: string
+  resident_first?: string
+  resident_last?: string
 }
 
 export interface Announcement {
