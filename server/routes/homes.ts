@@ -564,8 +564,11 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       if (date)  { filters.push('sn.shift_date = ?'); values.push(date); }
 
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
-        `SELECT sn.*, u.first_name, u.last_name
-         FROM shift_notes sn JOIN users u ON sn.user_id = u.id
+        `SELECT sn.*, u.first_name, u.last_name,
+                r.first_name AS resident_first, r.last_name AS resident_last
+         FROM shift_notes sn
+         JOIN users u ON sn.user_id = u.id
+         LEFT JOIN residents r ON sn.resident_id = r.id
          WHERE ${filters.join(' AND ')}
          ORDER BY sn.shift_date DESC, sn.created_at DESC`,
         values
