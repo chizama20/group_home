@@ -27,6 +27,16 @@ fastify.register(corsPlugin);
 fastify.register(dbPlugin);
 fastify.register(authPlugin);
 
+// Health check — no auth required
+fastify.get('/health', async (_request, reply) => {
+  try {
+    await fastify.db.execute('SELECT 1');
+    return reply.send({ status: 'ok', db: 'connected' });
+  } catch {
+    return reply.code(503).send({ status: 'error', db: 'disconnected' });
+  }
+});
+
 // Routes
 fastify.register(authRoutes,         { prefix: '/auth' });
 fastify.register(orgsRoutes,         { prefix: '/orgs' });

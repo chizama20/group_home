@@ -64,6 +64,7 @@ export default function MedicationsPage() {
   const { homeId, homes, selectHome } = useSelectedHome()
   const [meds, setMeds]               = useState<Medication[]>([])
   const [loading, setLoading]         = useState(false)
+  const [error, setError]             = useState<string | null>(null)
   const [administeredIds, setAdministeredIds] = useState<Set<string>>(new Set())
   const [failedIds, setFailedIds]     = useState<Set<string>>(new Set())
   const [showOutcome, setShowOutcome] = useState(false)
@@ -73,9 +74,10 @@ export default function MedicationsPage() {
   useEffect(() => {
     if (!homeId) return
     setLoading(true)
+    setError(null)
     getHomeMedications(homeId)
       .then(res => setMeds(res.data.data?.filter(m => m.is_active) ?? []))
-      .catch(() => {/* non-critical */})
+      .catch(() => setError('Failed to load medications. Please try again.'))
       .finally(() => setLoading(false))
   }, [homeId])
 
@@ -118,7 +120,8 @@ export default function MedicationsPage() {
       </div>
 
       {loading && <p className='p-4 text-sm text-gray-500'>Loading…</p>}
-      {!loading && !meds.length && homeId && (
+      {error && <p className='p-4 text-sm text-red-600'>{error}</p>}
+      {!loading && !error && !meds.length && homeId && (
         <p className='p-4 text-sm text-gray-500'>No active medications scheduled</p>
       )}
 

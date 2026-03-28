@@ -16,7 +16,12 @@ export default function ShiftTasksSection({ tasks, currentUserId, onRefresh }: P
   const claimed   = tasks.filter(t => t.claimed_by && t.claimed_by !== currentUserId && !t.completed_at)
   const completed = tasks.filter(t => !!t.completed_at)
 
-  if (!tasks.length) return null
+  if (!tasks.length) return (
+    <div className='mx-4 mt-4'>
+      <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2'>Shift Tasks</p>
+      <p className='text-sm text-gray-400 px-1'>No tasks for this shift.</p>
+    </div>
+  )
 
   async function handleClaim(id: string) {
     setActing(id)

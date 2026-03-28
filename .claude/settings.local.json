@@ -18,7 +18,8 @@
       "Bash(ls -la /c/Users/Chi/Documents/GitHub/group_home/client/src/context*)",
       "Bash(grep:*)",
       "Bash(find C:UsersChiDocumentsGitHubgroup_home -type f -name *.js -o -name *.tsx -o -name *.ts -o -name *.sql)",
-      "Bash(find C:UsersChiDocumentsGitHubgroup_home/server -type d -name *migrations*)"
+      "Bash(find C:UsersChiDocumentsGitHubgroup_home/server -type d -name *migrations*)",
+      "Bash(find /c/Users/Chi/Documents/GitHub/group_home -name .env* -type f)"
     ]
   }
 }
