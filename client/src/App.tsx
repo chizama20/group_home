@@ -11,6 +11,8 @@ import LoginPage          from './pages/Login/index'
 import ForgotPasswordPage from './pages/ForgotPassword/index'
 import ResetPasswordPage  from './pages/ResetPassword/index'
 import InviteAcceptPage   from './pages/InviteAccept/index'
+import RequestAccessPage  from './pages/RequestAccess/index'
+import SetupPinPage       from './pages/SetupPin/index'
 import DashboardPage      from './pages/Dashboard/index'
 import ResidentsPage      from './pages/Residents/index'
 import ResidentProfile    from './pages/Residents/ResidentProfile'
@@ -18,6 +20,11 @@ import LogsPage           from './pages/Logs/index'
 import MedicationsPage    from './pages/Medications/index'
 import ShiftPage          from './pages/Shift/index'
 import HomeSelectionPage  from './pages/HomeSelection/index'
+import AdminLoginPage     from './pages/Admin/Login'
+import AdminDashboard     from './pages/Admin/Dashboard'
+import AdminRequests      from './pages/Admin/Requests'
+import AdminRequestDetail from './pages/Admin/RequestDetail'
+import AdminOrgs          from './pages/Admin/Orgs'
 
 // Inner component so it can use hooks that depend on router context
 function AppRoutes() {
@@ -59,6 +66,17 @@ function AppRoutes() {
         <Route path='/forgot-password'         element={<ForgotPasswordPage />} />
         <Route path='/reset-password/:token'   element={<ResetPasswordPage />} />
         <Route path='/invite/:token'           element={<InviteAcceptPage />} />
+        <Route path='/request-access'          element={<RequestAccessPage />} />
+
+        {/* PIN setup — protected but outside normal ProtectedRoute PIN check */}
+        <Route path='/setup-pin' element={<SetupPinPage />} />
+
+        {/* Admin — separate session, no HomeProvider needed */}
+        <Route path='/admin/login'             element={<AdminLoginPage />} />
+        <Route path='/admin/dashboard'         element={<AdminDashboard />} />
+        <Route path='/admin/requests'          element={<AdminRequests />} />
+        <Route path='/admin/requests/:id'      element={<AdminRequestDetail />} />
+        <Route path='/admin/orgs'              element={<AdminOrgs />} />
 
         {/* Employee and above */}
         <Route path='/' element={

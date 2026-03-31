@@ -30,7 +30,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     const [rows] = await fastify.db.execute<RowDataPacket[]>(
       `SELECT u.id, u.email, u.password_hash, u.first_name, u.last_name, u.role,
               u.is_active, u.org_id, u.pin_set_at,
-              o.name as org_name
+              o.name as org_name, o.status as org_status
        FROM users u
        JOIN orgs o ON u.org_id = o.id
        WHERE u.email = ? AND u.is_active = 1`,
@@ -44,6 +44,14 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     const valid = await comparePassword(password, user.password_hash);
     if (!valid)
       return reply.code(401).send(failure('INVALID_CREDENTIALS', 'Invalid email or password'));
+
+    // Block login if org is not active (pending BAA or suspended)
+    if (user.org_status && user.org_status !== 'active') {
+      const message = user.org_status === 'suspended'
+        ? 'Your organisation has been suspended. Contact support.'
+        : 'Your account is pending. Check your email to sign the BAA agreement.';
+      return reply.code(403).send(failure('ORG_INACTIVE', message));
+    }
 
     const token = fastify.jwt.sign({ id: user.id, role: user.role, org_id: user.org_id });
 

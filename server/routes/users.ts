@@ -1,12 +1,16 @@
 import { FastifyInstance } from 'fastify';
 import { RowDataPacket } from 'mysql2';
+import jwt from 'jsonwebtoken';
 import { success, failure } from '../utils/response';
-import { orgAdminOnly, managerOrAbove } from '../middleware/rbac';
+import { orgAdminOnly } from '../middleware/rbac';
+import { hashPassword, comparePassword } from '../utils/password';
 import { Role } from '../types';
 
 interface IdParam       { id: string; }
 interface UpdateBody    { first_name?: string; last_name?: string; email?: string; }
 interface RoleBody      { role: Role; }
+interface SetPinBody    { current_password: string; pin: string; }
+interface VerifyPinBody { pin: string; }
 
 const VALID_ROLES: Role[] = ['employee', 'manager', 'org_admin'];
 
@@ -76,6 +80,69 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       );
 
       return reply.send(success({ message: 'User deactivated' }));
+    }
+  );
+
+  // ── POST /users/me/signing-pin — set or change 4-digit PIN ──────────────────
+  fastify.post<{ Body: SetPinBody }>(
+    '/me/signing-pin',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { id } = request.user;
+      const { current_password, pin } = request.body;
+
+      if (!current_password || !pin)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'current_password and pin are required'));
+
+      if (!/^\d{4}$/.test(pin))
+        return reply.code(400).send(failure('INVALID_PIN', 'PIN must be exactly 4 digits'));
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT password_hash FROM users WHERE id = ?', [id]
+      );
+      if (!rows[0])
+        return reply.code(404).send(failure('NOT_FOUND', 'User not found'));
+
+      const validPassword = await comparePassword(current_password, rows[0].password_hash);
+      if (!validPassword)
+        return reply.code(401).send(failure('INVALID_PASSWORD', 'Current password is incorrect'));
+
+      const signing_pin_hash = await hashPassword(pin);
+      await fastify.db.execute(
+        'UPDATE users SET signing_pin_hash = ?, pin_set_at = NOW() WHERE id = ?',
+        [signing_pin_hash, id]
+      );
+
+      return reply.send(success({ message: 'Signing PIN set successfully' }));
+    }
+  );
+
+  // ── POST /users/me/signing-pin/verify — verify PIN, return short-lived sign_token ──
+  fastify.post<{ Body: VerifyPinBody }>(
+    '/me/signing-pin/verify',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { id } = request.user;
+      const { pin } = request.body;
+
+      if (!pin || !/^\d{4}$/.test(pin))
+        return reply.code(400).send(failure('INVALID_PIN', 'PIN must be exactly 4 digits'));
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT signing_pin_hash FROM users WHERE id = ?', [id]
+      );
+      if (!rows[0] || !rows[0].signing_pin_hash)
+        return reply.code(400).send(failure('PIN_NOT_SET', 'Signing PIN has not been set'));
+
+      const valid = await comparePassword(pin, rows[0].signing_pin_hash);
+      if (!valid)
+        return reply.code(401).send(failure('INVALID_PIN', 'Incorrect PIN'));
+
+      // Short-lived sign token — 5 minutes, sub = 'sign' to distinguish from auth tokens
+      const jwtSecret = process.env.JWT_SECRET!;
+      const sign_token = jwt.sign({ sub: 'sign', user_id: id }, jwtSecret, { expiresIn: '5m' });
+
+      return reply.send(success({ sign_token }));
     }
   );
 
