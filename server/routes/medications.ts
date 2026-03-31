@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { success, failure } from '../utils/response';
 import { canAccessHome } from '../utils/homeAccess';
 import { managerOrAbove } from '../middleware/rbac';
+import { validate, administerMedSchema } from '../schemas';
 
 interface MedIdParam     { id: string; }
 interface PatchBody {
@@ -85,13 +86,11 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
       const { id: administered_by } = request.user;
-      const { outcome, notes } = request.body;
 
-      const VALID_OUTCOMES = ['given', 'partial', 'refused', 'missed', 'held'];
-      if (!outcome)
-        return reply.code(400).send(failure('MISSING_FIELDS', 'outcome is required'));
-      if (!VALID_OUTCOMES.includes(outcome))
-        return reply.code(400).send(failure('INVALID_VALUE', `outcome must be one of: ${VALID_OUTCOMES.join(', ')}`));
+      const parsedAdmin = validate(administerMedSchema, request.body);
+      if (!parsedAdmin.success) return reply.code(400).send(failure('VALIDATION_ERROR', parsedAdmin.message));
+
+      const { outcome, notes } = parsedAdmin.data;
 
       const [check] = await fastify.db.execute<RowDataPacket[]>(
         `SELECT m.id, m.resident_id, m.scheduled_time, r.home_id

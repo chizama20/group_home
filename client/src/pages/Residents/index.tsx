@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import BottomNav from '../../components/BottomNav'
 import HomeSwitcherStrip from '../../components/HomeSwitcherStrip'
 import StatusBadge from '../../components/StatusBadge'
+import { Skeleton } from '../../components/ui/skeleton'
 import { useHome } from '../../context/HomeContext'
 import { useResidents } from '../../hooks/useResidents'
 import { useRole } from '../../utils/role'
@@ -100,7 +101,19 @@ export default function ResidentsPage() {
 
       {/* List */}
       <div className='bg-white mt-3'>
-        {loading && <p className='p-4 text-sm text-gray-500'>Loading…</p>}
+        {loading && (
+          <div className='p-4 space-y-3'>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className='flex items-center gap-3'>
+                <Skeleton className='w-10 h-10 rounded-full' />
+                <div className='flex-1 space-y-1.5'>
+                  <Skeleton className='h-4 w-40' />
+                  <Skeleton className='h-3 w-24' />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         {error   && <p className='p-4 text-sm text-red-600'>{error}</p>}
         {!loading && !homeId && <p className='p-4 text-sm text-gray-500'>No home selected</p>}
 

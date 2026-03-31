@@ -82,3 +82,27 @@ export const clockOut = (homeId: string, data: { shift: Shift; shift_date: strin
 
 export const getIposCompliance = (homeId: string, date?: string) =>
   api.get<ApiResponse<IposComplianceShift[]>>(`/homes/${homeId}/ipos/compliance`, { params: date ? { date } : undefined })
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+
+export interface DashboardStats {
+  residentCount:    number
+  overdueMedCount:  number
+  unfiledIposCount: number
+  openIncidentCount: number
+  staffOnShiftCount: number
+  isShiftActive:    boolean
+}
+
+export interface DashboardPayload {
+  announcements: unknown[]
+  residents:     unknown[]
+  appointments:  unknown[]
+  tasks:         unknown[]
+  roster:        unknown[]
+  openIncidents: unknown[]
+  stats:         DashboardStats
+}
+
+export const getHomeDashboard = (homeId: string, params?: { shift?: string; date?: string }) =>
+  api.get<ApiResponse<DashboardPayload>>(`/homes/${homeId}/dashboard`, { params })

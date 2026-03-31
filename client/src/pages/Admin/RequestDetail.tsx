@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { getOrgRequest, approveOrgRequest, rejectOrgRequest, type OrgRequest } from '../../api/admin'
 import AdminLayout from './AdminLayout'
 
@@ -20,9 +21,11 @@ function Field({ label, value }: { label: string; value: string | number | null 
 export default function AdminRequestDetail() {
   const { id }     = useParams<{ id: string }>()
   const navigate   = useNavigate()
-  const [req, setReq]     = useState<OrgRequest | null>(null)
+  const [req, setReq]         = useState<OrgRequest | null>(null)
   const [loading, setLoading] = useState(true)
   const [acting, setActing]   = useState(false)
+  const [showRejectForm, setShowRejectForm] = useState(false)
+  const [rejectReason, setRejectReason]     = useState('')
 
   useEffect(() => {
     if (!id) return
@@ -37,22 +40,37 @@ export default function AdminRequestDetail() {
     setActing(true)
     try {
       await approveOrgRequest(req.id)
+      toast.success('Request approved')
       navigate('/admin/requests')
-    } catch { setActing(false) }
+    } catch {
+      toast.error('Failed to approve request')
+      setActing(false)
+    }
   }
 
   async function handleReject() {
     if (!req) return
-    const reason = window.prompt('Rejection reason (optional):') ?? ''
     setActing(true)
+    setShowRejectForm(false)
     try {
-      await rejectOrgRequest(req.id, reason || undefined)
+      await rejectOrgRequest(req.id, rejectReason || undefined)
+      toast.success('Request rejected')
       navigate('/admin/requests')
-    } catch { setActing(false) }
+    } catch {
+      toast.error('Failed to reject request')
+      setActing(false)
+    }
   }
 
-  if (loading) return <AdminLayout><div className='text-sm text-gray-400'>Loading…</div></AdminLayout>
-  if (!req)    return <AdminLayout><div className='text-sm text-red-500'>Request not found.</div></AdminLayout>
+  if (loading) return (
+    <AdminLayout>
+      <div className='space-y-4'>
+        <div className='h-8 w-48 bg-gray-100 rounded animate-pulse' />
+        <div className='h-48 bg-gray-100 rounded-xl animate-pulse' />
+      </div>
+    </AdminLayout>
+  )
+  if (!req) return <AdminLayout><div className='text-sm text-red-500'>Request not found.</div></AdminLayout>
 
   return (
     <AdminLayout>
@@ -94,15 +112,44 @@ export default function AdminRequestDetail() {
       )}
 
       {req.status === 'pending' && (
-        <div className='flex gap-3'>
-          <button disabled={acting} onClick={() => { void handleApprove() }}
-            className='bg-green-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-green-700 disabled:opacity-50'>
-            Approve
-          </button>
-          <button disabled={acting} onClick={() => { void handleReject() }}
-            className='bg-red-50 text-red-600 border border-red-200 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-100 disabled:opacity-50'>
-            Reject
-          </button>
+        <div className='space-y-4'>
+          {!showRejectForm ? (
+            <div className='flex gap-3'>
+              <button disabled={acting} onClick={() => { void handleApprove() }}
+                className='bg-green-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-green-700 disabled:opacity-50'>
+                Approve
+              </button>
+              <button disabled={acting} onClick={() => setShowRejectForm(true)}
+                className='bg-red-50 text-red-600 border border-red-200 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-100 disabled:opacity-50'>
+                Reject
+              </button>
+            </div>
+          ) : (
+            <div className='bg-red-50 border border-red-200 rounded-xl p-5'>
+              <p className='text-sm font-semibold text-red-800 mb-3'>Rejection reason (optional)</p>
+              <textarea
+                autoFocus
+                value={rejectReason}
+                onChange={e => setRejectReason(e.target.value)}
+                placeholder='Provide a reason for rejection…'
+                rows={3}
+                className='w-full border border-red-200 rounded-lg px-3 py-2 text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-red-300'
+              />
+              <div className='flex gap-2 mt-3'>
+                <button
+                  disabled={acting}
+                  onClick={() => { void handleReject() }}
+                  className='bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 disabled:opacity-50'>
+                  Confirm Rejection
+                </button>
+                <button
+                  onClick={() => { setShowRejectForm(false); setRejectReason('') }}
+                  className='px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50'>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

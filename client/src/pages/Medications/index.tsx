@@ -6,6 +6,7 @@ import { getHomeMedications, bulkAdminister } from '../../api/medications'
 import type { Medication, MedicationOutcome } from '../../types/medication'
 import { isSlotLocked } from '../../utils/medicationSlot'
 import { cn } from '../../lib/cn'
+import { Skeleton } from '../../components/ui/skeleton'
 import OutcomeScreen from './OutcomeScreen'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -119,10 +120,33 @@ export default function MedicationsPage() {
         )}
       </div>
 
-      {loading && <p className='p-4 text-sm text-gray-500'>Loading…</p>}
+      {loading && (
+        <div className='p-4 space-y-4'>
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className='bg-white rounded-xl p-4 space-y-3'>
+              <Skeleton className='h-4 w-24' />
+              {[...Array(2)].map((_, j) => (
+                <div key={j} className='flex items-center gap-3'>
+                  <Skeleton className='w-5 h-5 rounded' />
+                  <div className='flex-1 space-y-1.5'>
+                    <Skeleton className='h-4 w-36' />
+                    <Skeleton className='h-3 w-48' />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
       {error && <p className='p-4 text-sm text-red-600'>{error}</p>}
       {!loading && !error && !meds.length && homeId && (
-        <p className='p-4 text-sm text-gray-500'>No active medications scheduled</p>
+        <div className='flex flex-col items-center justify-center py-16 px-4 text-center'>
+          <div className='w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3'>
+            <span className='text-2xl'>💊</span>
+          </div>
+          <p className='text-sm font-medium text-gray-700'>No medications scheduled</p>
+          <p className='text-xs text-gray-400 mt-1'>Add medications from a resident's profile</p>
+        </div>
       )}
 
       {/* Slot groups */}

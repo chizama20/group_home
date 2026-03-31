@@ -23,7 +23,8 @@
       "Bash(git checkout:*)",
       "Bash(npx shadcn@latest init -d)",
       "Bash(npx shadcn@latest add input label card dialog sheet tabs badge skeleton avatar select dropdown-menu alert separator form --yes)",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "Bash(wc:*)"
     ]
   }
 }

@@ -1,17 +1,25 @@
-import { useState, useEffect, type FormEvent } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useAuth } from '../../context/AuthContext'
+
+const schema = z.object({
+  email:    z.string().email('Enter a valid email'),
+  password: z.string().min(1, 'Password is required'),
+})
+type FormData = z.infer<typeof schema>
 
 export default function LoginPage() {
   const { login, user, isLoading } = useAuth()
   const navigate                   = useNavigate()
   const [searchParams]             = useSearchParams()
-  const [email, setEmail]          = useState('')
-  const [password, setPassword]    = useState('')
-  const [error, setError]          = useState<string | null>(null)
-  const [loading, setLoading]      = useState(false)
+  const timeoutReason              = searchParams.get('reason') === 'timeout'
 
-  const timeoutReason = searchParams.get('reason') === 'timeout'
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  })
 
   useEffect(() => {
     if (!isLoading && user) navigate('/', { replace: true })
@@ -25,17 +33,14 @@ export default function LoginPage() {
     )
   }
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
+  async function onSubmit(data: FormData) {
     try {
-      await login(email, password)
+      await login(data.email, data.password)
       navigate('/', { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid email or password')
-    } finally {
-      setLoading(false)
+      setError('root', {
+        message: err instanceof Error ? err.message : 'Invalid email or password',
+      })
     }
   }
 
@@ -51,29 +56,27 @@ export default function LoginPage() {
           </p>
         )}
 
-        <form onSubmit={e => { void handleSubmit(e) }} className='space-y-4'>
+        <form onSubmit={e => { void handleSubmit(onSubmit)(e) }} className='space-y-4'>
           <div>
             <label className='block text-sm font-medium text-gray-700 mb-1'>Email</label>
             <input
               type='email'
-              required
               autoFocus
-              value={email}
-              onChange={e => setEmail(e.target.value)}
+              {...register('email')}
               className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
               placeholder='you@example.com'
             />
+            {errors.email && <p className='text-xs text-red-600 mt-1'>{errors.email.message}</p>}
           </div>
 
           <div>
             <label className='block text-sm font-medium text-gray-700 mb-1'>Password</label>
             <input
               type='password'
-              required
-              value={password}
-              onChange={e => setPassword(e.target.value)}
+              {...register('password')}
               className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
             />
+            {errors.password && <p className='text-xs text-red-600 mt-1'>{errors.password.message}</p>}
             <div className='text-right mt-1'>
               <Link to='/forgot-password' className='text-xs text-blue-600 hover:underline'>
                 Forgot password?
@@ -81,16 +84,16 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {error && (
-            <p className='text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg'>{error}</p>
+          {errors.root && (
+            <p className='text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg'>{errors.root.message}</p>
           )}
 
           <button
             type='submit'
-            disabled={loading}
+            disabled={isSubmitting}
             className='w-full bg-blue-600 text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-blue-700 disabled:opacity-50 transition-colors'
           >
-            {loading ? 'Signing in…' : 'Sign in'}
+            {isSubmitting ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
 
