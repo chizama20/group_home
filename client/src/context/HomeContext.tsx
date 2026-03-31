@@ -14,7 +14,7 @@ interface HomeContextValue {
 const HomeContext = createContext<HomeContextValue | null>(null)
 
 export function HomeProvider({ children }: { children: ReactNode }) {
-  const { token, isLoading: authLoading } = useAuth()
+  const { user, isLoading: authLoading } = useAuth()
   const [homes, setHomes]         = useState<Home[]>([])
   const [homeId, setHomeId]       = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -23,7 +23,7 @@ export function HomeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (authLoading) return
 
-    if (!token) {
+    if (!user) {
       setHomes([])
       setHomeId(null)
       setIsLoading(false)
@@ -53,7 +53,7 @@ export function HomeProvider({ children }: { children: ReactNode }) {
       })
       .catch(() => setError('Failed to load homes'))
       .finally(() => setIsLoading(false))
-  }, [authLoading, token])
+  }, [authLoading, user])
 
   function selectHome(id: string) {
     setHomeId(id)

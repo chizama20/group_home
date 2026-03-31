@@ -1,35 +1,38 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import type { AuthUser } from '../types/auth'
-import { login as apiLogin, logout as apiLogout } from '../api/auth'
+import { login as apiLogin, logout as apiLogout, getMe } from '../api/auth'
 
 interface AuthContextValue {
   user: AuthUser | null
-  token: string | null
-  org: { id: string; name: string } | null
-  login: (email: string, password: string) => Promise<void>
-  logout: () => void
+  org:  { id: string; name: string } | null
+  login:   (email: string, password: string) => Promise<void>
+  logout:  () => Promise<void>
+  setUser: (user: AuthUser) => void
   isLoading: boolean
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser]       = useState<AuthUser | null>(null)
-  const [token, setToken]     = useState<string | null>(null)
-  const [org, setOrg]         = useState<{ id: string; name: string } | null>(null)
+  const [user, setUser]     = useState<AuthUser | null>(null)
+  const [org, setOrg]       = useState<{ id: string; name: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Restore auth state from localStorage on mount
+  // Restore session from cookie via GET /auth/me on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem('token')
-    const storedUser  = localStorage.getItem('user')
-    const storedOrg   = localStorage.getItem('org')
-    if (storedToken && storedUser) {
-      setToken(storedToken)
-      setUser(JSON.parse(storedUser) as AuthUser)
-      if (storedOrg) setOrg(JSON.parse(storedOrg) as { id: string; name: string })
-    }
-    setIsLoading(false)
+    getMe()
+      .then(res => {
+        const data = res.data
+        if (data.success && data.data) {
+          const { org: userOrg, ...userData } = data.data
+          setUser(userData)
+          setOrg(userOrg)
+        }
+      })
+      .catch(() => {
+        // No valid session — user stays null, will be redirected by ProtectedRoute
+      })
+      .finally(() => setIsLoading(false))
   }, [])
 
   async function login(email: string, password: string) {
@@ -37,27 +40,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = res.data
     if (!data.success || !data.data) throw new Error(data.error?.message ?? 'Login failed')
 
-    const { token: newToken, user: newUser, org: newOrg } = data.data
-    localStorage.setItem('token', newToken)
-    localStorage.setItem('user',  JSON.stringify(newUser))
-    localStorage.setItem('org',   JSON.stringify(newOrg))
-    setToken(newToken)
+    const { user: newUser, org: newOrg } = data.data
     setUser(newUser)
     setOrg(newOrg)
   }
 
-  function logout() {
-    void apiLogout().catch(() => {/* ignore — client-side discard is sufficient */})
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    localStorage.removeItem('org')
-    setToken(null)
+  async function logout() {
+    try {
+      await apiLogout()
+    } catch {
+      // Server-side cookie clear failed — still clear local state
+    }
     setUser(null)
     setOrg(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, org, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, org, login, logout, setUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   )

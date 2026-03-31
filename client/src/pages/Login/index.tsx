@@ -1,14 +1,17 @@
 import { useState, useEffect, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
 export default function LoginPage() {
   const { login, user, isLoading } = useAuth()
   const navigate                   = useNavigate()
+  const [searchParams]             = useSearchParams()
   const [email, setEmail]          = useState('')
   const [password, setPassword]    = useState('')
   const [error, setError]          = useState<string | null>(null)
   const [loading, setLoading]      = useState(false)
+
+  const timeoutReason = searchParams.get('reason') === 'timeout'
 
   useEffect(() => {
     if (!isLoading && user) navigate('/', { replace: true })
@@ -42,6 +45,12 @@ export default function LoginPage() {
         <h1 className='text-2xl font-bold text-gray-900 mb-1'>Group Home</h1>
         <p className='text-sm text-gray-500 mb-6'>Sign in to continue</p>
 
+        {timeoutReason && (
+          <p className='text-sm text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg mb-4'>
+            You were logged out for security after 15 minutes of inactivity.
+          </p>
+        )}
+
         <form onSubmit={e => { void handleSubmit(e) }} className='space-y-4'>
           <div>
             <label className='block text-sm font-medium text-gray-700 mb-1'>Email</label>
@@ -65,6 +74,11 @@ export default function LoginPage() {
               onChange={e => setPassword(e.target.value)}
               className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
             />
+            <div className='text-right mt-1'>
+              <Link to='/forgot-password' className='text-xs text-blue-600 hover:underline'>
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           {error && (
@@ -79,6 +93,13 @@ export default function LoginPage() {
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
+
+        <p className='text-xs text-gray-400 text-center mt-6'>
+          New organisation?{' '}
+          <Link to='/request-access' className='text-blue-600 hover:underline'>
+            Request access →
+          </Link>
+        </p>
       </div>
     </div>
   )
