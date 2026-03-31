@@ -20,7 +20,10 @@
       "Bash(find C:UsersChiDocumentsGitHubgroup_home -type f -name *.js -o -name *.tsx -o -name *.ts -o -name *.sql)",
       "Bash(find C:UsersChiDocumentsGitHubgroup_home/server -type d -name *migrations*)",
       "Bash(find /c/Users/Chi/Documents/GitHub/group_home -name .env* -type f)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(npx shadcn@latest init -d)",
+      "Bash(npx shadcn@latest add input label card dialog sheet tabs badge skeleton avatar select dropdown-menu alert separator form --yes)",
+      "Bash(npm ls:*)"
     ]
   }
 }
