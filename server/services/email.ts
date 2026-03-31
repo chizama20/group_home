@@ -108,3 +108,19 @@ export async function sendWelcomeEmail(
     `,
   });
 }
+
+export async function sendOrgRequestConfirmationEmail(
+  to: string,
+  orgName: string
+): Promise<void> {
+  await getResend().emails.send({
+    from:    FROM,
+    to,
+    subject: `We received your request for ${orgName}`,
+    html: `
+      <p>Hi,</p>
+      <p>We've received your request to set up <strong>${orgName}</strong>. Our team will review it and be in touch shortly.</p>
+      <p>If you have any questions in the meantime, reply to this email.</p>
+    `,
+  });
+}

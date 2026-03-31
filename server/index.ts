@@ -7,8 +7,10 @@ import cookiePlugin        from './plugins/cookie';
 import dbPlugin            from './plugins/db';
 import authPlugin          from './plugins/auth';
 import sessionMiddleware   from './middleware/session';
+import adminAuthMiddleware from './middleware/adminAuth';
 
 import authRoutes          from './routes/auth';
+import registerRoutes      from './routes/register';
 import orgsRoutes          from './routes/orgs';
 import organizationsRoutes from './routes/organizations';
 import usersRoutes         from './routes/users';
@@ -20,6 +22,10 @@ import appointmentsRoutes  from './routes/appointments';
 import tasksRoutes         from './routes/tasks';
 import exportsRoutes       from './routes/exports';
 
+import adminAuthRoutes     from './routes/admin/auth';
+import adminOrgReqRoutes   from './routes/admin/orgRequests';
+import adminOrgsRoutes     from './routes/admin/orgs';
+
 dotenv.config();
 
 const fastify = Fastify({ logger: true });
@@ -29,6 +35,7 @@ fastify.register(corsPlugin);
 fastify.register(cookiePlugin);
 fastify.register(dbPlugin);
 fastify.register(authPlugin);
+fastify.register(adminAuthMiddleware);
 fastify.register(sessionMiddleware);
 
 // Health check — no auth required
@@ -41,18 +48,26 @@ fastify.get('/health', async (_request, reply) => {
   }
 });
 
-// Routes
-fastify.register(authRoutes,         { prefix: '/auth' });
-fastify.register(orgsRoutes,         { prefix: '/orgs' });
+// Public routes
+fastify.register(authRoutes,     { prefix: '/auth' });
+fastify.register(registerRoutes, { prefix: '/register' });
+
+// App routes
+fastify.register(orgsRoutes,          { prefix: '/orgs' });
 fastify.register(organizationsRoutes, { prefix: '/organizations' });
-fastify.register(usersRoutes,        { prefix: '/users' });
-fastify.register(homesRoutes,        { prefix: '/homes' });
-fastify.register(residentsRoutes,    { prefix: '/residents' });
-fastify.register(medicationsRoutes,  { prefix: '/medications' });
-fastify.register(incidentsRoutes,    { prefix: '/incidents' });
-fastify.register(appointmentsRoutes, { prefix: '/appointments' });
-fastify.register(tasksRoutes,        { prefix: '/tasks' });
-fastify.register(exportsRoutes,      { prefix: '/exports' });
+fastify.register(usersRoutes,         { prefix: '/users' });
+fastify.register(homesRoutes,         { prefix: '/homes' });
+fastify.register(residentsRoutes,     { prefix: '/residents' });
+fastify.register(medicationsRoutes,   { prefix: '/medications' });
+fastify.register(incidentsRoutes,     { prefix: '/incidents' });
+fastify.register(appointmentsRoutes,  { prefix: '/appointments' });
+fastify.register(tasksRoutes,         { prefix: '/tasks' });
+fastify.register(exportsRoutes,       { prefix: '/exports' });
+
+// Admin routes — env-based auth, no DB lookup
+fastify.register(adminAuthRoutes,   { prefix: '/admin/auth' });
+fastify.register(adminOrgReqRoutes, { prefix: '/admin/org-requests' });
+fastify.register(adminOrgsRoutes,   { prefix: '/admin/orgs' });
 
 const start = async (): Promise<void> => {
   try {
