@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { success, failure } from '../utils/response';
 import { orgAdminOnly, managerOrAbove } from '../middleware/rbac';
 import { canAccessHome } from '../utils/homeAccess';
+import { validate, createHomeSchema, createResidentSchema, patchResidentSchema, createMedicationSchema, administerMedSchema, createShiftNoteSchema, createIncidentSchema, createAnnouncementSchema, createTaskSchema, createAppointmentSchema, paginationSchema } from '../schemas';
 
 interface HomeBody   { name: string; address?: string; }
 interface HomeParam  { id: string; }
@@ -80,9 +81,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     '/',
     { preHandler: [fastify.authenticate, orgAdminOnly] },
     async (request, reply) => {
+      const parsed = validate(createHomeSchema, request.body);
+      if (!parsed.success) return reply.code(400).send(failure('VALIDATION_ERROR', parsed.message));
       const { org_id } = request.user;
-      const { name, address } = request.body;
-      if (!name) return reply.code(400).send(failure('MISSING_FIELDS', 'name is required'));
+      const { name, address } = parsed.data;
       const id = uuidv4();
       await fastify.db.execute(
         'INSERT INTO homes (id, org_id, name, address) VALUES (?, ?, ?, ?)',
@@ -192,7 +194,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
   // RESIDENTS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  fastify.get<{ Params: HomeParam }>(
+  fastify.get<{ Params: HomeParam; Querystring: { page?: string; limit?: string; search?: string } }>(
     '/:id/residents',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
@@ -204,19 +206,39 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       if (!await canAccessHome(fastify, request.user, request.params.id))
         return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
 
+      const pg = paginationSchema.parse(request.query);
+      const offset = (pg.page - 1) * pg.limit;
+
+      const conditions: string[] = ['r.home_id = ?', 'r.is_active = 1'];
+      const values: (string | number)[] = [request.params.id];
+
+      if (pg.search) {
+        conditions.push(`(r.first_name LIKE ? OR r.last_name LIKE ? OR r.room LIKE ?)`);
+        const like = `%${pg.search}%`;
+        values.push(like, like, like);
+      }
+
+      const where = conditions.join(' AND ');
+
+      const [[{ total }]] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT COUNT(*) AS total FROM residents r WHERE ${where}`, values
+      );
+
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
         `SELECT r.*,
            CASE WHEN (SELECT COUNT(*) FROM incidents i WHERE i.resident_id = r.id AND i.status = 'open') > 0
                 THEN 'urgent' ELSE 'all_good' END AS status
          FROM residents r
-         WHERE r.home_id = ? AND r.is_active = 1
+         WHERE ${where}
          ORDER BY
            CASE WHEN (SELECT COUNT(*) FROM incidents i WHERE i.resident_id = r.id AND i.status = 'open') > 0
                 THEN 0 ELSE 1 END,
-           r.last_name, r.first_name`,
-        [request.params.id]
+           r.last_name, r.first_name
+         LIMIT ? OFFSET ?`,
+        [...values, pg.limit, offset]
       );
-      return reply.send(success(rows));
+
+      return reply.send(success(rows, { total: Number(total), page: pg.page, limit: pg.limit, pages: Math.ceil(Number(total) / pg.limit) }));
     }
   );
 
@@ -231,13 +253,13 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       );
       if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
 
+      const parsedResident = validate(createResidentSchema, request.body);
+      if (!parsedResident.success) return reply.code(400).send(failure('VALIDATION_ERROR', parsedResident.message));
+
       const {
         first_name, last_name, date_of_birth, room, diagnosis, physician,
         primary_contact_name, primary_contact_phone, primary_contact_relation, notes
-      } = request.body;
-
-      if (!first_name || !last_name || !date_of_birth)
-        return reply.code(400).send(failure('MISSING_FIELDS', 'first_name, last_name, and date_of_birth are required'));
+      } = parsedResident.data;
 
       const id = uuidv4();
       await fastify.db.execute(
@@ -525,13 +547,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       if (!await canAccessHome(fastify, request.user, homeId))
         return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
 
-      const { resident_id, incident_type, severity, description, occurred_at } = request.body;
-      if (!resident_id || !incident_type || !severity || !description || !occurred_at)
-        return reply.code(400).send(failure('MISSING_FIELDS', 'resident_id, incident_type, severity, description, and occurred_at are required'));
+      const parsedIncident = validate(createIncidentSchema, request.body);
+      if (!parsedIncident.success) return reply.code(400).send(failure('VALIDATION_ERROR', parsedIncident.message));
 
-      const VALID_SEVERITIES = ['low', 'medium', 'high'];
-      if (!VALID_SEVERITIES.includes(severity))
-        return reply.code(400).send(failure('INVALID_VALUE', 'severity must be low, medium, or high'));
+      const { resident_id, incident_type, severity, description, occurred_at } = parsedIncident.data;
 
       const [resCheck] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id FROM residents WHERE id = ? AND home_id = ?', [resident_id, homeId]
@@ -600,13 +619,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       if (!await canAccessHome(fastify, request.user, homeId))
         return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
 
-      const { resident_id, shift, shift_date, content, flagged } = request.body;
-      if (!shift || !shift_date || !content)
-        return reply.code(400).send(failure('MISSING_FIELDS', 'shift, shift_date, and content are required'));
+      const parsedNote = validate(createShiftNoteSchema, { ...request.body, home_id: homeId });
+      if (!parsedNote.success) return reply.code(400).send(failure('VALIDATION_ERROR', parsedNote.message));
 
-      const VALID_SHIFTS = ['day', 'evening', 'night'];
-      if (!VALID_SHIFTS.includes(shift))
-        return reply.code(400).send(failure('INVALID_VALUE', 'shift must be day, evening, or night'));
+      const { resident_id, shift, shift_date, content, flagged } = parsedNote.data;
 
       const id = uuidv4();
       await fastify.db.execute(
@@ -907,6 +923,115 @@ export default async (fastify: FastifyInstance): Promise<void> => {
         [homeId, user_id, shift, shift_date]
       );
       return reply.send(success({ message: 'Clocked out' }));
+    }
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DASHBOARD — single-call aggregate for the home dashboard
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  fastify.get<{ Params: HomeParam; Querystring: { shift?: string; date?: string } }>(
+    '/:id/dashboard',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const homeId = request.params.id;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, homeId))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const { shift, date } = request.query;
+      const today = date ?? new Date().toISOString().slice(0, 10);
+
+      const [
+        [announcements],
+        [residents],
+        [medications],
+        [iposLogs],
+        [appointments],
+        [tasks],
+        [roster],
+        [incidents],
+      ] = await Promise.all([
+        fastify.db.execute<RowDataPacket[]>(
+          `SELECT a.*, u.first_name as poster_first, u.last_name as poster_last
+           FROM announcements a JOIN users u ON a.posted_by = u.id
+           WHERE a.org_id = ? AND (a.home_id = ? OR a.home_id IS NULL)
+           ORDER BY a.is_pinned DESC, a.created_at DESC LIMIT 10`,
+          [org_id, homeId]
+        ),
+        fastify.db.execute<RowDataPacket[]>(
+          `SELECT id, first_name, last_name, room, is_active FROM residents WHERE home_id = ? AND is_active = 1`,
+          [homeId]
+        ),
+        fastify.db.execute<RowDataPacket[]>(
+          `SELECT m.id, m.scheduled_time, m.is_active FROM medications m
+           JOIN residents r ON m.resident_id = r.id
+           WHERE r.home_id = ? AND m.is_active = 1`,
+          [homeId]
+        ),
+        fastify.db.execute<RowDataPacket[]>(
+          `SELECT il.resident_id FROM ipos_logs il
+           WHERE il.home_id = ? AND il.log_date = ?${shift ? ' AND il.shift = ?' : ''}`,
+          shift ? [homeId, today, shift] : [homeId, today]
+        ),
+        fastify.db.execute<RowDataPacket[]>(
+          `SELECT a.*, u.first_name as scheduled_by_first, u.last_name as scheduled_by_last,
+                  r.first_name as resident_first, r.last_name as resident_last
+           FROM appointments a
+           JOIN users u ON a.scheduled_by = u.id
+           JOIN residents r ON a.resident_id = r.id
+           WHERE a.home_id = ? AND a.appointment_date >= CURDATE() AND a.appointment_date < DATE_ADD(CURDATE(), INTERVAL 3 DAY)
+           ORDER BY a.appointment_date, a.appointment_time LIMIT 10`,
+          [homeId]
+        ),
+        fastify.db.execute<RowDataPacket[]>(
+          `SELECT t.*, u.first_name as assigned_to_first, u.last_name as assigned_to_last
+           FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id
+           WHERE t.home_id = ? AND t.status != 'completed'
+           ORDER BY t.due_date ASC LIMIT 20`,
+          [homeId]
+        ),
+        fastify.db.execute<RowDataPacket[]>(
+          `SELECT sr.*, u.first_name, u.last_name FROM shift_roster sr
+           JOIN users u ON sr.user_id = u.id
+           WHERE sr.home_id = ? AND sr.shift_date = ?${shift ? ' AND sr.shift = ?' : ''}`,
+          shift ? [homeId, today, shift] : [homeId, today]
+        ),
+        fastify.db.execute<RowDataPacket[]>(
+          `SELECT i.id, i.status, i.severity, i.resident_id FROM incidents i
+           WHERE i.home_id = ? AND i.status = 'open'`,
+          [homeId]
+        ),
+      ]);
+
+      return reply.send(success({
+        announcements,
+        residents,
+        appointments,
+        tasks,
+        roster,
+        openIncidents: incidents,
+        stats: {
+          residentCount:    residents.length,
+          overdueMedCount:  medications.filter((m: RowDataPacket) => {
+            if (!m.scheduled_time) return false;
+            const now = new Date();
+            const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            return String(m.scheduled_time).slice(0,5) <= hhmm;
+          }).length,
+          unfiledIposCount: residents.filter((r: RowDataPacket) =>
+            !iposLogs.some((l: RowDataPacket) => l.resident_id === r.id)
+          ).length,
+          openIncidentCount: incidents.length,
+          staffOnShiftCount: (roster as RowDataPacket[]).filter((r: RowDataPacket) => r.clocked_in_at && !r.clocked_out_at).length,
+          isShiftActive:     (roster as RowDataPacket[]).some((r: RowDataPacket) => r.clocked_in_at && !r.clocked_out_at),
+        },
+      }));
     }
   );
 };

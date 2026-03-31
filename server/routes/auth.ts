@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { hashPassword, comparePassword } from '../utils/password';
 import { success, failure } from '../utils/response';
 import { sendPasswordResetEmail, sendWelcomeEmail } from '../services/email';
+import { validate, loginSchema, forgotPasswordSchema, resetPasswordSchema, acceptInviteSchema } from '../schemas';
 
 interface LoginBody         { email: string; password: string; }
 interface SignupBody         { organizationName: string; first_name: string; last_name: string; email: string; password: string; }
@@ -22,10 +23,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
   // ── Login ────────────────────────────────────────────────────────────────
   fastify.post<{ Body: LoginBody }>('/login', async (request, reply) => {
-    const { email, password } = request.body;
+    const parsedLogin = validate(loginSchema, request.body);
+    if (!parsedLogin.success) return reply.code(400).send(failure('VALIDATION_ERROR', parsedLogin.message));
 
-    if (!email || !password)
-      return reply.code(400).send(failure('MISSING_FIELDS', 'email and password are required'));
+    const { email, password } = parsedLogin.data;
 
     const [rows] = await fastify.db.execute<RowDataPacket[]>(
       `SELECT u.id, u.email, u.password_hash, u.first_name, u.last_name, u.role,
@@ -179,10 +180,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     '/reset-password/:token',
     async (request, reply) => {
       const { token } = request.params;
-      const { password } = request.body;
+      const parsedReset = validate(resetPasswordSchema, request.body);
+      if (!parsedReset.success) return reply.code(400).send(failure('VALIDATION_ERROR', parsedReset.message));
 
-      if (!password || password.length < 8)
-        return reply.code(400).send(failure('INVALID_PASSWORD', 'Password must be at least 8 characters'));
+      const { password } = parsedReset.data;
 
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id, user_id FROM password_resets WHERE token = ? AND used_at IS NULL AND expires_at > NOW()',
@@ -242,10 +243,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     Body:   { first_name: string; last_name: string; password: string };
   }>('/invite/:token', async (request, reply) => {
     const { token } = request.params;
-    const { first_name, last_name, password } = request.body;
+    const parsedInvite = validate(acceptInviteSchema, request.body);
+    if (!parsedInvite.success) return reply.code(400).send(failure('VALIDATION_ERROR', parsedInvite.message));
 
-    if (!first_name || !last_name || !password)
-      return reply.code(400).send(failure('MISSING_FIELDS', 'first_name, last_name, and password are required'));
+    const { first_name, last_name, password } = parsedInvite.data;
 
     if (password.length < 8)
       return reply.code(400).send(failure('INVALID_PASSWORD', 'Password must be at least 8 characters'));
