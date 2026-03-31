@@ -7,6 +7,7 @@ import { formatDate } from '../../utils/date'
 import { cn } from '../../lib/cn'
 import { useRole } from '../../utils/role'
 import IncidentReviewSheet from './IncidentReviewSheet'
+import { Skeleton } from '../../components/ui/skeleton'
 
 const INCIDENT_TYPES = [
   'Physical altercation',
@@ -81,7 +82,20 @@ function ManagerIncidentView({ homeId }: { homeId: string }) {
         ))}
       </div>
 
-      {loading && <p className='text-sm text-gray-500'>Loading…</p>}
+      {loading && (
+        <div className='space-y-3'>
+          {[1, 2, 3].map(i => (
+            <div key={i} className='bg-white rounded-xl shadow-sm px-4 py-3 space-y-2'>
+              <div className='flex items-start justify-between gap-2'>
+                <Skeleton className='h-4 flex-1' />
+                <Skeleton className='w-16 h-5 rounded-full' />
+              </div>
+              <Skeleton className='h-3 w-24' />
+              <Skeleton className='h-8 w-full' />
+            </div>
+          ))}
+        </div>
+      )}
       {!loading && !filtered.length && (
         <p className='text-sm text-gray-400 py-2'>No incidents{filter !== 'all' ? ` with status "${FILTER_LABELS[filter].toLowerCase()}"` : ''}</p>
       )}
@@ -300,7 +314,20 @@ function EmployeeIncidentView({ homeId, residents }: Props) {
           ))}
         </div>
 
-        {feedLoading && <p className='text-sm text-gray-500'>Loading…</p>}
+        {feedLoading && (
+          <div className='space-y-3'>
+            {[1, 2].map(i => (
+              <div key={i} className='bg-white rounded-xl shadow-sm px-4 py-3 space-y-2'>
+                <div className='flex items-start justify-between gap-2'>
+                  <Skeleton className='h-4 flex-1' />
+                  <Skeleton className='w-16 h-5 rounded-full' />
+                </div>
+                <Skeleton className='h-3 w-24' />
+                <Skeleton className='h-8 w-full' />
+              </div>
+            ))}
+          </div>
+        )}
         {!feedLoading && !filtered.length && (
           <p className='text-sm text-gray-400'>No incidents {filter !== 'all' ? `with status "${filter}"` : ''}</p>
         )}

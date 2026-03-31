@@ -7,6 +7,7 @@ import { todayStr } from '../../utils/date'
 import { cn } from '../../lib/cn'
 import { useRole } from '../../utils/role'
 import IposCompliancePanel from './IposCompliancePanel'
+import { Skeleton } from '../../components/ui/skeleton'
 
 const SHIFTS: Shift[] = ['day', 'evening', 'night']
 
@@ -117,9 +118,19 @@ function IposEmployeeView({ homeId, residents }: EmployeeProps) {
         <p className='text-xs text-gray-500'>{SHIFT_LABELS[shift]} · Today</p>
       </div>
 
-      {loading && <p className='p-4 text-sm text-gray-500'>Loading…</p>}
+      {loading && (
+        <div className='bg-white divide-y divide-gray-50'>
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className='flex items-center gap-3 px-4 py-3'>
+              <Skeleton className='w-9 h-9 rounded-full shrink-0' />
+              <Skeleton className='h-4 flex-1' />
+              <Skeleton className='w-16 h-6 rounded-full' />
+            </div>
+          ))}
+        </div>
+      )}
 
-      <div className='bg-white divide-y divide-gray-50'>
+      <div className={cn('bg-white divide-y divide-gray-50', loading && 'hidden')}>
         {active.map(r => {
           const filed   = filedIds.has(r.id)
           const justDone = successId === r.id

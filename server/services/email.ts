@@ -17,6 +17,11 @@ const FROM = process.env.RESEND_FROM_EMAIL ?? 'noreply@example.com';
 // ─── No PHI in any email body ─────────────────────────────────────────────
 // No resident names, diagnoses, or medication details — only links and generic text.
 
+async function send(payload: Parameters<Resend['emails']['send']>[0]): Promise<void> {
+  const { error } = await getResend().emails.send(payload);
+  if (error) throw new Error(error.message);
+}
+
 export async function sendInviteEmail(
   to: string,
   inviteUrl: string,
@@ -24,7 +29,7 @@ export async function sendInviteEmail(
   orgName: string,
   role: string
 ): Promise<void> {
-  await getResend().emails.send({
+  await send({
     from:    FROM,
     to,
     subject: `You've been invited to join ${orgName}`,
@@ -42,7 +47,7 @@ export async function sendPasswordResetEmail(
   to: string,
   resetUrl: string
 ): Promise<void> {
-  await getResend().emails.send({
+  await send({
     from:    FROM,
     to,
     subject: 'Reset your password',
@@ -60,7 +65,7 @@ export async function sendOrgApprovedEmail(
   orgName: string,
   loginUrl: string
 ): Promise<void> {
-  await getResend().emails.send({
+  await send({
     from:    FROM,
     to,
     subject: `${orgName} has been approved — next steps`,
@@ -78,7 +83,7 @@ export async function sendOrgRejectedEmail(
   orgName: string,
   reason: string
 ): Promise<void> {
-  await getResend().emails.send({
+  await send({
     from:    FROM,
     to,
     subject: `Update on your request for ${orgName}`,
@@ -95,16 +100,17 @@ export async function sendWelcomeEmail(
   to: string,
   firstName: string,
   orgName: string,
-  loginUrl: string
+  setPasswordUrl: string
 ): Promise<void> {
-  await getResend().emails.send({
+  await send({
     from:    FROM,
     to,
-    subject: `Welcome to ${orgName} — your account is ready`,
+    subject: `Welcome to ${orgName} — set your password to get started`,
     html: `
       <p>Hi ${firstName},</p>
-      <p>Your account for <strong>${orgName}</strong> is now active.</p>
-      <p><a href="${loginUrl}">Log in to get started</a></p>
+      <p>Your account for <strong>${orgName}</strong> has been approved and is ready to use.</p>
+      <p><a href="${setPasswordUrl}">Set your password to get started</a></p>
+      <p>This link expires in 48 hours. If it expires, use the forgot password option on the login page.</p>
     `,
   });
 }
@@ -113,7 +119,7 @@ export async function sendOrgRequestConfirmationEmail(
   to: string,
   orgName: string
 ): Promise<void> {
-  await getResend().emails.send({
+  await send({
     from:    FROM,
     to,
     subject: `We received your request for ${orgName}`,

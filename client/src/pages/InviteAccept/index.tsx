@@ -1,5 +1,8 @@
-import { useState, useEffect, type FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { getInvite, acceptInvite } from '../../api/auth'
 import { useAuth } from '../../context/AuthContext'
 
@@ -14,20 +17,26 @@ const ROLE_LABELS: Record<string, string> = {
   manager:  'Manager',
 }
 
-export default function InviteAcceptPage() {
-  const { token }          = useParams<{ token: string }>()
-  const navigate           = useNavigate()
-  const { setUser }        = useAuth()
+const schema = z.object({
+  first_name: z.string().min(1, 'First name is required').max(100),
+  last_name:  z.string().min(1, 'Last name is required').max(100),
+  password:   z.string().min(8, 'Password must be at least 8 characters'),
+})
 
-  const [invite, setInvite]       = useState<InviteInfo | null>(null)
-  const [tokenError, setTokenError] = useState<string | null>(null)
+type FormData = z.infer<typeof schema>
+
+export default function InviteAcceptPage() {
+  const { token }   = useParams<{ token: string }>()
+  const navigate    = useNavigate()
+  const { setUser } = useAuth()
+
+  const [invite, setInvite]           = useState<InviteInfo | null>(null)
+  const [tokenError, setTokenError]   = useState<string | null>(null)
   const [loadingInvite, setLoadingInvite] = useState(true)
 
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName]   = useState('')
-  const [password, setPassword]   = useState('')
-  const [error, setError]         = useState<string | null>(null)
-  const [loading, setLoading]     = useState(false)
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  })
 
   useEffect(() => {
     if (!token) {
@@ -37,37 +46,23 @@ export default function InviteAcceptPage() {
     }
     getInvite(token)
       .then(res => {
-        if (res.data.success && res.data.data) {
-          setInvite(res.data.data)
-        } else {
-          setTokenError('This invite link is invalid or has expired')
-        }
+        if (res.data.success && res.data.data) setInvite(res.data.data)
+        else setTokenError('This invite link is invalid or has expired')
       })
       .catch(() => setTokenError('This invite link is invalid or has expired'))
       .finally(() => setLoadingInvite(false))
   }, [token])
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setError(null)
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters')
-      return
-    }
-
-    setLoading(true)
+  async function onSubmit(data: FormData) {
     try {
-      const res  = await acceptInvite(token!, { first_name: firstName, last_name: lastName, password })
-      const data = res.data
-      if (!data.success || !data.data) throw new Error('Failed to accept invite')
-
-      setUser(data.data.user)
+      const res = await acceptInvite(token!, data)
+      if (!res.data.success || !res.data.data) throw new Error('Failed to accept invite')
+      setUser(res.data.data.user)
       navigate('/', { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to accept invite')
-    } finally {
-      setLoading(false)
+      setError('root', {
+        message: err instanceof Error ? err.message : 'Failed to accept invite',
+      })
     }
   }
 
@@ -98,7 +93,7 @@ export default function InviteAcceptPage() {
           You've been invited to join <strong>{invite?.org_name}</strong>
         </p>
 
-        {/* Role shown read-only — cannot be changed by invitee */}
+        {/* Role shown read-only */}
         <div className='bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-6'>
           <span className='text-xs text-gray-500 uppercase tracking-wide'>Role</span>
           <p className='text-sm font-semibold text-gray-800 mt-0.5'>
@@ -106,28 +101,26 @@ export default function InviteAcceptPage() {
           </p>
         </div>
 
-        <form onSubmit={e => { void handleSubmit(e) }} className='space-y-4'>
+        <form onSubmit={e => { void handleSubmit(onSubmit)(e) }} className='space-y-4'>
           <div>
             <label className='block text-sm font-medium text-gray-700 mb-1'>First name</label>
             <input
               type='text'
-              required
               autoFocus
-              value={firstName}
-              onChange={e => setFirstName(e.target.value)}
+              {...register('first_name')}
               className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
             />
+            {errors.first_name && <p className='text-xs text-red-600 mt-1'>{errors.first_name.message}</p>}
           </div>
 
           <div>
             <label className='block text-sm font-medium text-gray-700 mb-1'>Last name</label>
             <input
               type='text'
-              required
-              value={lastName}
-              onChange={e => setLastName(e.target.value)}
+              {...register('last_name')}
               className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
             />
+            {errors.last_name && <p className='text-xs text-red-600 mt-1'>{errors.last_name.message}</p>}
           </div>
 
           <div>
@@ -136,23 +129,22 @@ export default function InviteAcceptPage() {
             </label>
             <input
               type='password'
-              required
-              value={password}
-              onChange={e => setPassword(e.target.value)}
+              {...register('password')}
               className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
             />
+            {errors.password && <p className='text-xs text-red-600 mt-1'>{errors.password.message}</p>}
           </div>
 
-          {error && (
-            <p className='text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg'>{error}</p>
+          {errors.root && (
+            <p className='text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg'>{errors.root.message}</p>
           )}
 
           <button
             type='submit'
-            disabled={loading}
+            disabled={isSubmitting}
             className='w-full bg-blue-600 text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-blue-700 disabled:opacity-50 transition-colors'
           >
-            {loading ? 'Creating account…' : 'Create account'}
+            {isSubmitting ? 'Creating account…' : 'Create account'}
           </button>
         </form>
 

@@ -1,42 +1,45 @@
-import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { setSigningPin } from '../../api/users'
 import { useAuth } from '../../context/AuthContext'
+
+const schema = z.object({
+  current_password: z.string().min(1, 'Current password is required'),
+  pin:              z.string().regex(/^\d{4}$/, 'PIN must be exactly 4 digits'),
+  confirm_pin:      z.string().min(1, 'Please confirm your PIN'),
+}).refine(d => d.pin === d.confirm_pin, {
+  message: 'PINs do not match',
+  path:    ['confirm_pin'],
+})
+
+type FormData = z.infer<typeof schema>
+
+const PIN_CLS = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 tracking-[0.5em] text-center text-lg'
 
 export default function SetupPinPage() {
   const navigate        = useNavigate()
   const { user, setUser } = useAuth()
 
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [pin, setPin]         = useState('')
-  const [confirmPin, setConfirmPin] = useState('')
-  const [error, setError]     = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const { register, handleSubmit, setValue, watch, setError, formState: { errors, isSubmitting } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: { current_password: '', pin: '', confirm_pin: '' },
+  })
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setError(null)
+  const pinVal     = watch('pin')
+  const confirmVal = watch('confirm_pin')
 
-    if (!/^\d{4}$/.test(pin)) {
-      setError('PIN must be exactly 4 digits')
-      return
-    }
-    if (pin !== confirmPin) {
-      setError('PINs do not match')
-      return
-    }
-
-    setLoading(true)
+  async function onSubmit(data: FormData) {
     try {
-      await setSigningPin(currentPassword, pin)
-      // Update user in context so ProtectedRoute stops redirecting here
+      await setSigningPin(data.current_password, data.pin)
       if (user) setUser({ ...user, pin_set_at: new Date().toISOString() })
       navigate('/', { replace: true })
-    } catch (err: any) {
-      const msg = err?.response?.data?.error?.message ?? 'Failed to set PIN'
-      setError(msg)
-    } finally {
-      setLoading(false)
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { error?: { message?: string } } } }
+      setError('root', {
+        message: e?.response?.data?.error?.message ?? 'Failed to set PIN',
+      })
     }
   }
 
@@ -49,12 +52,16 @@ export default function SetupPinPage() {
           You must set it before using the app.
         </p>
 
-        <form onSubmit={e => { void handleSubmit(e) }} className='space-y-4'>
+        <form onSubmit={e => { void handleSubmit(onSubmit)(e) }} className='space-y-4'>
           <div>
             <label className='block text-sm font-medium text-gray-700 mb-1'>Current password</label>
-            <input type='password' required autoFocus value={currentPassword}
-              onChange={e => setCurrentPassword(e.target.value)}
-              className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500' />
+            <input
+              type='password'
+              autoFocus
+              {...register('current_password')}
+              className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
+            />
+            {errors.current_password && <p className='text-xs text-red-600 mt-1'>{errors.current_password.message}</p>}
           </div>
 
           <div>
@@ -62,14 +69,13 @@ export default function SetupPinPage() {
             <input
               type='password'
               inputMode='numeric'
-              pattern='\d{4}'
               maxLength={4}
-              required
-              value={pin}
-              onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-              className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 tracking-[0.5em] text-center text-lg'
+              value={pinVal}
+              onChange={e => setValue('pin', e.target.value.replace(/\D/g, '').slice(0, 4), { shouldValidate: true })}
+              className={PIN_CLS}
               placeholder='••••'
             />
+            {errors.pin && <p className='text-xs text-red-600 mt-1'>{errors.pin.message}</p>}
           </div>
 
           <div>
@@ -77,23 +83,25 @@ export default function SetupPinPage() {
             <input
               type='password'
               inputMode='numeric'
-              pattern='\d{4}'
               maxLength={4}
-              required
-              value={confirmPin}
-              onChange={e => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-              className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 tracking-[0.5em] text-center text-lg'
+              value={confirmVal}
+              onChange={e => setValue('confirm_pin', e.target.value.replace(/\D/g, '').slice(0, 4), { shouldValidate: true })}
+              className={PIN_CLS}
               placeholder='••••'
             />
+            {errors.confirm_pin && <p className='text-xs text-red-600 mt-1'>{errors.confirm_pin.message}</p>}
           </div>
 
-          {error && (
-            <p className='text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg'>{error}</p>
+          {errors.root && (
+            <p className='text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg'>{errors.root.message}</p>
           )}
 
-          <button type='submit' disabled={loading}
-            className='w-full bg-blue-600 text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-blue-700 disabled:opacity-50 transition-colors'>
-            {loading ? 'Saving…' : 'Set PIN'}
+          <button
+            type='submit'
+            disabled={isSubmitting}
+            className='w-full bg-blue-600 text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-blue-700 disabled:opacity-50 transition-colors'
+          >
+            {isSubmitting ? 'Saving…' : 'Set PIN'}
           </button>
         </form>
       </div>

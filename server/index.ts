@@ -1,6 +1,6 @@
 /// <reference path="./types/fastify.d.ts" />
+import 'dotenv/config';
 import Fastify from 'fastify';
-import dotenv from 'dotenv';
 
 import corsPlugin          from './plugins/cors';
 import cookiePlugin        from './plugins/cookie';
@@ -25,8 +25,6 @@ import exportsRoutes       from './routes/exports';
 import adminAuthRoutes     from './routes/admin/auth';
 import adminOrgReqRoutes   from './routes/admin/orgRequests';
 import adminOrgsRoutes     from './routes/admin/orgs';
-
-dotenv.config();
 
 const fastify = Fastify({ logger: true });
 

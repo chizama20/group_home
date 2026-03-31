@@ -1,8 +1,9 @@
+import fp from 'fastify-plugin';
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import jwt from 'jsonwebtoken';
 import { failure } from '../utils/response';
 
-export default async function adminAuthMiddleware(fastify: FastifyInstance): Promise<void> {
+export default fp(async function adminAuthMiddleware(fastify: FastifyInstance): Promise<void> {
   fastify.decorate(
     'adminAuthenticate',
     async (request: FastifyRequest, reply: FastifyReply) => {
@@ -23,4 +24,4 @@ export default async function adminAuthMiddleware(fastify: FastifyInstance): Pro
       }
     }
   );
-}
+});

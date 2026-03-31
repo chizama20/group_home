@@ -7,6 +7,7 @@ import { formatDate, formatTime } from '../../utils/date'
 import { cn } from '../../lib/cn'
 import { useRole } from '../../utils/role'
 import ExportSheet from './ExportSheet'
+import { Skeleton } from '../../components/ui/skeleton'
 
 interface Props {
   homeId:    string
@@ -192,7 +193,20 @@ export default function BehavioralTab({ homeId, residents }: Props) {
       {/* Log feed */}
       <div className='p-4 space-y-3'>
         <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Recent Entries</p>
-        {logsLoading && <p className='text-sm text-gray-500'>Loading…</p>}
+        {logsLoading && (
+          <div className='space-y-3'>
+            {[1, 2, 3].map(i => (
+              <div key={i} className='bg-white rounded-xl shadow-sm px-4 py-3 border-l-4 border-gray-200 space-y-2'>
+                <div className='flex items-center justify-between'>
+                  <Skeleton className='h-4 w-32' />
+                  <Skeleton className='h-3 w-20' />
+                </div>
+                <Skeleton className='h-3 w-24' />
+                <Skeleton className='h-4 w-full' />
+              </div>
+            ))}
+          </div>
+        )}
         {!logsLoading && !logs.length && (
           <p className='text-sm text-gray-400'>No behavioral logs yet</p>
         )}

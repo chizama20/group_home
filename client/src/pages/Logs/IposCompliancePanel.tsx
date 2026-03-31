@@ -4,6 +4,7 @@ import type { IposComplianceShift } from '../../api/homes'
 import { todayStr } from '../../utils/date'
 import { SHIFT_LABELS } from '../../types/log'
 import type { Shift } from '../../types/log'
+import { Skeleton } from '../../components/ui/skeleton'
 
 const SHIFT_ORDER: Shift[] = ['day', 'evening', 'night']
 
@@ -38,7 +39,19 @@ export default function IposCompliancePanel({ homeId }: Props) {
         />
       </div>
 
-      {loading && <p className='text-sm text-gray-500'>Loading…</p>}
+      {loading && (
+        <div className='space-y-3'>
+          {[1, 2, 3].map(i => (
+            <div key={i} className='bg-white rounded-xl shadow-sm px-4 py-3 space-y-2'>
+              <div className='flex items-center justify-between'>
+                <Skeleton className='h-4 w-24' />
+                <Skeleton className='h-4 w-12' />
+              </div>
+              <Skeleton className='h-2 w-full rounded-full' />
+            </div>
+          ))}
+        </div>
+      )}
 
       {SHIFT_ORDER.map(shift => {
         const row     = byShift.get(shift)

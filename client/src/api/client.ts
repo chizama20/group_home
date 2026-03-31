@@ -9,7 +9,18 @@ const api = axios.create({
 api.interceptors.response.use(
   res => res,
   err => {
-    if (err.response?.status === 401) window.location.href = '/login'
+    if (err.response?.status === 401) {
+      const path = window.location.pathname
+      const publicPaths = ['/login', '/forgot-password', '/request-access']
+      const isPublic = publicPaths.includes(path)
+        || path.startsWith('/reset-password/')
+        || path.startsWith('/invite/')
+      if (path.startsWith('/admin') && path !== '/admin/login') {
+        window.location.href = '/admin/login'
+      } else if (!path.startsWith('/admin') && !isPublic) {
+        window.location.href = '/login'
+      }
+    }
     return Promise.reject(err)
   }
 )

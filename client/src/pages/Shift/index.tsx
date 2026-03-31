@@ -1,11 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { toast } from 'sonner'
 import BottomNav from '../../components/BottomNav'
 import HomeSwitcherStrip from '../../components/HomeSwitcherStrip'
 import { useHome } from '../../context/HomeContext'
 import { useAuth } from '../../context/AuthContext'
+import { useOnlineStatus } from '../../hooks/useOnlineStatus'
 import { clockIn, clockOut } from '../../api/homes'
 import { getShiftNotes, createShiftNote } from '../../api/logs'
 import { getResidents } from '../../api/residents'
+import { queueSubmission, flushQueue } from '../../utils/offlineQueue'
+import api from '../../api/client'
 import { currentShift, SHIFT_LABELS } from '../../types/log'
 import type { Shift, ShiftNote } from '../../types/log'
 import type { Resident } from '../../types/resident'
@@ -22,11 +26,13 @@ function prevShift(s: Shift): Shift {
 }
 
 export default function ShiftPage() {
-  const { user }  = useAuth()
+  const { user }   = useAuth()
   const { homeId } = useHome()
+  const isOnline   = useOnlineStatus()
+  const prevOnline = useRef(isOnline)
 
-  const [shift, setShift]           = useState<Shift>(currentShift())
-  const date                        = todayStr()
+  const [shift, setShift]             = useState<Shift>(currentShift())
+  const date                          = todayStr()
   const [clockStatus, setClockStatus] = useState<'idle' | 'in' | 'out'>('idle')
 
   const [currentNotes, setCurrentNotes]   = useState<ShiftNote[]>([])
@@ -35,10 +41,10 @@ export default function ShiftPage() {
   const [loading, setLoading]             = useState(false)
   const [submitting, setSubmitting]       = useState(false)
 
+  // Load notes + residents whenever home or shift changes
   useEffect(() => {
     if (!homeId) return
     setLoading(true)
-
     const prev = prevShift(shift)
     Promise.allSettled([
       getShiftNotes(homeId, { shift, date }),
@@ -50,6 +56,29 @@ export default function ShiftPage() {
       setResidents(res.status     === 'fulfilled' ? (res.value.data.data ?? []) : [])
     }).finally(() => setLoading(false))
   }, [homeId, shift, date])
+
+  // Flush offline queue when coming back online
+  useEffect(() => {
+    const wasOffline = !prevOnline.current
+    prevOnline.current = isOnline
+
+    if (!isOnline || !wasOffline) return
+
+    void flushQueue(
+      async (item) => { await api.post(item.url, item.body) },
+      (flushed, total) => {
+        if (flushed === total)
+          toast.success(`${total} queued note${total > 1 ? 's' : ''} synced`)
+      }
+    ).then(() => {
+      // Refresh notes after flush
+      if (homeId) {
+        getShiftNotes(homeId, { shift, date })
+          .then(res => setCurrentNotes(res.data.data ?? []))
+          .catch(() => {/* non-critical */})
+      }
+    })
+  }, [isOnline, homeId, shift, date])
 
   async function handleClock(action: 'in' | 'out') {
     if (!homeId) return
@@ -67,19 +96,20 @@ export default function ShiftPage() {
   async function handlePost(content: string, residentId: string | null, flagged: boolean) {
     if (!homeId || !user) return
     setSubmitting(true)
+
+    const body = { resident_id: residentId, shift, shift_date: date, content, flagged }
+
     try {
-      await createShiftNote(homeId, {
-        resident_id: residentId,
-        shift,
-        shift_date: date,
-        content,
-        flagged,
-      })
-      // Refresh current shift notes
+      await createShiftNote(homeId, body)
       const res = await getShiftNotes(homeId, { shift, date })
       setCurrentNotes(res.data.data ?? [])
-    } catch { /* ignore */ }
-    setSubmitting(false)
+    } catch {
+      // Queue for later sync if offline or request failed
+      await queueSubmission('shift-note', `/homes/${homeId}/shift-notes`, 'POST', body)
+      toast('Note saved — will sync when back online', { icon: '📋' })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
