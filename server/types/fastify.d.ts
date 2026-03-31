@@ -15,3 +15,9 @@ declare module 'fastify' {
     db: Pool;
   }
 }
+
+declare module '@fastify/cookie' {
+  interface FastifyCookieOptions {
+    secret?: string;
+  }
+}

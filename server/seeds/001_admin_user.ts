@@ -96,22 +96,22 @@ export async function seed(knex: Knex): Promise<void> {
   // ── Medications ───────────────────────────────────────────────────────────
   await knex('medications').insert([
     {
-      id: uuidv4(), resident_id: res1Id, home_id: homeId,
+      id: uuidv4(), resident_id: res1Id,
       name: 'Donepezil', dosage: '10mg', frequency: 'Once daily',
       scheduled_time: '08:00', prescriber: 'Dr. Smith',
     },
     {
-      id: uuidv4(), resident_id: res1Id, home_id: homeId,
+      id: uuidv4(), resident_id: res1Id,
       name: 'Lorazepam', dosage: '0.5mg', frequency: 'As needed',
       prescriber: 'Dr. Smith',
     },
     {
-      id: uuidv4(), resident_id: res2Id, home_id: homeId,
+      id: uuidv4(), resident_id: res2Id,
       name: 'Levodopa', dosage: '100mg', frequency: 'Three times daily',
       scheduled_time: '08:00', prescriber: 'Dr. Patel',
     },
     {
-      id: uuidv4(), resident_id: res2Id, home_id: homeId,
+      id: uuidv4(), resident_id: res2Id,
       name: 'Ropinirole', dosage: '2mg', frequency: 'Twice daily',
       scheduled_time: '14:00', prescriber: 'Dr. Patel',
     },

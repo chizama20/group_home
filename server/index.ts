@@ -3,8 +3,10 @@ import Fastify from 'fastify';
 import dotenv from 'dotenv';
 
 import corsPlugin          from './plugins/cors';
+import cookiePlugin        from './plugins/cookie';
 import dbPlugin            from './plugins/db';
 import authPlugin          from './plugins/auth';
+import sessionMiddleware   from './middleware/session';
 
 import authRoutes          from './routes/auth';
 import orgsRoutes          from './routes/orgs';
@@ -22,10 +24,12 @@ dotenv.config();
 
 const fastify = Fastify({ logger: true });
 
-// Plugins
+// Plugins — cookie must be registered before auth
 fastify.register(corsPlugin);
+fastify.register(cookiePlugin);
 fastify.register(dbPlugin);
 fastify.register(authPlugin);
+fastify.register(sessionMiddleware);
 
 // Health check — no auth required
 fastify.get('/health', async (_request, reply) => {

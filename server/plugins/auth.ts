@@ -16,7 +16,12 @@ export default fp(async (fastify: FastifyInstance) => {
     'authenticate',
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        await request.jwtVerify();
+        // Read JWT from httpOnly cookie instead of Authorization header
+        const token = request.cookies?.token;
+        if (!token) {
+          return reply.code(401).send(failure('UNAUTHORIZED', 'Invalid or missing token'));
+        }
+        request.user = fastify.jwt.verify(token);
       } catch (err) {
         reply.code(401).send(failure('UNAUTHORIZED', 'Invalid or missing token'));
       }

@@ -1,10 +1,16 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
-import { HomeProvider } from './context/HomeContext'
-import ProtectedRoute  from './components/ProtectedRoute'
-import ManagerRoute    from './components/ManagerRoute'
+import { useState, useCallback } from 'react'
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import { HomeProvider }          from './context/HomeContext'
+import ProtectedRoute            from './components/ProtectedRoute'
+import ManagerRoute              from './components/ManagerRoute'
+import SessionWarningModal       from './components/SessionWarningModal'
+import { useInactivityTimer }    from './hooks/useInactivityTimer'
 
 import LoginPage          from './pages/Login/index'
+import ForgotPasswordPage from './pages/ForgotPassword/index'
+import ResetPasswordPage  from './pages/ResetPassword/index'
+import InviteAcceptPage   from './pages/InviteAccept/index'
 import DashboardPage      from './pages/Dashboard/index'
 import ResidentsPage      from './pages/Residents/index'
 import ResidentProfile    from './pages/Residents/ResidentProfile'
@@ -13,40 +19,82 @@ import MedicationsPage    from './pages/Medications/index'
 import ShiftPage          from './pages/Shift/index'
 import HomeSelectionPage  from './pages/HomeSelection/index'
 
+// Inner component so it can use hooks that depend on router context
+function AppRoutes() {
+  const { user, logout }         = useAuth()
+  const navigate                 = useNavigate()
+  const [showWarning, setShowWarning] = useState(false)
+
+  const handleWarning = useCallback(() => {
+    setShowWarning(true)
+  }, [])
+
+  const handleAutoLogout = useCallback(() => {
+    setShowWarning(false)
+    void logout().then(() => navigate('/login?reason=timeout', { replace: true }))
+  }, [logout, navigate])
+
+  const handleStayLoggedIn = useCallback(() => {
+    setShowWarning(false)
+    // Timer resets automatically on next user interaction
+  }, [])
+
+  useInactivityTimer({
+    enabled:   !!user,
+    onWarning: handleWarning,
+    onLogout:  handleAutoLogout,
+  })
+
+  return (
+    <>
+      <SessionWarningModal
+        open={showWarning}
+        onStayLoggedIn={handleStayLoggedIn}
+        onLogoutNow={handleAutoLogout}
+      />
+
+      <Routes>
+        {/* Public */}
+        <Route path='/login'                   element={<LoginPage />} />
+        <Route path='/forgot-password'         element={<ForgotPasswordPage />} />
+        <Route path='/reset-password/:token'   element={<ResetPasswordPage />} />
+        <Route path='/invite/:token'           element={<InviteAcceptPage />} />
+
+        {/* Employee and above */}
+        <Route path='/' element={
+          <ProtectedRoute><DashboardPage /></ProtectedRoute>
+        } />
+        <Route path='/residents' element={
+          <ProtectedRoute><ResidentsPage /></ProtectedRoute>
+        } />
+        <Route path='/residents/:id' element={
+          <ProtectedRoute><ResidentProfile /></ProtectedRoute>
+        } />
+        <Route path='/logs' element={
+          <ProtectedRoute><LogsPage /></ProtectedRoute>
+        } />
+        <Route path='/medications' element={
+          <ProtectedRoute><MedicationsPage /></ProtectedRoute>
+        } />
+        <Route path='/shift' element={
+          <ProtectedRoute><ShiftPage /></ProtectedRoute>
+        } />
+
+        {/* Manager: home selection (multi-home only) */}
+        <Route path='/select-home' element={
+          <ManagerRoute><HomeSelectionPage /></ManagerRoute>
+        } />
+      </Routes>
+    </>
+  )
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <HomeProvider>
         <BrowserRouter>
-          <Routes>
-            {/* Public */}
-            <Route path='/login' element={<LoginPage />} />
-
-            {/* Employee and above */}
-            <Route path='/' element={
-              <ProtectedRoute><DashboardPage /></ProtectedRoute>
-            } />
-            <Route path='/residents' element={
-              <ProtectedRoute><ResidentsPage /></ProtectedRoute>
-            } />
-            <Route path='/residents/:id' element={
-              <ProtectedRoute><ResidentProfile /></ProtectedRoute>
-            } />
-            <Route path='/logs' element={
-              <ProtectedRoute><LogsPage /></ProtectedRoute>
-            } />
-            <Route path='/medications' element={
-              <ProtectedRoute><MedicationsPage /></ProtectedRoute>
-            } />
-            <Route path='/shift' element={
-              <ProtectedRoute><ShiftPage /></ProtectedRoute>
-            } />
-
-            {/* Manager: home selection (multi-home only) */}
-            <Route path='/select-home' element={
-              <ManagerRoute><HomeSelectionPage /></ManagerRoute>
-            } />
-          </Routes>
+          <AppRoutes />
         </BrowserRouter>
       </HomeProvider>
     </AuthProvider>

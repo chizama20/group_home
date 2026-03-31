@@ -7,4 +7,5 @@ export interface AuthUser {
   last_name: string
   role: UserRole
   org_id: string
+  pin_set_at: string | null
 }
