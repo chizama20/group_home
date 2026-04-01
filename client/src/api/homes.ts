@@ -1,6 +1,10 @@
 import api from './client'
 import type { ApiResponse } from '../types/api'
-import type { Shift } from '../types/log'
+import type { Shift, Announcement } from '../types/log'
+import type { Resident } from '../types/resident'
+import type { Appointment } from '../types/appointment'
+import type { Task } from '../types/task'
+import type { Incident } from '../types/incident'
 
 export interface Home {
   id: string
@@ -8,6 +12,7 @@ export interface Home {
   name: string
   address: string | null
   is_active: boolean
+  facility_type?: string
   created_at: string
 }
 
@@ -95,12 +100,12 @@ export interface DashboardStats {
 }
 
 export interface DashboardPayload {
-  announcements: unknown[]
-  residents:     unknown[]
-  appointments:  unknown[]
-  tasks:         unknown[]
-  roster:        unknown[]
-  openIncidents: unknown[]
+  announcements: Announcement[]
+  residents:     Resident[]
+  appointments:  Appointment[]
+  tasks:         Task[]
+  roster:        RosterEntry[]
+  openIncidents: Incident[]
   stats:         DashboardStats
 }
 

@@ -7,7 +7,7 @@ import { getAccessibleHomeIds, homeFilter, canAccessHome } from '../utils/homeAc
 interface IposLogBody {
   resident_id: string;
   home_id: string;
-  shift: 'morning' | 'afternoon' | 'overnight';
+  shift: 'day' | 'evening' | 'night';
   log_date: string;
   content: string;
 }

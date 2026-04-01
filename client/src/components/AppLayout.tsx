@@ -41,7 +41,7 @@ export default function AppLayout({ children }: Props) {
     navigate('/login', { replace: true })
   }
 
-  const facilityType = (selectedHome as any)?.facility_type as string | undefined
+  const facilityType = selectedHome?.facility_type
 
   return (
     <div className='flex h-screen overflow-hidden bg-background'>

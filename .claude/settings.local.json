@@ -28,7 +28,8 @@
       "Bash(node:*)",
       "Bash(find /c/Users/Chi/Documents/GitHub/group_home -name *migrat* -type f)",
       "mcp__ide__getDiagnostics",
-      "Bash(ls /c/Users/Chi/Documents/GitHub/group_home/.env*)"
+      "Bash(ls /c/Users/Chi/Documents/GitHub/group_home/.env*)",
+      "Bash(sort -t: -k2 -rn)"
     ]
   }
 }

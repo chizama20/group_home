@@ -26,9 +26,9 @@ const schema = z.object({
   org_name:           z.string().min(1, 'Organisation name is required'),
   facility_type:      z.string().min(1, 'Please select a facility type'),
   contact_name:       z.string().min(1, 'Your name is required'),
-  contact_phone:      z.string().min(1, 'Phone number is required'),
+  contact_phone:      z.string().regex(/^\+?[\d\s\-().]{7,20}$/, 'Enter a valid phone number'),
   contact_email:      z.string().email('Enter a valid email address'),
-  num_homes:          z.coerce.number({ invalid_type_error: 'Enter a number' }).int().min(1, 'Must be at least 1'),
+  num_homes:          z.coerce.number({ invalid_type_error: 'Enter a number' }).int().min(1, 'Must be at least 1').max(999, 'Maximum 999 locations'),
   state:              z.string().min(1, 'Please select a state'),
   current_operations: z.string().optional(),
   additional_notes:   z.string().optional(),
@@ -147,7 +147,7 @@ export default function RequestAccessPage() {
                 <label className='block text-sm font-medium text-gray-700 mb-1'>
                   Number of locations <span className='text-red-500'>*</span>
                 </label>
-                <input type='number' min={1} {...register('num_homes')} className={INPUT_CLS} />
+                <input type='number' min={1} max={999} {...register('num_homes')} className={INPUT_CLS} />
                 {errors.num_homes && <p className='text-xs text-red-600 mt-1'>{errors.num_homes.message}</p>}
               </div>
               <div>

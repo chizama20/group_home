@@ -6,7 +6,7 @@ export const orgAdminOnly = async (
   reply: FastifyReply
 ): Promise<void> => {
   if (request.user.role !== 'org_admin') {
-    reply.code(403).send(failure('FORBIDDEN', 'Org admin access required'));
+    return reply.code(403).send(failure('FORBIDDEN', 'Org admin access required'));
   }
 };
 
@@ -15,6 +15,6 @@ export const managerOrAbove = async (
   reply: FastifyReply
 ): Promise<void> => {
   if (!['org_admin', 'manager'].includes(request.user.role)) {
-    reply.code(403).send(failure('FORBIDDEN', 'Manager or above access required'));
+    return reply.code(403).send(failure('FORBIDDEN', 'Manager or above access required'));
   }
 };

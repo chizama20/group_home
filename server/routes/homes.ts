@@ -990,8 +990,9 @@ export default async (fastify: FastifyInstance): Promise<void> => {
           [homeId]
         ),
         fastify.db.execute<RowDataPacket[]>(
-          `SELECT t.*, u.first_name as assigned_to_first, u.last_name as assigned_to_last
-           FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id
+          `SELECT t.id, t.home_id, t.title, t.description, t.due_date, t.status,
+                  t.claimed_by, t.claimed_at, t.completed_at, t.created_at
+           FROM tasks t
            WHERE t.home_id = ? AND t.status != 'completed'
            ORDER BY t.due_date ASC LIMIT 20`,
           [homeId]

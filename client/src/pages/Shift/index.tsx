@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
-import BottomNav from '../../components/BottomNav'
 import HomeSwitcherStrip from '../../components/HomeSwitcherStrip'
 import { useHome } from '../../context/HomeContext'
 import { useAuth } from '../../context/AuthContext'
@@ -90,7 +89,9 @@ export default function ShiftPage() {
         await clockOut(homeId, { shift, shift_date: date })
         setClockStatus('out')
       }
-    } catch { /* ignore */ }
+    } catch {
+      toast.error(action === 'in' ? 'Failed to clock in' : 'Failed to clock out')
+    }
   }
 
   async function handlePost(content: string, residentId: string | null, flagged: boolean) {
@@ -113,15 +114,15 @@ export default function ShiftPage() {
   }
 
   return (
-    <div className='pb-48 min-h-screen bg-gray-50'>
+    <div className='pb-48 min-h-screen bg-muted'>
       {/* Header */}
-      <div className='bg-white border-b border-gray-100'>
+      <div className='bg-card border-b border-border'>
         <div className='px-4 pt-5 pb-3'>
-          <h1 className='text-xl font-bold text-gray-900 mb-3'>Shift</h1>
+          <h1 className='text-xl font-bold text-foreground mb-3'>Shift</h1>
           <select
             value={shift}
             onChange={e => { setShift(e.target.value as Shift); setClockStatus('idle') }}
-            className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] bg-white'
+            className='w-full border border-border rounded-lg px-3 py-2 text-sm min-h-[44px] bg-card'
           >
             {SHIFTS.map(s => (
               <option key={s} value={s}>{SHIFT_LABELS[s]}</option>
@@ -132,8 +133,8 @@ export default function ShiftPage() {
       </div>
 
       {/* Time clock */}
-      <div className='bg-white mx-4 mt-4 rounded-xl p-4 shadow-sm'>
-        <h2 className='text-sm font-semibold text-gray-700 mb-3'>Time Clock</h2>
+      <div className='bg-card mx-4 mt-4 rounded-xl p-4 shadow-sm'>
+        <h2 className='text-sm font-semibold text-foreground mb-3'>Time Clock</h2>
         <div className='flex gap-3'>
           <button
             onClick={() => void handleClock('in')}
@@ -151,20 +152,18 @@ export default function ShiftPage() {
           </button>
         </div>
         {clockStatus === 'in'  && <p className='text-xs text-green-600 mt-2 text-center'>Clocked in ✓</p>}
-        {clockStatus === 'out' && <p className='text-xs text-gray-500 mt-2 text-center'>Clocked out</p>}
+        {clockStatus === 'out' && <p className='text-xs text-muted-foreground mt-2 text-center'>Clocked out</p>}
       </div>
 
       {/* Shift notes */}
       <div className='mx-4 mt-4'>
-        <h2 className='text-sm font-semibold text-gray-700 mb-2'>Shift Notes</h2>
+        <h2 className='text-sm font-semibold text-foreground mb-2'>Shift Notes</h2>
         <ShiftNotesFeed
           currentNotes={currentNotes}
           previousNotes={previousNotes}
           loading={loading}
         />
       </div>
-
-      <BottomNav />
 
       <ComposeBar
         residents={residents}

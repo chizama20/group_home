@@ -48,7 +48,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
   });
 
   // ── POST /admin/auth/logout ───────────────────────────────────────────────
-  fastify.post('/logout', async (_request, reply) => {
+  fastify.post('/logout', { preHandler: [fastify.adminAuthenticate] }, async (_request, reply) => {
     reply.clearCookie('admin_token', { path: '/' });
     return reply.send(success({ message: 'Logged out' }));
   });

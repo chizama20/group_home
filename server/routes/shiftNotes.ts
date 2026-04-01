@@ -8,7 +8,7 @@ import { validate, createShiftNoteSchema, paginationSchema } from '../schemas';
 interface ShiftNoteBody {
   home_id: string;
   resident_id?: string;
-  shift: 'morning' | 'afternoon' | 'overnight';
+  shift: 'day' | 'evening' | 'night';
   shift_date: string;
   content: string;
   flagged?: boolean;

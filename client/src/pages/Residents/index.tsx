@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import BottomNav from '../../components/BottomNav'
 import HomeSwitcherStrip from '../../components/HomeSwitcherStrip'
 import StatusBadge from '../../components/StatusBadge'
 import { Skeleton } from '../../components/ui/skeleton'
@@ -18,14 +17,14 @@ function ResidentRow({ r, badge }: { r: Resident; badge: string }) {
   return (
     <button
       onClick={() => navigate(`/residents/${r.id}`)}
-      className='w-full flex items-center gap-3 px-4 py-3 text-left min-h-[60px] hover:bg-gray-50 border-b border-gray-100 last:border-0'
+      className='w-full flex items-center gap-3 px-4 py-3 text-left min-h-[60px] hover:bg-muted border-b border-border last:border-0'
     >
-      <div className='w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex items-center justify-center shrink-0'>
+      <div className='w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-sm flex items-center justify-center shrink-0'>
         {r.first_name[0]}{r.last_name[0]}
       </div>
       <div className='flex-1 min-w-0'>
-        <p className='text-sm font-medium text-gray-900'>{r.first_name} {r.last_name}</p>
-        {r.room && <p className='text-xs text-gray-500 mt-0.5'>Room {r.room}</p>}
+        <p className='text-sm font-medium text-foreground'>{r.first_name} {r.last_name}</p>
+        {r.room && <p className='text-xs text-muted-foreground mt-0.5'>Room {r.room}</p>}
       </div>
       <StatusBadge status={badge} />
     </button>
@@ -73,16 +72,16 @@ export default function ResidentsPage() {
   const allGood   = filtered.filter(r => r.status !== 'urgent' && filedIds.has(r.id))
 
   return (
-    <div className='pb-20 min-h-screen bg-gray-50'>
+    <div className='pb-20 min-h-screen bg-background'>
       {/* Header */}
-      <div className='bg-white border-b border-gray-100'>
+      <div className='bg-card border-b border-border'>
         <div className='px-4 pt-5 pb-3'>
           <div className='flex items-center justify-between mb-3'>
-            <h1 className='text-xl font-bold text-gray-900'>Residents</h1>
+            <h1 className='text-xl font-bold text-foreground'>Residents</h1>
             {isManagerOrAbove && homeId && (
               <button
                 onClick={() => setShowAdd(true)}
-                className='text-sm font-medium text-blue-600 border border-blue-200 rounded-xl px-3 py-2 min-h-[40px] hover:bg-blue-50 transition-colors'
+                className='text-sm font-medium text-primary border border-primary/30 rounded-xl px-3 py-2 min-h-[40px] hover:bg-primary/10 transition-colors'
               >
                 + Add
               </button>
@@ -93,14 +92,14 @@ export default function ResidentsPage() {
             placeholder='Search by name or room…'
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px]'
+            className='w-full border border-border rounded-lg px-3 py-2 text-sm min-h-[44px]'
           />
         </div>
         <HomeSwitcherStrip />
       </div>
 
       {/* List */}
-      <div className='bg-white mt-3'>
+      <div className='bg-card mt-3'>
         {loading && (
           <div className='p-4 space-y-3'>
             {[...Array(5)].map((_, i) => (
@@ -115,7 +114,7 @@ export default function ResidentsPage() {
           </div>
         )}
         {error   && <p className='p-4 text-sm text-red-600'>{error}</p>}
-        {!loading && !homeId && <p className='p-4 text-sm text-gray-500'>No home selected</p>}
+        {!loading && !homeId && <p className='p-4 text-sm text-muted-foreground'>No home selected</p>}
 
         {!loading && homeId && (
           <>
@@ -138,15 +137,13 @@ export default function ResidentsPage() {
               </>
             )}
             {filtered.length === 0 && !error && (
-              <p className='p-4 text-sm text-gray-500'>
+              <p className='p-4 text-sm text-muted-foreground'>
                 {search ? 'No residents match your search' : 'No active residents'}
               </p>
             )}
           </>
         )}
       </div>
-
-      <BottomNav />
 
       {showAdd && homeId && (
         <ResidentForm
