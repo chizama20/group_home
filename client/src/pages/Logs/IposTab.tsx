@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react'
-import { toast } from 'sonner'
 import { getHomeIpos, createIposLog } from '../../api/logs'
 import type { IposLog, Shift } from '../../types/log'
 import type { Resident } from '../../types/resident'
@@ -8,8 +7,6 @@ import { todayStr } from '../../utils/date'
 import { cn } from '../../lib/cn'
 import { useRole } from '../../utils/role'
 import IposCompliancePanel from './IposCompliancePanel'
-import { Skeleton } from '../../components/ui/skeleton'
-import { Sheet, SheetContent } from '../../components/ui/sheet'
 
 const SHIFTS: Shift[] = ['day', 'evening', 'night']
 
@@ -51,7 +48,7 @@ function IposEmployeeView({ homeId, residents }: EmployeeProps) {
     setLoading(true)
     getHomeIpos(homeId, { date: todayStr(), shift })
       .then(res => setIposLogs(res.data.data ?? []))
-      .catch(() => toast.error('Failed to load IPOS logs'))
+      .catch(() => {/* non-critical */})
       .finally(() => setLoading(false))
   }, [homeId, shift])
 
@@ -99,7 +96,7 @@ function IposEmployeeView({ homeId, residents }: EmployeeProps) {
   return (
     <div>
       {/* Shift tabs */}
-      <div className='flex border-b border-border bg-card'>
+      <div className='flex border-b border-gray-200 bg-white'>
         {SHIFTS.map(s => (
           <button
             key={s}
@@ -107,8 +104,8 @@ function IposEmployeeView({ homeId, residents }: EmployeeProps) {
             className={cn(
               'flex-1 py-3 text-sm font-medium capitalize min-h-[44px]',
               shift === s
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-muted-foreground'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-500'
             )}
           >
             {s.charAt(0).toUpperCase() + s.slice(1)}
@@ -116,23 +113,13 @@ function IposEmployeeView({ homeId, residents }: EmployeeProps) {
         ))}
       </div>
 
-      <div className='px-3 py-2 bg-muted border-b border-border'>
-        <p className='text-xs text-muted-foreground'>{SHIFT_LABELS[shift]} · Today</p>
+      <div className='px-3 py-2 bg-gray-50 border-b border-gray-100'>
+        <p className='text-xs text-gray-500'>{SHIFT_LABELS[shift]} · Today</p>
       </div>
 
-      {loading && (
-        <div className='bg-card divide-y divide-muted'>
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className='flex items-center gap-3 px-4 py-3'>
-              <Skeleton className='w-9 h-9 rounded-full shrink-0' />
-              <Skeleton className='h-4 flex-1' />
-              <Skeleton className='w-16 h-6 rounded-full' />
-            </div>
-          ))}
-        </div>
-      )}
+      {loading && <p className='p-4 text-sm text-gray-500'>Loading…</p>}
 
-      <div className={cn('bg-card divide-y divide-muted', loading && 'hidden')}>
+      <div className='bg-white divide-y divide-gray-50'>
         {active.map(r => {
           const filed   = filedIds.has(r.id)
           const justDone = successId === r.id
@@ -143,13 +130,13 @@ function IposEmployeeView({ homeId, residents }: EmployeeProps) {
               onClick={() => !filed && openForm(r)}
               className={cn(
                 'w-full flex items-center gap-3 px-4 py-3 min-h-[56px] text-left',
-                !filed && 'hover:bg-muted active:bg-muted'
+                !filed && 'hover:bg-gray-50 active:bg-gray-100'
               )}
             >
-              <div className='w-9 h-9 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center shrink-0'>
+              <div className='w-9 h-9 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center shrink-0'>
                 {r.first_name[0]}{r.last_name[0]}
               </div>
-              <p className='flex-1 text-sm font-medium text-foreground'>
+              <p className='flex-1 text-sm font-medium text-gray-900'>
                 {r.first_name} {r.last_name}
               </p>
               {filed || justDone ? (
@@ -165,76 +152,81 @@ function IposEmployeeView({ homeId, residents }: EmployeeProps) {
           )
         })}
         {!loading && active.length === 0 && (
-          <p className='p-4 text-sm text-muted-foreground'>No active residents</p>
+          <p className='p-4 text-sm text-gray-500'>No active residents</p>
         )}
       </div>
 
       {/* IPOS Form Modal */}
-      <Sheet open={!!selected} onOpenChange={(open) => { if (!open) closeForm() }}>
-        <SheetContent side='bottom' className='max-h-[90vh] overflow-y-auto rounded-t-2xl px-4 pt-3 pb-8'>
-          <div className='w-12 h-1 bg-muted rounded-full mx-auto mt-3' />
-          <div className='flex items-center justify-between mb-4'>
-            <div>
-              <p className='text-xs text-muted-foreground uppercase tracking-wide font-semibold'>IPOS Log</p>
-              <p className='font-semibold text-foreground mt-0.5'>
-                {selected?.first_name} {selected?.last_name}
+      {selected && (
+        <>
+          <div className='fixed inset-0 bg-black/40 z-40' onClick={closeForm} />
+          <div className='fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 max-h-[90vh] overflow-y-auto'>
+            <div className='w-12 h-1 bg-gray-300 rounded-full mx-auto mt-3' />
+            <div className='px-4 pt-3 pb-8'>
+              <div className='flex items-center justify-between mb-4'>
+                <div>
+                  <p className='text-xs text-gray-500 uppercase tracking-wide font-semibold'>IPOS Log</p>
+                  <p className='font-semibold text-gray-900 mt-0.5'>
+                    {selected.first_name} {selected.last_name}
+                  </p>
+                  <p className='text-xs text-gray-400 capitalize mt-0.5'>{shift} shift · Today</p>
+                </div>
+                <button onClick={closeForm} className='text-gray-400 min-h-[44px] min-w-[44px] flex items-center justify-center text-xl'>✕</button>
+              </div>
+
+              <p className='text-sm font-medium text-gray-700 mb-2'>
+                Mood <span className='text-red-500'>*</span>
               </p>
-              <p className='text-xs text-muted-foreground capitalize mt-0.5'>{shift} shift · Today</p>
-            </div>
-            <button onClick={closeForm} className='text-muted-foreground min-h-[44px] min-w-[44px] flex items-center justify-center text-xl'>✕</button>
-          </div>
+              <div className='grid grid-cols-2 gap-2 mb-4'>
+                {MOODS.map(m => (
+                  <button
+                    key={m.value}
+                    onClick={() => setMood(m.value)}
+                    className={cn(
+                      'py-2.5 rounded-xl text-sm font-semibold border min-h-[44px] transition-all',
+                      mood === m.value
+                        ? m.classes + ' ring-2 ring-offset-1 ring-blue-400'
+                        : 'bg-gray-50 text-gray-600 border-gray-200'
+                    )}
+                  >
+                    {m.value}
+                  </button>
+                ))}
+              </div>
 
-          <p className='text-sm font-medium text-foreground mb-2'>
-            Mood <span className='text-red-500'>*</span>
-          </p>
-          <div className='grid grid-cols-2 gap-2 mb-4'>
-            {MOODS.map(m => (
+              <label className='block text-sm font-medium text-gray-700 mb-1'>Observations</label>
+              <textarea
+                value={observations}
+                onChange={e => setObservations(e.target.value)}
+                placeholder='How is the resident today?'
+                rows={3}
+                className='w-full border border-gray-300 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4'
+              />
+
+              <label className='block text-sm font-medium text-gray-700 mb-1'>Notes</label>
+              <textarea
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                placeholder='Any additional notes…'
+                rows={2}
+                className='w-full border border-gray-300 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4'
+              />
+
+              {formError && (
+                <p className='text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg mb-3'>{formError}</p>
+              )}
+
               <button
-                key={m.value}
-                onClick={() => setMood(m.value)}
-                className={cn(
-                  'py-2.5 rounded-xl text-sm font-semibold border min-h-[44px] transition-all',
-                  mood === m.value
-                    ? m.classes + ' ring-2 ring-offset-1 ring-primary/40'
-                    : 'bg-muted text-muted-foreground border-border'
-                )}
+                onClick={() => { void handleSubmit() }}
+                disabled={!mood || submitting}
+                className='w-full bg-blue-600 text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] disabled:opacity-50'
               >
-                {m.value}
+                {submitting ? 'Submitting…' : 'Submit log'}
               </button>
-            ))}
+            </div>
           </div>
-
-          <label className='block text-sm font-medium text-foreground mb-1'>Observations</label>
-          <textarea
-            value={observations}
-            onChange={e => setObservations(e.target.value)}
-            placeholder='How is the resident today?'
-            rows={3}
-            className='w-full border border-border rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 mb-4'
-          />
-
-          <label className='block text-sm font-medium text-foreground mb-1'>Notes</label>
-          <textarea
-            value={notes}
-            onChange={e => setNotes(e.target.value)}
-            placeholder='Any additional notes…'
-            rows={2}
-            className='w-full border border-border rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 mb-4'
-          />
-
-          {formError && (
-            <p className='text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg mb-3'>{formError}</p>
-          )}
-
-          <button
-            onClick={() => { void handleSubmit() }}
-            disabled={!mood || submitting}
-            className='w-full bg-primary text-primary-foreground rounded-xl py-3 text-sm font-semibold min-h-[44px] disabled:opacity-50'
-          >
-            {submitting ? 'Submitting…' : 'Submit log'}
-          </button>
-        </SheetContent>
-      </Sheet>
+        </>
+      )}
     </div>
   )
 }

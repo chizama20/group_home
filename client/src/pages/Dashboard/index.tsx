@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useHome } from '../../context/HomeContext'
 import { useRole } from '../../utils/role'
 import { useDashboard } from '../../hooks/useDashboard'
+import BottomNav from '../../components/BottomNav'
 import HomeSwitcherStrip from '../../components/HomeSwitcherStrip'
 import AnnouncementBanner from './AnnouncementBanner'
 import AnnouncementComposer from './AnnouncementComposer'
@@ -58,23 +59,23 @@ export default function DashboardPage() {
   }, [homeIsLoading, isManagerOrAbove, homes.length, homeId, navigate])
 
   return (
-    <div className='pb-24 min-h-screen bg-background'>
+    <div className='pb-24 min-h-screen bg-gray-50'>
 
       {/* Section A: Header */}
-      <div className='bg-card px-4 pt-10 pb-4 border-b border-border'>
+      <div className='bg-white px-4 pt-10 pb-4 border-b border-gray-100'>
         <div className='flex items-center justify-between'>
           <div>
-            <h1 className='text-xl font-bold text-foreground'>
+            <h1 className='text-xl font-bold text-gray-900'>
               {user ? greeting(user.first_name) : 'Dashboard'}
             </h1>
             {selectedHome && (
-              <p className='text-sm text-muted-foreground mt-0.5'>{selectedHome.name}</p>
+              <p className='text-sm text-gray-500 mt-0.5'>{selectedHome.name}</p>
             )}
           </div>
           <button
             onClick={() => setShowProfile(true)}
             aria-label='Profile'
-            className='w-11 h-11 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center shrink-0'
+            className='w-11 h-11 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center shrink-0'
           >
             {user ? initials(user.first_name, user.last_name) : '?'}
           </button>
@@ -94,10 +95,10 @@ export default function DashboardPage() {
       )}
 
       {/* Section B: Shift Strip */}
-      <div className='mx-4 mt-4 bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between'>
+      <div className='mx-4 mt-4 bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-center justify-between'>
         <div>
-          <p className='text-sm font-semibold text-foreground capitalize'>{shift} Shift</p>
-          <p className='text-xs text-muted-foreground mt-0.5'>{SHIFT_TIME[shift]}</p>
+          <p className='text-sm font-semibold text-gray-900 capitalize'>{shift} Shift</p>
+          <p className='text-xs text-gray-500 mt-0.5'>{SHIFT_TIME[shift]}</p>
         </div>
         {isShiftActive && (
           <span className='text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-1 rounded-full'>
@@ -151,9 +152,11 @@ export default function DashboardPage() {
 
       {isLoading && !announcements.length && (
         <div className='flex justify-center mt-10'>
-          <div className='w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin' />
+          <div className='w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin' />
         </div>
       )}
+
+      <BottomNav />
 
       {/* Profile Sheet */}
       {showProfile && (
@@ -162,19 +165,19 @@ export default function DashboardPage() {
             className='fixed inset-0 bg-black/40 z-40'
             onClick={() => setShowProfile(false)}
           />
-          <div className='fixed bottom-0 left-0 right-0 bg-card rounded-t-2xl z-50'>
-            <div className='w-12 h-1 bg-muted rounded-full mx-auto mt-3' />
+          <div className='fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50'>
+            <div className='w-12 h-1 bg-gray-300 rounded-full mx-auto mt-3' />
             <div className='px-4 pt-4 pb-8'>
               {/* User info */}
-              <div className='flex items-center gap-3 pb-4 border-b border-border'>
-                <div className='w-12 h-12 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center shrink-0'>
+              <div className='flex items-center gap-3 pb-4 border-b border-gray-100'>
+                <div className='w-12 h-12 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center shrink-0'>
                   {user ? initials(user.first_name, user.last_name) : '?'}
                 </div>
                 <div>
-                  <p className='font-semibold text-foreground'>
+                  <p className='font-semibold text-gray-900'>
                     {user?.first_name} {user?.last_name}
                   </p>
-                  <p className='text-sm text-muted-foreground capitalize mt-0.5'>
+                  <p className='text-sm text-gray-500 capitalize mt-0.5'>
                     {user?.role.replace('_', ' ')}
                   </p>
                 </div>
@@ -182,13 +185,13 @@ export default function DashboardPage() {
 
               {/* Home info */}
               {selectedHome && (
-                <div className='py-4 border-b border-border'>
-                  <p className='text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1'>Home</p>
-                  <p className='text-sm font-medium text-foreground'>{selectedHome.name}</p>
+                <div className='py-4 border-b border-gray-100'>
+                  <p className='text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1'>Home</p>
+                  <p className='text-sm font-medium text-gray-900'>{selectedHome.name}</p>
                   {selectedHome.address && (
-                    <p className='text-xs text-muted-foreground mt-0.5'>{selectedHome.address}</p>
+                    <p className='text-xs text-gray-500 mt-0.5'>{selectedHome.address}</p>
                   )}
-                  <p className='text-xs text-muted-foreground capitalize mt-1'>{shift} shift · {SHIFT_TIME[shift]}</p>
+                  <p className='text-xs text-gray-400 capitalize mt-1'>{shift} shift · {SHIFT_TIME[shift]}</p>
                 </div>
               )}
 

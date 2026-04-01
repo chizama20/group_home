@@ -1,10 +1,6 @@
 import api from './client'
 import type { ApiResponse } from '../types/api'
-import type { Shift, Announcement } from '../types/log'
-import type { Resident } from '../types/resident'
-import type { Appointment } from '../types/appointment'
-import type { Task } from '../types/task'
-import type { Incident } from '../types/incident'
+import type { Shift } from '../types/log'
 
 export interface Home {
   id: string
@@ -12,7 +8,6 @@ export interface Home {
   name: string
   address: string | null
   is_active: boolean
-  facility_type?: string
   created_at: string
 }
 
@@ -87,27 +82,3 @@ export const clockOut = (homeId: string, data: { shift: Shift; shift_date: strin
 
 export const getIposCompliance = (homeId: string, date?: string) =>
   api.get<ApiResponse<IposComplianceShift[]>>(`/homes/${homeId}/ipos/compliance`, { params: date ? { date } : undefined })
-
-// ── Dashboard ─────────────────────────────────────────────────────────────────
-
-export interface DashboardStats {
-  residentCount:    number
-  overdueMedCount:  number
-  unfiledIposCount: number
-  openIncidentCount: number
-  staffOnShiftCount: number
-  isShiftActive:    boolean
-}
-
-export interface DashboardPayload {
-  announcements: Announcement[]
-  residents:     Resident[]
-  appointments:  Appointment[]
-  tasks:         Task[]
-  roster:        RosterEntry[]
-  openIncidents: Incident[]
-  stats:         DashboardStats
-}
-
-export const getHomeDashboard = (homeId: string, params?: { shift?: string; date?: string }) =>
-  api.get<ApiResponse<DashboardPayload>>(`/homes/${homeId}/dashboard`, { params })

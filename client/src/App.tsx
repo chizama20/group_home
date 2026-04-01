@@ -1,12 +1,10 @@
 import { useState, useCallback } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
-import { Toaster } from 'sonner'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { HomeProvider }          from './context/HomeContext'
 import ProtectedRoute            from './components/ProtectedRoute'
 import ManagerRoute              from './components/ManagerRoute'
 import SessionWarningModal       from './components/SessionWarningModal'
-import AppLayout                 from './components/AppLayout'
 import { useInactivityTimer }    from './hooks/useInactivityTimer'
 
 import LoginPage          from './pages/Login/index'
@@ -28,66 +26,84 @@ import AdminRequests      from './pages/Admin/Requests'
 import AdminRequestDetail from './pages/Admin/RequestDetail'
 import AdminOrgs          from './pages/Admin/Orgs'
 
-function WithLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <ProtectedRoute>
-      <AppLayout>{children}</AppLayout>
-    </ProtectedRoute>
-  )
-}
-
+// Inner component so it can use hooks that depend on router context
 function AppRoutes() {
-  const { user, logout }              = useAuth()
-  const navigate                      = useNavigate()
+  const { user, logout }         = useAuth()
+  const navigate                 = useNavigate()
   const [showWarning, setShowWarning] = useState(false)
 
-  const handleWarning = useCallback(() => setShowWarning(true), [])
+  const handleWarning = useCallback(() => {
+    setShowWarning(true)
+  }, [])
 
   const handleAutoLogout = useCallback(() => {
     setShowWarning(false)
     void logout().then(() => navigate('/login?reason=timeout', { replace: true }))
   }, [logout, navigate])
 
-  const handleStayLoggedIn = useCallback(() => setShowWarning(false), [])
+  const handleStayLoggedIn = useCallback(() => {
+    setShowWarning(false)
+    // Timer resets automatically on next user interaction
+  }, [])
 
-  useInactivityTimer({ enabled: !!user, onWarning: handleWarning, onLogout: handleAutoLogout })
+  useInactivityTimer({
+    enabled:   !!user,
+    onWarning: handleWarning,
+    onLogout:  handleAutoLogout,
+  })
 
   return (
     <>
-      <SessionWarningModal open={showWarning} onStayLoggedIn={handleStayLoggedIn} onLogoutNow={handleAutoLogout} />
+      <SessionWarningModal
+        open={showWarning}
+        onStayLoggedIn={handleStayLoggedIn}
+        onLogoutNow={handleAutoLogout}
+      />
 
       <Routes>
-        {/* ── Public ────────────────────────────────────────── */}
-        <Route path='/login'                 element={<LoginPage />} />
-        <Route path='/forgot-password'       element={<ForgotPasswordPage />} />
-        <Route path='/reset-password/:token' element={<ResetPasswordPage />} />
-        <Route path='/invite/:token'         element={<InviteAcceptPage />} />
-        <Route path='/request-access'        element={<RequestAccessPage />} />
+        {/* Public */}
+        <Route path='/login'                   element={<LoginPage />} />
+        <Route path='/forgot-password'         element={<ForgotPasswordPage />} />
+        <Route path='/reset-password/:token'   element={<ResetPasswordPage />} />
+        <Route path='/invite/:token'           element={<InviteAcceptPage />} />
+        <Route path='/request-access'          element={<RequestAccessPage />} />
 
-        {/* ── PIN setup (auth required, no layout shell) ───── */}
+        {/* PIN setup — protected but outside normal ProtectedRoute PIN check */}
         <Route path='/setup-pin' element={
           <ProtectedRoute><SetupPinPage /></ProtectedRoute>
         } />
 
-        {/* ── App (auth + layout shell) ─────────────────────── */}
-        <Route path='/'            element={<WithLayout><DashboardPage /></WithLayout>} />
-        <Route path='/residents'   element={<WithLayout><ResidentsPage /></WithLayout>} />
-        <Route path='/residents/:id' element={<WithLayout><ResidentProfile /></WithLayout>} />
-        <Route path='/logs'        element={<WithLayout><LogsPage /></WithLayout>} />
-        <Route path='/medications' element={<WithLayout><MedicationsPage /></WithLayout>} />
-        <Route path='/shift'       element={<WithLayout><ShiftPage /></WithLayout>} />
+        {/* Admin — separate session, no HomeProvider needed */}
+        <Route path='/admin/login'             element={<AdminLoginPage />} />
+        <Route path='/admin/dashboard'         element={<AdminDashboard />} />
+        <Route path='/admin/requests'          element={<AdminRequests />} />
+        <Route path='/admin/requests/:id'      element={<AdminRequestDetail />} />
+        <Route path='/admin/orgs'              element={<AdminOrgs />} />
 
-        {/* ── Manager: home selection ───────────────────────── */}
+        {/* Employee and above */}
+        <Route path='/' element={
+          <ProtectedRoute><DashboardPage /></ProtectedRoute>
+        } />
+        <Route path='/residents' element={
+          <ProtectedRoute><ResidentsPage /></ProtectedRoute>
+        } />
+        <Route path='/residents/:id' element={
+          <ProtectedRoute><ResidentProfile /></ProtectedRoute>
+        } />
+        <Route path='/logs' element={
+          <ProtectedRoute><LogsPage /></ProtectedRoute>
+        } />
+        <Route path='/medications' element={
+          <ProtectedRoute><MedicationsPage /></ProtectedRoute>
+        } />
+        <Route path='/shift' element={
+          <ProtectedRoute><ShiftPage /></ProtectedRoute>
+        } />
+
+        {/* Manager: home selection (multi-home only) */}
         <Route path='/select-home' element={
           <ManagerRoute><HomeSelectionPage /></ManagerRoute>
         } />
-
-        {/* ── Admin (separate session) ──────────────────────── */}
-        <Route path='/admin/login'        element={<AdminLoginPage />} />
-        <Route path='/admin/dashboard'    element={<AdminDashboard />} />
-        <Route path='/admin/requests'     element={<AdminRequests />} />
-        <Route path='/admin/requests/:id' element={<AdminRequestDetail />} />
-        <Route path='/admin/orgs'         element={<AdminOrgs />} />
       </Routes>
     </>
   )
@@ -99,10 +115,6 @@ export default function App() {
       <HomeProvider>
         <BrowserRouter>
           <AppRoutes />
-          <Toaster
-            position='top-center'
-            toastOptions={{ className: 'md:!bottom-4 md:!top-auto md:!right-4 md:!left-auto' }}
-          />
         </BrowserRouter>
       </HomeProvider>
     </AuthProvider>

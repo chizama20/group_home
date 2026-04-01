@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
+import BottomNav from '../../components/BottomNav'
 import { useSelectedHome } from '../../hooks/useSelectedHome'
 import { useMedicationAdmin } from '../../hooks/useMedicationAdmin'
 import { getHomeMedications, bulkAdminister } from '../../api/medications'
 import type { Medication, MedicationOutcome } from '../../types/medication'
 import { isSlotLocked } from '../../utils/medicationSlot'
 import { cn } from '../../lib/cn'
-import { Skeleton } from '../../components/ui/skeleton'
 import OutcomeScreen from './OutcomeScreen'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -104,48 +104,25 @@ export default function MedicationsPage() {
   const totalSelected = selectedIds.size
 
   return (
-    <div className='pb-32 min-h-screen bg-background'>
+    <div className='pb-32 min-h-screen bg-gray-50'>
       {/* Header */}
-      <div className='bg-card px-4 pt-5 pb-3 border-b border-border'>
-        <h1 className='text-xl font-bold text-foreground mb-3'>Medications</h1>
+      <div className='bg-white px-4 pt-5 pb-3 border-b border-gray-100'>
+        <h1 className='text-xl font-bold text-gray-900 mb-3'>Medications</h1>
         {homes.length > 1 && (
           <select
             value={homeId ?? ''}
             onChange={e => selectHome(e.target.value)}
-            className='w-full border border-border rounded-lg px-3 py-2 text-sm min-h-[44px] bg-card'
+            className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] bg-white'
           >
             {homes.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
           </select>
         )}
       </div>
 
-      {loading && (
-        <div className='p-4 space-y-4'>
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className='bg-white rounded-xl p-4 space-y-3'>
-              <Skeleton className='h-4 w-24' />
-              {[...Array(2)].map((_, j) => (
-                <div key={j} className='flex items-center gap-3'>
-                  <Skeleton className='w-5 h-5 rounded' />
-                  <div className='flex-1 space-y-1.5'>
-                    <Skeleton className='h-4 w-36' />
-                    <Skeleton className='h-3 w-48' />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
+      {loading && <p className='p-4 text-sm text-gray-500'>Loading…</p>}
       {error && <p className='p-4 text-sm text-red-600'>{error}</p>}
       {!loading && !error && !meds.length && homeId && (
-        <div className='flex flex-col items-center justify-center py-16 px-4 text-center'>
-          <div className='w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3'>
-            <span className='text-2xl'>💊</span>
-          </div>
-          <p className='text-sm font-medium text-gray-700'>No medications scheduled</p>
-          <p className='text-xs text-gray-400 mt-1'>Add medications from a resident's profile</p>
-        </div>
+        <p className='p-4 text-sm text-gray-500'>No active medications scheduled</p>
       )}
 
       {/* Slot groups */}
@@ -176,10 +153,10 @@ export default function MedicationsPage() {
             const btnLabel    = selected === 0 ? 'Give all' : `Give ${selected}`
 
             return (
-              <div key={group.residentId} className='bg-card mb-px'>
+              <div key={group.residentId} className='bg-white mb-px'>
                 {/* Resident header row */}
                 <div className={cn(
-                  'flex items-center gap-3 px-4 py-2 border-b border-border/50',
+                  'flex items-center gap-3 px-4 py-2 border-b border-gray-50',
                   slot.locked ? 'opacity-40' : ''
                 )}>
                   <button
@@ -187,10 +164,10 @@ export default function MedicationsPage() {
                     onClick={() => allSelected ? deselectAll(medIds) : selectAll(medIds)}
                     className='flex items-center gap-3 flex-1 min-h-[44px] text-left disabled:pointer-events-none'
                   >
-                    <div className='w-8 h-8 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0'>
+                    <div className='w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center shrink-0'>
                       {group.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                     </div>
-                    <span className='text-sm font-semibold text-foreground'>{group.name}</span>
+                    <span className='text-sm font-semibold text-gray-900'>{group.name}</span>
                   </button>
                   {!slot.locked && (
                     <button
@@ -198,8 +175,8 @@ export default function MedicationsPage() {
                       className={cn(
                         'text-xs font-semibold px-3 py-1.5 rounded-lg border min-h-[36px] shrink-0',
                         selected > 0
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'text-primary border-primary/30 bg-primary/5'
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'text-blue-600 border-blue-200 bg-blue-50'
                       )}
                     >
                       {btnLabel}
@@ -218,8 +195,8 @@ export default function MedicationsPage() {
                       disabled={slot.locked || done}
                       onClick={() => !done && toggle(med.id)}
                       className={cn(
-                        'w-full flex items-center gap-3 px-4 py-3 border-b border-border/30 last:border-0 text-left min-h-[56px]',
-                        slot.locked || done ? 'opacity-50 pointer-events-none' : 'hover:bg-muted'
+                        'w-full flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0 text-left min-h-[56px]',
+                        slot.locked || done ? 'opacity-50 pointer-events-none' : 'hover:bg-gray-50'
                       )}
                     >
                       {/* Checkbox */}
@@ -227,8 +204,8 @@ export default function MedicationsPage() {
                         'w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors',
                         done              ? 'bg-green-500 border-green-500' :
                         failed            ? 'bg-red-200 border-red-400' :
-                        isSelected(med.id) ? 'bg-primary border-primary' :
-                                            'border-border bg-card'
+                        isSelected(med.id) ? 'bg-blue-600 border-blue-600' :
+                                            'border-gray-300 bg-white'
                       )}>
                         {done               && <span className='text-white text-xs font-bold'>✓</span>}
                         {!done && isSelected(med.id) && <span className='text-white text-xs font-bold'>✓</span>}
@@ -237,7 +214,7 @@ export default function MedicationsPage() {
                       <div className='flex-1 min-w-0'>
                         <p className={cn(
                           'text-sm font-medium truncate',
-                          done ? 'text-muted-foreground line-through' : 'text-foreground'
+                          done ? 'text-gray-400 line-through' : 'text-gray-900'
                         )}>
                           {med.name}
                         </p>
@@ -255,15 +232,17 @@ export default function MedicationsPage() {
         </div>
       ))}
 
+      <BottomNav />
+
       {/* Sticky action bar */}
       {totalSelected > 0 && (
-        <div className='fixed bottom-16 left-0 right-0 bg-card border-t border-border px-4 py-3 flex items-center gap-3 z-30'>
-          <p className='flex-1 text-sm font-medium text-foreground'>
+        <div className='fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 flex items-center gap-3 z-30'>
+          <p className='flex-1 text-sm font-medium text-gray-700'>
             {totalSelected} med{totalSelected !== 1 ? 's' : ''} selected
           </p>
           <button
             onClick={() => setShowOutcome(true)}
-            className='bg-primary text-primary-foreground text-sm font-semibold px-6 py-2.5 rounded-xl min-h-[44px]'
+            className='bg-blue-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl min-h-[44px]'
           >
             Administer
           </button>

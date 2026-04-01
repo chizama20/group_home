@@ -1,7 +1,6 @@
 import type { ShiftNote } from '../../types/log'
 import { formatTime } from '../../utils/date'
 import { cn } from '../../lib/cn'
-import { Skeleton } from '../../components/ui/skeleton'
 
 interface Props {
   currentNotes:  ShiftNote[]
@@ -41,20 +40,7 @@ function NoteCard({ note }: { note: ShiftNote }) {
 
 export default function ShiftNotesFeed({ currentNotes, previousNotes, loading }: Props) {
   if (loading) {
-    return (
-      <div className='space-y-2'>
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className='bg-white rounded-xl px-4 py-3 space-y-2'>
-            <div className='flex items-center gap-2'>
-              <Skeleton className='h-3 w-24' />
-              <Skeleton className='h-3 w-12 ml-auto' />
-            </div>
-            <Skeleton className='h-4 w-full' />
-            <Skeleton className='h-4 w-3/4' />
-          </div>
-        ))}
-      </div>
-    )
+    return <p className='px-4 py-3 text-sm text-gray-500'>Loading notes…</p>
   }
 
   return (

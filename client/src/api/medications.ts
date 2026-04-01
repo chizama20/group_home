@@ -2,13 +2,6 @@ import api from './client'
 import type { ApiResponse } from '../types/api'
 import type { Medication, MedicationLog, MedicationOutcome } from '../types/medication'
 
-export interface BulkAdminResult {
-  id:            string
-  medication_id: string
-  status:        'ok' | 'error'
-  error?:        string
-}
-
 export const getHomeMedications = (homeId: string) =>
   api.get<ApiResponse<Medication[]>>(`/homes/${homeId}/medications`)
 
@@ -28,4 +21,4 @@ export const administerMedication = (id: string, data: { outcome: MedicationOutc
   api.post<ApiResponse<{ id: string }>>(`/medications/${id}/administer`, data)
 
 export const bulkAdminister = (data: { medication_ids: string[]; outcome: MedicationOutcome; notes?: string }) =>
-  api.post<ApiResponse<{ results: BulkAdminResult[] }>>('/medications/bulk-administer', data)
+  api.post<ApiResponse<{ results: MedicationLog[] }>>('/medications/bulk-administer', data)

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { toast } from 'sonner'
 import { getHomeIncidents, createIncident } from '../../api/incidents'
 import type { Incident } from '../../types/incident'
 import type { Resident } from '../../types/resident'
@@ -8,7 +7,6 @@ import { formatDate } from '../../utils/date'
 import { cn } from '../../lib/cn'
 import { useRole } from '../../utils/role'
 import IncidentReviewSheet from './IncidentReviewSheet'
-import { Skeleton } from '../../components/ui/skeleton'
 
 const INCIDENT_TYPES = [
   'Physical altercation',
@@ -53,7 +51,7 @@ function ManagerIncidentView({ homeId }: { homeId: string }) {
     setLoading(true)
     getHomeIncidents(homeId)
       .then(res => setIncidents(res.data.data ?? []))
-      .catch(() => toast.error('Failed to load incidents'))
+      .catch(() => {/* non-critical */})
       .finally(() => setLoading(false))
   }
 
@@ -74,8 +72,8 @@ function ManagerIncidentView({ homeId }: { homeId: string }) {
             className={cn(
               'px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap min-h-[36px] border shrink-0',
               filter === f
-                ? 'bg-foreground text-background border-foreground'
-                : 'bg-card text-muted-foreground border-border'
+                ? 'bg-gray-800 text-white border-gray-800'
+                : 'bg-white text-gray-600 border-gray-200'
             )}
           >
             {FILTER_LABELS[f]}
@@ -83,28 +81,15 @@ function ManagerIncidentView({ homeId }: { homeId: string }) {
         ))}
       </div>
 
-      {loading && (
-        <div className='space-y-3'>
-          {[1, 2, 3].map(i => (
-            <div key={i} className='bg-card rounded-xl shadow-sm px-4 py-3 space-y-2'>
-              <div className='flex items-start justify-between gap-2'>
-                <Skeleton className='h-4 flex-1' />
-                <Skeleton className='w-16 h-5 rounded-full' />
-              </div>
-              <Skeleton className='h-3 w-24' />
-              <Skeleton className='h-8 w-full' />
-            </div>
-          ))}
-        </div>
-      )}
+      {loading && <p className='text-sm text-gray-500'>Loading…</p>}
       {!loading && !filtered.length && (
-        <p className='text-sm text-muted-foreground py-2'>No incidents{filter !== 'all' ? ` with status "${FILTER_LABELS[filter].toLowerCase()}"` : ''}</p>
+        <p className='text-sm text-gray-400 py-2'>No incidents{filter !== 'all' ? ` with status "${FILTER_LABELS[filter].toLowerCase()}"` : ''}</p>
       )}
 
       {filtered.map(incident => (
-        <div key={incident.id} className='bg-card rounded-xl shadow-sm px-4 py-3'>
+        <div key={incident.id} className='bg-white rounded-xl shadow-sm px-4 py-3'>
           <div className='flex items-start justify-between gap-2 mb-1'>
-            <p className='text-sm font-semibold text-foreground flex-1 min-w-0'>
+            <p className='text-sm font-semibold text-gray-900 flex-1 min-w-0'>
               {incident.incident_type ?? incident.title}
             </p>
             <StatusBadge status={incident.status} />
@@ -119,12 +104,12 @@ function ManagerIncidentView({ homeId }: { homeId: string }) {
               {incident.severity.charAt(0).toUpperCase() + incident.severity.slice(1)} severity
             </span>
           )}
-          <p className='text-xs text-muted-foreground mb-2'>{formatDate(incident.created_at)}</p>
-          <p className='text-sm text-foreground line-clamp-2 mb-3'>{incident.description}</p>
+          <p className='text-xs text-gray-400 mb-2'>{formatDate(incident.created_at)}</p>
+          <p className='text-sm text-gray-700 line-clamp-2 mb-3'>{incident.description}</p>
           {(incident.status === 'open' || incident.status === 'reviewed') && (
             <button
               onClick={() => setReviewing(incident)}
-              className='text-xs font-semibold text-primary border border-primary/30 rounded-lg px-3 py-1.5 min-h-[36px] hover:bg-primary/10 transition-colors'
+              className='text-xs font-semibold text-blue-600 border border-blue-200 rounded-lg px-3 py-1.5 min-h-[36px] hover:bg-blue-50 transition-colors'
             >
               Review
             </button>
@@ -165,7 +150,7 @@ function EmployeeIncidentView({ homeId, residents }: Props) {
     setFeedLoading(true)
     getHomeIncidents(homeId)
       .then(res => setIncidents(res.data.data ?? []))
-      .catch(() => toast.error('Failed to load incidents'))
+      .catch(() => {/* non-critical */})
       .finally(() => setFeedLoading(false))
   }
 
@@ -196,24 +181,24 @@ function EmployeeIncidentView({ homeId, residents }: Props) {
   return (
     <div>
       {/* Form */}
-      <div className='bg-card border-b border-border p-4 space-y-4'>
-        <p className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>New Incident Report</p>
+      <div className='bg-white border-b border-gray-100 p-4 space-y-4'>
+        <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>New Incident Report</p>
 
         {submitted && (
-          <div className='bg-primary/10 border border-primary/30 rounded-xl px-4 py-3'>
-            <p className='text-sm font-medium text-primary'>Incident filed.</p>
-            <p className='text-xs text-primary mt-0.5'>A manager will review and sign off.</p>
+          <div className='bg-blue-50 border border-blue-100 rounded-xl px-4 py-3'>
+            <p className='text-sm font-medium text-blue-800'>Incident filed.</p>
+            <p className='text-xs text-blue-600 mt-0.5'>A manager will review and sign off.</p>
           </div>
         )}
 
         <div>
-          <label className='block text-sm font-medium text-foreground mb-1'>
+          <label className='block text-sm font-medium text-gray-700 mb-1'>
             Resident <span className='text-red-500'>*</span>
           </label>
           <select
             value={residentId}
             onChange={e => { setResidentId(e.target.value); setSubmitted(false) }}
-            className='w-full border border-border rounded-xl px-3 py-2 text-sm min-h-[44px] bg-card'
+            className='w-full border border-gray-300 rounded-xl px-3 py-2 text-sm min-h-[44px] bg-white'
           >
             <option value=''>Select resident…</option>
             {active.map(r => (
@@ -223,13 +208,13 @@ function EmployeeIncidentView({ homeId, residents }: Props) {
         </div>
 
         <div>
-          <label className='block text-sm font-medium text-foreground mb-1'>
+          <label className='block text-sm font-medium text-gray-700 mb-1'>
             Type <span className='text-red-500'>*</span>
           </label>
           <select
             value={type}
             onChange={e => setType(e.target.value)}
-            className='w-full border border-border rounded-xl px-3 py-2 text-sm min-h-[44px] bg-card'
+            className='w-full border border-gray-300 rounded-xl px-3 py-2 text-sm min-h-[44px] bg-white'
           >
             <option value=''>Select type…</option>
             {INCIDENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
@@ -237,7 +222,7 @@ function EmployeeIncidentView({ homeId, residents }: Props) {
         </div>
 
         <div>
-          <label className='block text-sm font-medium text-foreground mb-2'>
+          <label className='block text-sm font-medium text-gray-700 mb-2'>
             Severity <span className='text-red-500'>*</span>
           </label>
           <div className='flex gap-2'>
@@ -248,8 +233,8 @@ function EmployeeIncidentView({ homeId, residents }: Props) {
                 className={cn(
                   'flex-1 py-2.5 rounded-xl text-sm font-semibold border min-h-[44px]',
                   severity === s.value
-                    ? s.classes + ' ring-2 ring-offset-1 ring-primary/40'
-                    : 'bg-muted text-muted-foreground border-border'
+                    ? s.classes + ' ring-2 ring-offset-1 ring-blue-400'
+                    : 'bg-gray-50 text-gray-600 border-gray-200'
                 )}
               >
                 {s.label}
@@ -259,7 +244,7 @@ function EmployeeIncidentView({ homeId, residents }: Props) {
         </div>
 
         <div>
-          <label className='block text-sm font-medium text-foreground mb-1'>
+          <label className='block text-sm font-medium text-gray-700 mb-1'>
             What happened <span className='text-red-500'>*</span>
           </label>
           <textarea
@@ -267,19 +252,19 @@ function EmployeeIncidentView({ homeId, residents }: Props) {
             onChange={e => setDescription(e.target.value)}
             placeholder='Describe what happened…'
             rows={4}
-            className='w-full border border-border rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30'
+            className='w-full border border-gray-300 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500'
           />
         </div>
 
         <div>
-          <label className='block text-sm font-medium text-foreground mb-1'>
+          <label className='block text-sm font-medium text-gray-700 mb-1'>
             Time occurred <span className='text-red-500'>*</span>
           </label>
           <input
             type='datetime-local'
             value={occurredAt}
             onChange={e => setOccurredAt(e.target.value)}
-            className='w-full border border-border rounded-xl px-3 py-2 text-sm min-h-[44px]'
+            className='w-full border border-gray-300 rounded-xl px-3 py-2 text-sm min-h-[44px]'
           />
         </div>
 
@@ -306,8 +291,8 @@ function EmployeeIncidentView({ homeId, residents }: Props) {
               className={cn(
                 'px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap min-h-[36px] border',
                 filter === f
-                  ? 'bg-foreground text-background border-foreground'
-                  : 'bg-card text-muted-foreground border-border'
+                  ? 'bg-gray-800 text-white border-gray-800'
+                  : 'bg-white text-gray-600 border-gray-200'
               )}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -315,29 +300,16 @@ function EmployeeIncidentView({ homeId, residents }: Props) {
           ))}
         </div>
 
-        {feedLoading && (
-          <div className='space-y-3'>
-            {[1, 2].map(i => (
-              <div key={i} className='bg-card rounded-xl shadow-sm px-4 py-3 space-y-2'>
-                <div className='flex items-start justify-between gap-2'>
-                  <Skeleton className='h-4 flex-1' />
-                  <Skeleton className='w-16 h-5 rounded-full' />
-                </div>
-                <Skeleton className='h-3 w-24' />
-                <Skeleton className='h-8 w-full' />
-              </div>
-            ))}
-          </div>
-        )}
+        {feedLoading && <p className='text-sm text-gray-500'>Loading…</p>}
         {!feedLoading && !filtered.length && (
-          <p className='text-sm text-muted-foreground'>No incidents {filter !== 'all' ? `with status "${filter}"` : ''}</p>
+          <p className='text-sm text-gray-400'>No incidents {filter !== 'all' ? `with status "${filter}"` : ''}</p>
         )}
 
         <div className='space-y-3'>
           {filtered.map(incident => (
-            <div key={incident.id} className='bg-card rounded-xl shadow-sm px-4 py-3'>
+            <div key={incident.id} className='bg-white rounded-xl shadow-sm px-4 py-3'>
               <div className='flex items-start justify-between gap-2 mb-1'>
-                <p className='text-sm font-semibold text-foreground'>{incident.incident_type ?? incident.title}</p>
+                <p className='text-sm font-semibold text-gray-900'>{incident.incident_type ?? incident.title}</p>
                 <StatusBadge status={incident.status} />
               </div>
               {incident.severity && (
@@ -350,8 +322,8 @@ function EmployeeIncidentView({ homeId, residents }: Props) {
                   {incident.severity.charAt(0).toUpperCase() + incident.severity.slice(1)} severity
                 </span>
               )}
-              <p className='text-xs text-muted-foreground mb-1'>{formatDate(incident.created_at)}</p>
-              <p className='text-sm text-foreground line-clamp-2'>{incident.description}</p>
+              <p className='text-xs text-gray-400 mb-1'>{formatDate(incident.created_at)}</p>
+              <p className='text-sm text-gray-700 line-clamp-2'>{incident.description}</p>
             </div>
           ))}
         </div>

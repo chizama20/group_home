@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { toast } from 'sonner'
 import { getHomeBehavioralLogs, createBehavioralLog } from '../../api/logs'
 import { getBehaviors } from '../../api/residents'
 import type { BehavioralLog } from '../../types/log'
@@ -8,7 +7,6 @@ import { formatDate, formatTime } from '../../utils/date'
 import { cn } from '../../lib/cn'
 import { useRole } from '../../utils/role'
 import ExportSheet from './ExportSheet'
-import { Skeleton } from '../../components/ui/skeleton'
 
 interface Props {
   homeId:    string
@@ -38,7 +36,7 @@ export default function BehavioralTab({ homeId, residents }: Props) {
     setLogsLoading(true)
     getHomeBehavioralLogs(homeId)
       .then(res => setLogs(res.data.data ?? []))
-      .catch(() => toast.error('Failed to load behavioral logs'))
+      .catch(() => {/* non-critical */})
       .finally(() => setLogsLoading(false))
   }, [homeId])
 
@@ -87,13 +85,13 @@ export default function BehavioralTab({ homeId, residents }: Props) {
   return (
     <div>
       {/* Form */}
-      <div className='bg-card border-b border-border p-4 space-y-3'>
+      <div className='bg-white border-b border-gray-100 p-4 space-y-3'>
         <div className='flex items-center justify-between'>
-          <p className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>Log Behavior</p>
+          <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Log Behavior</p>
           {isManagerOrAbove && (
             <button
               onClick={() => setShowExport(true)}
-              className='text-xs font-medium text-primary border border-primary/30 rounded-lg px-3 py-1.5 min-h-[36px] hover:bg-primary/10 transition-colors'
+              className='text-xs font-medium text-blue-600 border border-blue-200 rounded-lg px-3 py-1.5 min-h-[36px] hover:bg-blue-50 transition-colors'
             >
               Export PDF
             </button>
@@ -101,11 +99,11 @@ export default function BehavioralTab({ homeId, residents }: Props) {
         </div>
 
         <div>
-          <label className='block text-sm font-medium text-foreground mb-1'>Resident</label>
+          <label className='block text-sm font-medium text-gray-700 mb-1'>Resident</label>
           <select
             value={residentId}
             onChange={e => setResidentId(e.target.value)}
-            className='w-full border border-border rounded-xl px-3 py-2 text-sm min-h-[44px] bg-card'
+            className='w-full border border-gray-300 rounded-xl px-3 py-2 text-sm min-h-[44px] bg-white'
           >
             <option value=''>Select resident…</option>
             {active.map(r => (
@@ -115,12 +113,12 @@ export default function BehavioralTab({ homeId, residents }: Props) {
         </div>
 
         {residentId && behaviors.length === 0 && (
-          <p className='text-sm text-muted-foreground'>No tracked behaviors configured for this resident</p>
+          <p className='text-sm text-gray-400'>No tracked behaviors configured for this resident</p>
         )}
 
         {behaviors.length > 0 && (
           <div>
-            <label className='block text-sm font-medium text-foreground mb-2'>Behavior</label>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>Behavior</label>
             <div className='flex flex-wrap gap-2'>
               {behaviors.map(b => (
                 <button
@@ -129,8 +127,8 @@ export default function BehavioralTab({ homeId, residents }: Props) {
                   className={cn(
                     'px-3 py-2 rounded-xl text-sm font-medium border min-h-[44px]',
                     behaviorId === b.id
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-muted text-foreground border-border'
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-gray-50 text-gray-700 border-gray-200'
                   )}
                 >
                   {b.name}
@@ -141,37 +139,37 @@ export default function BehavioralTab({ homeId, residents }: Props) {
         )}
 
         <div>
-          <label className='block text-sm font-medium text-foreground mb-1'>
+          <label className='block text-sm font-medium text-gray-700 mb-1'>
             Time occurred <span className='text-red-500'>*</span>
           </label>
           <input
             type='datetime-local'
             value={occurredAt}
             onChange={e => setOccurredAt(e.target.value)}
-            className='w-full border border-border rounded-xl px-3 py-2 text-sm min-h-[44px]'
+            className='w-full border border-gray-300 rounded-xl px-3 py-2 text-sm min-h-[44px]'
           />
         </div>
 
         <div>
-          <label className='block text-sm font-medium text-foreground mb-1'>Duration (minutes)</label>
+          <label className='block text-sm font-medium text-gray-700 mb-1'>Duration (minutes)</label>
           <input
             type='number'
             min='1'
             value={duration}
             onChange={e => setDuration(e.target.value)}
             placeholder='Optional'
-            className='w-full border border-border rounded-xl px-3 py-2 text-sm min-h-[44px]'
+            className='w-full border border-gray-300 rounded-xl px-3 py-2 text-sm min-h-[44px]'
           />
         </div>
 
         <div>
-          <label className='block text-sm font-medium text-foreground mb-1'>Notes</label>
+          <label className='block text-sm font-medium text-gray-700 mb-1'>Notes</label>
           <textarea
             value={notes}
             onChange={e => setNotes(e.target.value)}
             placeholder='Optional…'
             rows={2}
-            className='w-full border border-border rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30'
+            className='w-full border border-gray-300 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500'
           />
         </div>
 
@@ -185,7 +183,7 @@ export default function BehavioralTab({ homeId, residents }: Props) {
         <button
           onClick={() => { void handleSubmit() }}
           disabled={!residentId || !behaviorId || !occurredAt || submitting}
-          className='w-full bg-primary text-primary-foreground rounded-xl py-3 text-sm font-semibold min-h-[44px] disabled:opacity-50'
+          className='w-full bg-blue-600 text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] disabled:opacity-50'
         >
           {submitting ? 'Submitting…' : 'Submit'}
         </button>
@@ -193,37 +191,24 @@ export default function BehavioralTab({ homeId, residents }: Props) {
 
       {/* Log feed */}
       <div className='p-4 space-y-3'>
-        <p className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>Recent Entries</p>
-        {logsLoading && (
-          <div className='space-y-3'>
-            {[1, 2, 3].map(i => (
-              <div key={i} className='bg-card rounded-xl shadow-sm px-4 py-3 border-l-4 border-border space-y-2'>
-                <div className='flex items-center justify-between'>
-                  <Skeleton className='h-4 w-32' />
-                  <Skeleton className='h-3 w-20' />
-                </div>
-                <Skeleton className='h-3 w-24' />
-                <Skeleton className='h-4 w-full' />
-              </div>
-            ))}
-          </div>
-        )}
+        <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Recent Entries</p>
+        {logsLoading && <p className='text-sm text-gray-500'>Loading…</p>}
         {!logsLoading && !logs.length && (
-          <p className='text-sm text-muted-foreground'>No behavioral logs yet</p>
+          <p className='text-sm text-gray-400'>No behavioral logs yet</p>
         )}
         {logs.map(log => (
-          <div key={log.id} className='bg-card rounded-xl shadow-sm px-4 py-3 border-l-4 border-amber-400'>
+          <div key={log.id} className='bg-white rounded-xl shadow-sm px-4 py-3 border-l-4 border-amber-400'>
             <div className='flex items-center justify-between mb-1'>
-              <p className='text-sm font-semibold text-foreground'>
+              <p className='text-sm font-semibold text-gray-900'>
                 {log.resident_first} {log.resident_last}
               </p>
               <span className='text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full font-medium'>
                 {log.behavior_name ?? 'Behavior'}
               </span>
             </div>
-            <p className='text-xs text-muted-foreground'>Occurred: {formatTime(log.occurred_at)}</p>
-            {log.notes && <p className='text-sm text-foreground mt-1'>{log.notes}</p>}
-            <p className='text-xs text-muted-foreground mt-1'>{formatDate(log.created_at)}</p>
+            <p className='text-xs text-gray-400'>Occurred: {formatTime(log.occurred_at)}</p>
+            {log.notes && <p className='text-sm text-gray-700 mt-1'>{log.notes}</p>}
+            <p className='text-xs text-gray-300 mt-1'>{formatDate(log.created_at)}</p>
           </div>
         ))}
       </div>

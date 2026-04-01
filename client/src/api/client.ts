@@ -5,7 +5,7 @@ const api = axios.create({
   withCredentials: true, // Send httpOnly cookie on every request
 })
 
-// Redirect to /login on 401
+// Redirect to appropriate login on 401
 api.interceptors.response.use(
   res => res,
   err => {
