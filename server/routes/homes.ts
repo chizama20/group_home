@@ -244,7 +244,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
   fastify.post<{ Params: HomeParam; Body: ResidentBody }>(
     '/:id/residents',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, orgAdminOnly] },
     async (request, reply) => {
       const { id: created_by, org_id } = request.user;
       const homeId = request.params.id;
