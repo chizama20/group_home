@@ -2,6 +2,7 @@ import { useState, useEffect, type FormEvent } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getInvite, acceptInvite } from '../../api/auth'
 import { useAuth } from '../../context/AuthContext'
+import { Eye, EyeOff } from 'lucide-react'
 
 interface InviteInfo {
   email:    string
@@ -28,6 +29,7 @@ export default function InviteAcceptPage() {
   const [password, setPassword]   = useState('')
   const [error, setError]         = useState<string | null>(null)
   const [loading, setLoading]     = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     if (!token) {
@@ -134,13 +136,23 @@ export default function InviteAcceptPage() {
             <label className='block text-sm font-medium text-gray-700 mb-1'>
               Password <span className='text-gray-400 font-normal'>(min. 8 characters)</span>
             </label>
-            <input
-              type='password'
-              required
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
-            />
+            <div className='relative'>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
+              />
+              <button
+                type='button'
+                onClick={() => setShowPassword(v => !v)}
+                className='absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
+              </button>
+            </div>
           </div>
 
           {error && (

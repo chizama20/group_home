@@ -33,7 +33,23 @@
       "Bash(git -C client status)",
       "Bash(git:*)",
       "Bash(netstat -ano)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(gh repo:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Read(//tmp/ui-ux-pro-max-skill/.claude/**)",
+      "Read(//tmp/ui-ux-pro-max-skill/src/**)",
+      "Bash(cp -r /tmp/ui-ux-pro-max-skill/.claude/skills/banner-design ~/.claude/skills/)",
+      "Bash(cp -r /tmp/ui-ux-pro-max-skill/.claude/skills/brand ~/.claude/skills/)",
+      "Bash(cp -r /tmp/ui-ux-pro-max-skill/.claude/skills/design ~/.claude/skills/)",
+      "Bash(cp -r /tmp/ui-ux-pro-max-skill/.claude/skills/design-system ~/.claude/skills/)",
+      "Bash(cp -r /tmp/ui-ux-pro-max-skill/.claude/skills/slides ~/.claude/skills/)",
+      "Bash(mkdir -p ~/.claude/skills/ui-ux-pro-max)",
+      "Bash(cp /tmp/ui-ux-pro-max-skill/.claude/skills/ui-ux-pro-max/SKILL.md ~/.claude/skills/ui-ux-pro-max/)",
+      "Bash(cp -r /tmp/ui-ux-pro-max-skill/src/ui-ux-pro-max/data ~/.claude/skills/ui-ux-pro-max/)",
+      "Bash(cp -r /tmp/ui-ux-pro-max-skill/src/ui-ux-pro-max/scripts ~/.claude/skills/ui-ux-pro-max/)",
+      "Bash(python3 ~/.claude/skills/ui-ux-pro-max/scripts/search.py \"e-commerce\" --design-system)",
+      "Bash(claude mcp:*)"
     ]
   }
 }
