@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Search, ChevronRight } from 'lucide-react'
-import BottomNav from '../../components/BottomNav'
 import HomeSwitcherStrip from '../../components/HomeSwitcherStrip'
 import { useHome } from '../../context/HomeContext'
 import { useResidents } from '../../hooks/useResidents'
@@ -309,8 +308,6 @@ export default function ResidentsPage() {
           )}
         </>
       )}
-
-      <BottomNav />
 
       {showAdd && homeId && (
         <ResidentForm

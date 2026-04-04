@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Plus } from 'lucide-react'
-import BottomNav from '../../components/BottomNav'
 import HomeSwitcherStrip from '../../components/HomeSwitcherStrip'
 import { useHome } from '../../context/HomeContext'
 import { useResidents } from '../../hooks/useResidents'
@@ -102,8 +101,6 @@ export default function LogsPage() {
       >
         <Plus size={22} color='white' />
       </button>
-
-      <BottomNav />
 
       {showExport && homeId && (
         <ExportSheet
