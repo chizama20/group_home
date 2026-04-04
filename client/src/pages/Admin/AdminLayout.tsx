@@ -1,7 +1,8 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, useState, useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { adminLogout } from '../../api/admin'
 import { LayoutDashboard, Building2, ClipboardList, LogOut } from 'lucide-react'
+import { useInactivityTimer } from '../../hooks/useInactivityTimer'
 
 const nav = [
   { path: '/admin/dashboard', label: 'Dashboard',    icon: LayoutDashboard },
@@ -12,11 +13,21 @@ const nav = [
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const location = useLocation()
   const navigate  = useNavigate()
+  const [showWarning, setShowWarning] = useState(false)
 
-  async function handleLogout() {
+  const doLogout = useCallback(async () => {
     await adminLogout().catch(() => {})
+    sessionStorage.removeItem('admin_authed')
     navigate('/admin/login', { replace: true })
-  }
+  }, [navigate])
+
+  async function handleLogout() { await doLogout() }
+
+  useInactivityTimer({
+    enabled:   true,
+    onWarning: () => setShowWarning(true),
+    onLogout:  () => { setShowWarning(false); void doLogout() },
+  })
 
   return (
     <div className='min-h-screen bg-zinc-100 dark:bg-zinc-950 flex'>
@@ -59,6 +70,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       {/* Main */}
       <main className='flex-1 p-6 md:p-8 overflow-auto'>
         <div className='max-w-6xl mx-auto'>
+          {showWarning && (
+            <div className='mb-4 flex items-center justify-between gap-4 bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 px-4 py-3 rounded-xl text-sm'>
+              <span>Your session is about to expire due to inactivity.</span>
+              <button
+                onClick={() => setShowWarning(false)}
+                className='shrink-0 font-semibold underline hover:no-underline'
+              >
+                Stay logged in
+              </button>
+            </div>
+          )}
           {children}
         </div>
       </main>

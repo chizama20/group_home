@@ -27,6 +27,7 @@ import AdminDashboard     from './pages/Admin/Dashboard'
 import AdminRequests      from './pages/Admin/Requests'
 import AdminRequestDetail from './pages/Admin/RequestDetail'
 import AdminOrgs          from './pages/Admin/Orgs'
+import AdminRoute         from './components/AdminRoute'
 
 function AppRoutes() {
   const { user, logout }              = useAuth()
@@ -69,10 +70,10 @@ function AppRoutes() {
 
         {/* ── Admin (separate session, no layout) ──────────────────────────── */}
         <Route path='/admin/login'        element={<AdminLoginPage />} />
-        <Route path='/admin/dashboard'    element={<AdminDashboard />} />
-        <Route path='/admin/requests'     element={<AdminRequests />} />
-        <Route path='/admin/requests/:id' element={<AdminRequestDetail />} />
-        <Route path='/admin/orgs'         element={<AdminOrgs />} />
+        <Route path='/admin/dashboard'    element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path='/admin/requests'     element={<AdminRoute><AdminRequests /></AdminRoute>} />
+        <Route path='/admin/requests/:id' element={<AdminRoute><AdminRequestDetail /></AdminRoute>} />
+        <Route path='/admin/orgs'         element={<AdminRoute><AdminOrgs /></AdminRoute>} />
 
         {/* ── App (inside AppLayout) ───────────────────────────────────────── */}
         <Route path='/' element={

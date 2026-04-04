@@ -15,6 +15,7 @@ export default function AdminLoginPage() {
     setLoading(true)
     try {
       await adminLogin(email, password)
+      sessionStorage.setItem('admin_authed', '1')
       navigate('/admin/dashboard', { replace: true })
     } catch {
       setError('Invalid credentials')
