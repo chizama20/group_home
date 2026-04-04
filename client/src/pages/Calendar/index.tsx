@@ -417,7 +417,8 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className='pb-32 min-h-screen bg-zinc-50 dark:bg-black'>
+    <div className='pb-8 min-h-screen bg-zinc-50 dark:bg-black'>
+      <div className='max-w-4xl mx-auto'>
 
       {/* Header */}
       <div className='px-4 pt-5 pb-3 flex items-center justify-between'>
@@ -555,6 +556,7 @@ export default function CalendarPage() {
         </div>
       )}
 
+      </div>
     </div>
   )
 }

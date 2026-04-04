@@ -39,7 +39,8 @@ export default function LogsPage() {
   }, [searchParams])
 
   return (
-    <div className='min-h-screen bg-zinc-50 dark:bg-black pb-20'>
+    <div className='min-h-screen bg-zinc-50 dark:bg-black pb-8'>
+      <div className='max-w-4xl mx-auto'>
       {/* Header */}
       <div className='px-4 pt-5 pb-0'>
         <div className='flex items-center justify-between'>
@@ -96,7 +97,7 @@ export default function LogsPage() {
       {/* FAB */}
       <button
         onClick={() => setShowFab(true)}
-        className='fixed bottom-24 right-4 z-30 w-14 h-14 bg-indigo-600 rounded-full shadow-lg shadow-indigo-500/40 flex items-center justify-center'
+        className='fixed bottom-4 right-4 md:bottom-6 md:right-6 z-30 w-14 h-14 bg-indigo-600 rounded-full shadow-lg shadow-indigo-500/40 flex items-center justify-center'
         aria-label='New log'
       >
         <Plus size={22} color='white' />
@@ -109,6 +110,7 @@ export default function LogsPage() {
           onClose={() => setShowExport(false)}
         />
       )}
+      </div>
     </div>
   )
 }

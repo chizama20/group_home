@@ -134,7 +134,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className='min-h-screen bg-zinc-50 dark:bg-black pb-safe'>
+    <div className='min-h-screen bg-zinc-50 dark:bg-black pb-8'>
+      <div className='max-w-4xl mx-auto'>
       {/* Page header */}
       <div className='px-4 pt-5 pb-2'>
         <h1 className='text-xl font-bold text-zinc-900 dark:text-white'>Settings</h1>
@@ -330,6 +331,7 @@ export default function SettingsPage() {
         >
           <span className='text-base font-medium text-red-500'>Log Out</span>
         </button>
+      </div>
       </div>
     </div>
   )

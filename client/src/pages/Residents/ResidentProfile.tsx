@@ -71,6 +71,7 @@ export default function ResidentProfile() {
 
   return (
     <div className='min-h-screen bg-zinc-50 dark:bg-black pb-8'>
+      <div className='max-w-4xl mx-auto'>
 
       {/* Back button */}
       <div className='flex items-center gap-2 px-4 pt-5 pb-3'>
@@ -192,6 +193,7 @@ export default function ResidentProfile() {
           onCancel={() => setShowAddAppt(false)}
         />
       )}
+      </div>
     </div>
   )
 }

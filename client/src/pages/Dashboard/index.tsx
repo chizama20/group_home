@@ -348,6 +348,7 @@ export default function DashboardPage() {
 
   return (
     <div className='bg-zinc-50 dark:bg-black min-h-screen pb-8'>
+      <div className='max-w-4xl mx-auto'>
 
       {/* Section 1 — Page Header */}
       <div className='px-4 pt-5 pb-3'>
@@ -389,7 +390,7 @@ export default function DashboardPage() {
       {/* Section 3 — Stat Cards (manager+ only) */}
       {isManagerOrAbove && (
         <div className='px-4 mt-4'>
-          <div className='grid grid-cols-2 gap-2.5'>
+          <div className='grid grid-cols-2 lg:grid-cols-4 gap-2.5'>
             {/* Meds overdue */}
             <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 cursor-pointer'>
               <div className='flex items-center justify-between'>
@@ -398,7 +399,7 @@ export default function DashboardPage() {
                 </div>
                 <ChevronRight className='text-zinc-400 dark:text-zinc-600 h-4 w-4' />
               </div>
-              <p className='text-[26px] font-bold tracking-tight leading-none mt-2 text-red-500'>
+              <p className='text-2xl font-bold tracking-tight leading-none mt-2 text-red-500'>
                 {overdueMedCount}
               </p>
               <p className='text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-1'>Meds overdue</p>
@@ -412,7 +413,7 @@ export default function DashboardPage() {
                 </div>
                 <ChevronRight className='text-zinc-400 dark:text-zinc-600 h-4 w-4' />
               </div>
-              <p className='text-[26px] font-bold tracking-tight leading-none mt-2 text-amber-500'>
+              <p className='text-2xl font-bold tracking-tight leading-none mt-2 text-amber-500'>
                 {unfiledIposCount}
               </p>
               <p className='text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-1'>IPOS pending</p>
@@ -426,7 +427,7 @@ export default function DashboardPage() {
                 </div>
                 <ChevronRight className='text-zinc-400 dark:text-zinc-600 h-4 w-4' />
               </div>
-              <p className='text-[26px] font-bold tracking-tight leading-none mt-2 text-zinc-900 dark:text-white'>
+              <p className='text-2xl font-bold tracking-tight leading-none mt-2 text-zinc-900 dark:text-white'>
                 {openIncidentCount}
               </p>
               <p className='text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-1'>Open incidents</p>
@@ -440,7 +441,7 @@ export default function DashboardPage() {
                 </div>
                 <ChevronRight className='text-zinc-400 dark:text-zinc-600 h-4 w-4' />
               </div>
-              <p className='text-[26px] font-bold tracking-tight leading-none mt-2 text-zinc-900 dark:text-white'>
+              <p className='text-2xl font-bold tracking-tight leading-none mt-2 text-zinc-900 dark:text-white'>
                 {staffOnShiftCount}
               </p>
               <p className='text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-1'>Staff on shift</p>
@@ -506,6 +507,7 @@ export default function DashboardPage() {
           onCancel={() => setShowAddAppt(false)}
         />
       )}
+      </div>
     </div>
   )
 }

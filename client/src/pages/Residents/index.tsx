@@ -222,6 +222,7 @@ export default function ResidentsPage() {
 
   return (
     <div className='pb-8 min-h-screen bg-zinc-50 dark:bg-black'>
+      <div className='max-w-4xl mx-auto'>
 
       {/* Home switcher */}
       <HomeSwitcherStrip />
@@ -316,6 +317,7 @@ export default function ResidentsPage() {
           onCancel={() => setShowAdd(false)}
         />
       )}
+      </div>
     </div>
   )
 }
