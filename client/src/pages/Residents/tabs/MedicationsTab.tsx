@@ -1,4 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react'
+import { Pencil } from 'lucide-react'
 import { getResidentMedications, createMedication, updateMedication, deleteMedication } from '../../../api/medications'
 import { useRole } from '../../../utils/role'
 import type { Medication } from '../../../types/medication'
@@ -56,7 +57,7 @@ function MedicationForm({ residentId, medication, onSuccess, onCancel }: MedForm
   return (
     <>
       <div className='fixed inset-0 bg-black/60 z-40' onClick={onCancel} />
-      <div className='fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 rounded-t-3xl z-50 max-h-[90vh] overflow-y-auto'>
+      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-xl md:rounded-2xl md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-3xl z-50 max-h-[90vh] overflow-y-auto'>
         <div className='w-9 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-4' />
         <p className='text-[17px] font-semibold text-zinc-900 dark:text-white px-4 mb-4'>
           {isEdit ? 'Edit medication' : 'Add medication'}
@@ -147,6 +148,7 @@ export default function MedicationsTab({ residentId }: { residentId: string }) {
   const [showAdd, setShowAdd]       = useState(false)
   const [editing, setEditing]       = useState<Medication | null>(null)
   const [confirmDel, setConfirmDel] = useState<string | null>(null)
+  const [delError,   setDelError]   = useState<string | null>(null)
 
   function load() {
     setLoading(true)
@@ -159,11 +161,14 @@ export default function MedicationsTab({ residentId }: { residentId: string }) {
   useEffect(() => { load() }, [residentId])
 
   async function handleDelete(id: string) {
+    setDelError(null)
     try {
       await deleteMedication(id)
       setConfirmDel(null)
       load()
-    } catch {/* ignore */}
+    } catch {
+      setDelError('Failed to delete medication')
+    }
   }
 
   if (loading) return (
@@ -220,9 +225,9 @@ export default function MedicationsTab({ residentId }: { residentId: string }) {
                     <button
                       onClick={() => setEditing(med)}
                       aria-label='Edit medication'
-                      className='w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-indigo-500 rounded-full hover:bg-indigo-500/10 transition-colors text-sm'
+                      className='w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-indigo-500 rounded-full hover:bg-indigo-500/10 transition-colors'
                     >
-                      ✏️
+                      <Pencil className='w-4 h-4' />
                     </button>
                     <button
                       onClick={() => setConfirmDel(med.id)}
@@ -237,22 +242,25 @@ export default function MedicationsTab({ residentId }: { residentId: string }) {
 
               {/* Inline delete confirmation */}
               {confirmDel === med.id && (
-                <div className='mt-2 pt-2 border-t border-red-500/20 flex items-center justify-between gap-2'>
-                  <p className='text-xs text-red-400'>Delete {med.name}?</p>
-                  <div className='flex gap-2'>
-                    <button
-                      onClick={() => setConfirmDel(null)}
-                      className='text-xs text-zinc-500 dark:text-zinc-400 px-3 py-1.5 border border-zinc-200 dark:border-zinc-700 rounded-lg min-h-[32px]'
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => void handleDelete(med.id)}
-                      className='text-xs text-white bg-red-600 px-3 py-1.5 rounded-lg min-h-[32px]'
-                    >
-                      Delete
-                    </button>
+                <div className='mt-2 pt-2 border-t border-red-500/20 space-y-2'>
+                  <div className='flex items-center justify-between gap-2'>
+                    <p className='text-xs text-red-400'>Delete {med.name}?</p>
+                    <div className='flex gap-2'>
+                      <button
+                        onClick={() => { setConfirmDel(null); setDelError(null) }}
+                        className='text-xs text-zinc-500 dark:text-zinc-400 px-3 py-1.5 border border-zinc-200 dark:border-zinc-700 rounded-lg min-h-[32px]'
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => void handleDelete(med.id)}
+                        className='text-xs text-white bg-red-600 px-3 py-1.5 rounded-lg min-h-[32px]'
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
+                  {delError && <p className='text-xs text-red-400'>{delError}</p>}
                 </div>
               )}
             </div>

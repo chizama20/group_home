@@ -11,6 +11,7 @@ export default function BehaviorsSection({ residentId }: Props) {
   const [newName,   setNewName]   = useState('')
   const [adding,    setAdding]    = useState(false)
   const [error,     setError]     = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   function load() {
     getBehaviors(residentId)
@@ -37,10 +38,13 @@ export default function BehaviorsSection({ residentId }: Props) {
   }
 
   async function handleDelete(behaviorId: string) {
+    setDeleteError(null)
     try {
       await deleteBehavior(residentId, behaviorId)
       load()
-    } catch {/* ignore */}
+    } catch {
+      setDeleteError('Failed to remove behavior')
+    }
   }
 
   return (
@@ -90,6 +94,7 @@ export default function BehaviorsSection({ residentId }: Props) {
         </button>
       </form>
       {error && <p className='px-4 pb-3 text-xs text-red-400'>{error}</p>}
+      {deleteError && <p className='px-4 pb-3 text-xs text-red-400'>{deleteError}</p>}
     </div>
   )
 }

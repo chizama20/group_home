@@ -30,7 +30,7 @@ export default function AddAppointmentForm({ homeId, residentId, residents = [],
   const [error,            setError]            = useState<string | null>(null)
 
   const showCollector = COLLECTOR_TYPES.includes(type)
-  const canSubmit = title.trim() && date && (residentId || selectedResident) && !submitting
+  const canSubmit = title.trim() && date && (residentId || selectedResident) && (!showCollector || collectorName.trim()) && !submitting
 
   async function handleSubmit() {
     if (!canSubmit) return
@@ -145,7 +145,7 @@ export default function AddAppointmentForm({ homeId, residentId, residents = [],
           {showCollector && (
             <div className='flex gap-3 mb-3'>
               <div className='flex-1'>
-                <label className={labelClass}>Collector name</label>
+                <label className={labelClass}>Collector name <span className='text-red-500'>*</span></label>
                 <input
                   type='text'
                   value={collectorName}
