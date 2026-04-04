@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, Pencil, Archive } from 'lucide-react'
 import type { Resident } from '../../types/resident'
-import { getResident } from '../../api/residents'
+import { getResident, archiveResident } from '../../api/residents'
 import { useRole } from '../../utils/role'
 import { cn } from '../../lib/cn'
 import AddAppointmentForm from '../../components/AddAppointmentForm'
@@ -40,6 +40,15 @@ export default function ResidentProfile() {
   const [showEdit, setShowEdit]       = useState(false)
   const [showAddAppt, setShowAddAppt] = useState(false)
   const [apptKey, setApptKey]         = useState(0)
+  const [archiving, setArchiving]     = useState(false)
+
+  async function handleArchive() {
+    if (!resident) return
+    if (!window.confirm(`Archive ${resident.first_name} ${resident.last_name}? This will mark them as inactive.`)) return
+    setArchiving(true)
+    try { await archiveResident(resident.id); navigate(-1) }
+    catch { setArchiving(false) }
+  }
 
   const fetchResident = useCallback(() => {
     if (!id) return
@@ -126,11 +135,12 @@ export default function ResidentProfile() {
             Edit
           </button>
           <button
-            onClick={() => {/* archive handled inside InfoTab */}}
-            className='flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-red-200 dark:border-red-900/40 text-red-500 text-sm font-medium px-4 py-2 rounded-xl min-h-[40px]'
+            disabled={archiving}
+            onClick={() => { void handleArchive() }}
+            className='flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-red-200 dark:border-red-900/40 text-red-500 text-sm font-medium px-4 py-2 rounded-xl min-h-[40px] disabled:opacity-50'
           >
             <Archive className='h-4 w-4' />
-            Archive
+            {archiving ? 'Archiving…' : 'Archive'}
           </button>
         </div>
       )}

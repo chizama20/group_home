@@ -17,6 +17,8 @@ import { useDashboard } from '../../hooks/useDashboard'
 import AddAppointmentForm from '../../components/AddAppointmentForm'
 import AnnouncementComposer from './AnnouncementComposer'
 import { currentShift } from '../../types/log'
+import { todayStr } from '../../utils/date'
+import { clockIn, clockOut } from '../../api/homes'
 import { claimTask } from '../../api/tasks'
 import type { Task } from '../../types/task'
 import type { Appointment } from '../../types/appointment'
@@ -208,25 +210,26 @@ function UpcomingAppointmentsSection({
 }
 
 function QuickActionsSection() {
+  const navigate = useNavigate()
   return (
     <div className='mt-5'>
       <p className='text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500 px-4 pt-5 pb-2'>
         Quick Actions
       </p>
       <div className='grid grid-cols-3 gap-2.5 px-4'>
-        <button className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col items-center gap-2 min-h-[80px] cursor-pointer'>
+        <button onClick={() => navigate('/logs?tab=ipos')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col items-center gap-2 min-h-[80px] cursor-pointer'>
           <div className='w-9 h-9 rounded-xl flex items-center justify-center bg-indigo-500/20 text-indigo-400'>
             <FileText className='w-5 h-5' />
           </div>
           <span className='text-xs font-medium text-zinc-700 dark:text-zinc-300 text-center'>New Log</span>
         </button>
-        <button className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col items-center gap-2 min-h-[80px] cursor-pointer'>
+        <button onClick={() => navigate('/logs?tab=incident')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col items-center gap-2 min-h-[80px] cursor-pointer'>
           <div className='w-9 h-9 rounded-xl flex items-center justify-center bg-red-500/20 text-red-400'>
             <AlertTriangle className='w-5 h-5' />
           </div>
           <span className='text-xs font-medium text-zinc-700 dark:text-zinc-300 text-center'>Incident</span>
         </button>
-        <button className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col items-center gap-2 min-h-[80px] cursor-pointer'>
+        <button onClick={() => navigate('/logs?tab=behavioral')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col items-center gap-2 min-h-[80px] cursor-pointer'>
           <div className='w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/20 text-emerald-400'>
             <MessageSquare className='w-5 h-5' />
           </div>
@@ -328,6 +331,23 @@ export default function DashboardPage() {
   } = useDashboard(homeId)
 
   const [showAddAppt, setShowAddAppt] = useState(false)
+  const [clocking, setClocking] = useState(false)
+
+  async function handleClockIn() {
+    if (!homeId) return
+    setClocking(true)
+    try { await clockIn(homeId, { shift: currentShift(), shift_date: todayStr() }); refresh() }
+    catch { /* roster still reflects correct state */ }
+    finally { setClocking(false) }
+  }
+
+  async function handleClockOut() {
+    if (!homeId) return
+    setClocking(true)
+    try { await clockOut(homeId, { shift: currentShift(), shift_date: todayStr() }); refresh() }
+    catch { /* roster still reflects correct state */ }
+    finally { setClocking(false) }
+  }
 
   const shift     = currentShift()
   const shiftTime = SHIFT_TIME[shift]
@@ -374,13 +394,15 @@ export default function DashboardPage() {
                 <span className='bg-emerald-500/15 text-emerald-400 text-xs font-semibold px-2.5 py-1 rounded-full'>
                   Active
                 </span>
-                <button className='bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 text-xs px-3 py-1.5 rounded-lg min-h-[32px]'>
-                  Clock Out
+                <button disabled={clocking} onClick={() => { void handleClockOut() }}
+                  className='bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 text-xs px-3 py-1.5 rounded-lg min-h-[32px] disabled:opacity-50'>
+                  {clocking ? '…' : 'Clock Out'}
                 </button>
               </>
             ) : (
-              <button className='bg-indigo-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg min-h-[32px]'>
-                Clock In
+              <button disabled={clocking} onClick={() => { void handleClockIn() }}
+                className='bg-indigo-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg min-h-[32px] disabled:opacity-50'>
+                {clocking ? '…' : 'Clock In'}
               </button>
             )}
           </div>
@@ -392,7 +414,7 @@ export default function DashboardPage() {
         <div className='px-4 mt-4'>
           <div className='grid grid-cols-2 lg:grid-cols-4 gap-2.5'>
             {/* Meds overdue */}
-            <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 cursor-pointer'>
+            <div onClick={() => navigate('/calendar')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 cursor-pointer'>
               <div className='flex items-center justify-between'>
                 <div className='w-8 h-8 rounded-xl flex items-center justify-center bg-red-500/15 text-red-400'>
                   <Pill className='w-4 h-4' />
@@ -406,7 +428,7 @@ export default function DashboardPage() {
             </div>
 
             {/* IPOS pending */}
-            <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 cursor-pointer'>
+            <div onClick={() => navigate('/logs?tab=ipos')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 cursor-pointer'>
               <div className='flex items-center justify-between'>
                 <div className='w-8 h-8 rounded-xl flex items-center justify-center bg-amber-500/15 text-amber-400'>
                   <ClipboardList className='w-4 h-4' />
@@ -420,7 +442,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Open incidents */}
-            <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 cursor-pointer'>
+            <div onClick={() => navigate('/logs?tab=incident')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 cursor-pointer'>
               <div className='flex items-center justify-between'>
                 <div className='w-8 h-8 rounded-xl flex items-center justify-center bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'>
                   <AlertTriangle className='w-4 h-4' />
@@ -434,7 +456,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Staff on shift */}
-            <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 cursor-pointer'>
+            <div onClick={() => navigate('/residents')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 cursor-pointer'>
               <div className='flex items-center justify-between'>
                 <div className='w-8 h-8 rounded-xl flex items-center justify-center bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'>
                   <Users className='w-4 h-4' />

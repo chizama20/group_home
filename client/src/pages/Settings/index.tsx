@@ -194,6 +194,7 @@ export default function SettingsPage() {
               chipColor='bg-amber-500/20 text-amber-400'
               label='Resident Management'
               value='Add, edit, archive'
+              onClick={() => navigate('/residents')}
             />
             <SettingsRow
               icon={<Building2 className='h-4 w-4' />}
@@ -209,11 +210,13 @@ export default function SettingsPage() {
               icon={<ClipboardList className='h-4 w-4' />}
               chipColor='bg-indigo-500/20 text-indigo-400'
               label='Audit Log'
+              onClick={() => navigate('/logs')}
             />
             <SettingsRow
               icon={<Download className='h-4 w-4' />}
               chipColor='bg-emerald-500/20 text-emerald-400'
               label='Export Records'
+              onClick={() => navigate('/logs')}
             />
             <SettingsRow
               icon={<FileCheck className='h-4 w-4' />}
@@ -235,6 +238,7 @@ export default function SettingsPage() {
               icon={<Lock className='h-4 w-4' />}
               chipColor='bg-zinc-500/20 text-zinc-400'
               label='Change Password'
+              onClick={() => navigate('/forgot-password')}
             />
             <SettingsRow
               icon={<Fingerprint className='h-4 w-4' />}
@@ -242,6 +246,7 @@ export default function SettingsPage() {
               label='Signing PIN'
               value='Set'
               valueColor='text-emerald-400'
+              onClick={() => navigate('/setup-pin')}
             />
             <SettingsRow
               icon={<Bell className='h-4 w-4' />}
@@ -272,6 +277,7 @@ export default function SettingsPage() {
               icon={<Lock className='h-4 w-4' />}
               chipColor='bg-zinc-500/20 text-zinc-400'
               label='Change Password'
+              onClick={() => navigate('/forgot-password')}
             />
             <SettingsRow
               icon={<Fingerprint className='h-4 w-4' />}
@@ -279,6 +285,7 @@ export default function SettingsPage() {
               label='Signing PIN'
               value='Set'
               valueColor='text-emerald-400'
+              onClick={() => navigate('/setup-pin')}
             />
             <SettingsRow
               icon={<Bell className='h-4 w-4' />}
