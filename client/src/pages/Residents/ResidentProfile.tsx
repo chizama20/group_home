@@ -4,7 +4,6 @@ import { ChevronLeft, Pencil, Archive } from 'lucide-react'
 import type { Resident } from '../../types/resident'
 import { getResident } from '../../api/residents'
 import { useRole } from '../../utils/role'
-import BottomNav from '../../components/BottomNav'
 import { cn } from '../../lib/cn'
 import AddAppointmentForm from '../../components/AddAppointmentForm'
 import ResidentForm   from './ResidentForm'
@@ -170,8 +169,6 @@ export default function ResidentProfile() {
       {tab === 'incidents' && (
         <IncidentsTab residentId={resident.id} homeId={resident.home_id} />
       )}
-
-      <BottomNav />
 
       {/* Edit resident form */}
       {showEdit && (
