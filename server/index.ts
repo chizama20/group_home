@@ -1,6 +1,7 @@
 /// <reference path="./types/fastify.d.ts" />
 import 'dotenv/config';
 import Fastify from 'fastify';
+import rateLimit from '@fastify/rate-limit';
 
 import corsPlugin          from './plugins/cors';
 import cookiePlugin        from './plugins/cookie';
@@ -35,6 +36,18 @@ fastify.register(dbPlugin);
 fastify.register(authPlugin);
 fastify.register(adminAuthMiddleware);
 fastify.register(sessionMiddleware);
+
+// Rate limiting — global: false means routes must opt-in via config.rateLimit
+fastify.register(rateLimit, {
+  global: false,
+  errorResponseBuilder: (_request, context) => ({
+    success: false,
+    error: {
+      code:    'RATE_LIMITED',
+      message: `Too many login attempts. Try again in ${context.after}.`,
+    },
+  }),
+});
 
 // Health check — no auth required
 fastify.get('/health', async (_request, reply) => {

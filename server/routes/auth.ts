@@ -1,10 +1,11 @@
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { RowDataPacket } from 'mysql2';
 import { v4 as uuidv4 } from 'uuid';
 import { hashPassword, comparePassword } from '../utils/password';
 import { success, failure } from '../utils/response';
 import { sendPasswordResetEmail, sendWelcomeEmail } from '../services/email';
 import { validate, loginSchema, forgotPasswordSchema, resetPasswordSchema, acceptInviteSchema } from '../schemas';
+import { logAudit } from '../utils/audit';
 
 interface LoginBody         { email: string; password: string; }
 interface SignupBody         { organizationName: string; first_name: string; last_name: string; email: string; password: string; }
@@ -22,7 +23,9 @@ const COOKIE_OPTS = {
 export default async (fastify: FastifyInstance): Promise<void> => {
 
   // ── Login ────────────────────────────────────────────────────────────────
-  fastify.post<{ Body: LoginBody }>('/login', async (request, reply) => {
+  fastify.post<{ Body: LoginBody }>('/login', {
+    config: { rateLimit: { max: 5, timeWindow: '15 minutes' } },
+  }, async (request, reply) => {
     const parsedLogin = validate(loginSchema, request.body);
     if (!parsedLogin.success) return reply.code(400).send(failure('VALIDATION_ERROR', parsedLogin.message));
 
@@ -56,6 +59,16 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
     const token = fastify.jwt.sign({ id: user.id, role: user.role, org_id: user.org_id });
 
+    void logAudit(fastify, {
+      org_id:      user.org_id,
+      user_id:     user.id,
+      action:      'LOGIN',
+      entity_type: 'user',
+      entity_id:   user.id,
+      ip_address:  request.ip,
+      user_agent:  request.headers['user-agent'],
+    });
+
     reply.setCookie('token', token, COOKIE_OPTS);
 
     return reply.send(success({
@@ -73,7 +86,17 @@ export default async (fastify: FastifyInstance): Promise<void> => {
   });
 
   // ── Logout ───────────────────────────────────────────────────────────────
-  fastify.post('/logout', { preHandler: [fastify.authenticate] }, async (_request, reply) => {
+  fastify.post('/logout', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    void logAudit(fastify, {
+      org_id:      request.user.org_id,
+      user_id:     request.user.id,
+      action:      'LOGOUT',
+      entity_type: 'user',
+      entity_id:   request.user.id,
+      ip_address:  request.ip,
+      user_agent:  request.headers['user-agent'],
+    });
+
     reply.clearCookie('token', { path: '/' });
     return reply.send(success({ message: 'Logged out successfully' }));
   });
