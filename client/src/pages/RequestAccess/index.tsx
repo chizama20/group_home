@@ -50,9 +50,9 @@ export default function RequestAccessPage() {
         num_homes: Number(form.num_homes),
       })
       setSubmitted(true)
-    } catch (err: any) {
-      const msg = err?.response?.data?.error?.message ?? 'Something went wrong. Please try again.'
-      setError(msg)
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { error?: { message?: string } } } }
+      setError(e?.response?.data?.error?.message ?? 'Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }

@@ -26,3 +26,10 @@ export interface MedicationLog {
   notes: string | null
   administered_at: string
 }
+
+export interface BulkAdministerResult {
+  id: string
+  medication_id: string
+  status: 'ok' | 'error'
+  error?: string
+}

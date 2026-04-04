@@ -226,13 +226,13 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
         `SELECT r.*,
-           CASE WHEN (SELECT COUNT(*) FROM incidents i WHERE i.resident_id = r.id AND i.status = 'open') > 0
-                THEN 'urgent' ELSE 'all_good' END AS status
+           CASE WHEN COUNT(i.id) > 0 THEN 'urgent' ELSE 'all_good' END AS status
          FROM residents r
+         LEFT JOIN incidents i ON i.resident_id = r.id AND i.status = 'open'
          WHERE ${where}
+         GROUP BY r.id
          ORDER BY
-           CASE WHEN (SELECT COUNT(*) FROM incidents i WHERE i.resident_id = r.id AND i.status = 'open') > 0
-                THEN 0 ELSE 1 END,
+           CASE WHEN COUNT(i.id) > 0 THEN 0 ELSE 1 END,
            r.last_name, r.first_name
          LIMIT ? OFFSET ?`,
         [...values, pg.limit, offset]
