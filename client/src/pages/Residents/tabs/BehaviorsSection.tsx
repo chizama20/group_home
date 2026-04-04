@@ -1,4 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react'
+import { X } from 'lucide-react'
 import { getBehaviors, createBehavior, deleteBehavior } from '../../../api/residents'
 import type { TrackedBehavior } from '../../../types/resident'
 
@@ -72,7 +73,7 @@ export default function BehaviorsSection({ residentId }: Props) {
             aria-label='Remove behavior'
             className='ml-3 shrink-0 w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-red-500 rounded-full hover:bg-red-500/10 transition-colors'
           >
-            ×
+            <X className='w-4 h-4' />
           </button>
         </div>
       ))}

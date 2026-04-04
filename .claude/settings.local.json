@@ -49,7 +49,8 @@
       "Bash(cp -r /tmp/ui-ux-pro-max-skill/src/ui-ux-pro-max/data ~/.claude/skills/ui-ux-pro-max/)",
       "Bash(cp -r /tmp/ui-ux-pro-max-skill/src/ui-ux-pro-max/scripts ~/.claude/skills/ui-ux-pro-max/)",
       "Bash(python3 ~/.claude/skills/ui-ux-pro-max/scripts/search.py \"e-commerce\" --design-system)",
-      "Bash(claude mcp:*)"
+      "Bash(claude mcp:*)",
+      "Bash(find src:*)"
     ]
   }
 }

@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Check } from 'lucide-react'
 import { getResidentAppointments, completeAppointment } from '../../../api/appointments'
 import type { Appointment } from '../../../types/appointment'
 import { todayStr, formatDate } from '../../../utils/date'
 
 const TYPE_CHIP: Record<string, string> = {
-  'GP Visit':   'bg-blue-500/10 text-blue-400',
+  'GP Visit':   'bg-indigo-500/10 text-indigo-400',
   'Therapy':    'bg-violet-500/10 text-violet-400',
   'Hospital':   'bg-red-500/10 text-red-400',
   'Specialist': 'bg-orange-500/10 text-orange-400',
@@ -113,7 +114,9 @@ export default function AppointmentsTab({ residentId, onAddAppointment }: Props)
                     {appt.type}
                   </span>
                   {appt.completed_at && (
-                    <span className='text-[10px] font-semibold text-emerald-500'>✓ Done</span>
+                    <span className='inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-500'>
+                      <Check className='w-3 h-3' /> Done
+                    </span>
                   )}
                 </div>
                 <p className='text-sm font-medium text-zinc-900 dark:text-white'>{appt.title}</p>

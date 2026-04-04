@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react'
-import { Pencil } from 'lucide-react'
+import { Pencil, X } from 'lucide-react'
 import { getResidentMedications, createMedication, updateMedication, deleteMedication } from '../../../api/medications'
 import { useRole } from '../../../utils/role'
 import type { Medication } from '../../../types/medication'
@@ -234,7 +234,7 @@ export default function MedicationsTab({ residentId }: { residentId: string }) {
                       aria-label='Delete medication'
                       className='w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-red-500 rounded-full hover:bg-red-500/10 transition-colors'
                     >
-                      ×
+                      <X className='w-4 h-4' />
                     </button>
                   </div>
                 )}
