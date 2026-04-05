@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { verifySigningPin } from '../api/users'
 
 interface Props {
-  open:     boolean
+  open:      boolean
   onSuccess: (sign_token: string) => void
   onCancel:  () => void
 }
@@ -43,13 +43,13 @@ export default function PinModal({ open, onSuccess, onCancel }: Props) {
 
   return (
     <div className='fixed inset-0 z-50 flex items-end sm:items-center justify-center'>
-      {/* Backdrop */}
       <div className='absolute inset-0 bg-black/50' onClick={handleCancel} />
 
-      {/* Sheet — full-screen bottom sheet on mobile, modal on desktop */}
-      <div className='relative w-full sm:max-w-sm bg-white rounded-t-2xl sm:rounded-2xl shadow-xl p-6 z-10'>
-        <h2 className='text-lg font-semibold text-gray-900 mb-1 text-center'>Enter your signing PIN</h2>
-        <p className='text-sm text-gray-500 text-center mb-6'>
+      <div className='relative w-full sm:max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-t-2xl sm:rounded-2xl shadow-xl p-6 z-10'>
+        <h2 className='text-lg font-semibold text-zinc-900 dark:text-white mb-1 text-center'>
+          Enter your signing PIN
+        </h2>
+        <p className='text-sm text-zinc-500 dark:text-zinc-400 text-center mb-6'>
           Your 4-digit PIN is required to record this administration.
         </p>
 
@@ -62,23 +62,26 @@ export default function PinModal({ open, onSuccess, onCancel }: Props) {
           value={pin}
           onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
           onKeyDown={e => { if (e.key === 'Enter') void handleSubmit() }}
-          className='w-full border-2 border-gray-300 rounded-xl px-4 py-4 text-center text-3xl tracking-[0.75em] focus:outline-none focus:border-blue-500 mb-4'
+          className='w-full bg-white dark:bg-zinc-800 border-2 border-zinc-300 dark:border-zinc-700 rounded-xl px-4 py-4 text-center text-3xl tracking-[0.75em] text-zinc-900 dark:text-white focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 mb-4'
           placeholder='••••'
         />
 
         {error && (
-          <p className='text-sm text-red-600 text-center mb-4'>{error}</p>
+          <p className='text-sm text-red-600 dark:text-red-400 text-center mb-4'>{error}</p>
         )}
 
         <div className='flex gap-3'>
-          <button onClick={handleCancel}
-            className='flex-1 bg-gray-100 text-gray-700 rounded-xl py-3 text-sm font-semibold min-h-[48px] hover:bg-gray-200 transition-colors'>
+          <button
+            onClick={handleCancel}
+            className='flex-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-xl py-3 text-sm font-semibold min-h-[48px] hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors'
+          >
             Cancel
           </button>
           <button
             disabled={loading || pin.length !== 4}
             onClick={() => { void handleSubmit() }}
-            className='flex-1 bg-blue-600 text-white rounded-xl py-3 text-sm font-semibold min-h-[48px] hover:bg-blue-700 disabled:opacity-50 transition-colors'>
+            className='flex-1 bg-indigo-600 text-white rounded-xl py-3 text-sm font-semibold min-h-[48px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
+          >
             {loading ? 'Verifying…' : 'Confirm'}
           </button>
         </div>

@@ -3,7 +3,7 @@ import { RowDataPacket } from 'mysql2';
 import { v4 as uuidv4 } from 'uuid';
 import { success, failure } from '../utils/response';
 import { canAccessHome } from '../utils/homeAccess';
-import { managerOrAbove } from '../middleware/rbac';
+import { orgAdminOnly, managerOrAbove } from '../middleware/rbac';
 
 interface IdParam    { id: string; }
 interface BIdParam   { id: string; bId: string; }
@@ -44,10 +44,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     return reply.send(success(rows[0]));
   });
 
-  // ── PATCH /residents/:id — edit profile fields (manager+) ─────────────────
+  // ── PATCH /residents/:id — edit profile fields (org_admin only) ──────────
   fastify.patch<{ Params: IdParam; Body: PatchBody }>(
     '/:id',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, orgAdminOnly] },
     async (request, reply) => {
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
@@ -81,10 +81,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── PATCH /residents/:id/archive — set is_active=0 (manager+) ─────────────
+  // ── PATCH /residents/:id/archive — set is_active=0 (org_admin only) ───────
   fastify.patch<{ Params: IdParam }>(
     '/:id/archive',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, orgAdminOnly] },
     async (request, reply) => {
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id, home_id FROM residents WHERE id = ?', [request.params.id]

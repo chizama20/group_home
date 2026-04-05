@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { ChevronLeft, Pencil, Archive } from 'lucide-react'
 import type { Resident } from '../../types/resident'
-import { getResident } from '../../api/residents'
+import { getResident, archiveResident } from '../../api/residents'
 import { useRole } from '../../utils/role'
-import BottomNav from '../../components/BottomNav'
 import { cn } from '../../lib/cn'
 import AddAppointmentForm from '../../components/AddAppointmentForm'
 import ResidentForm   from './ResidentForm'
@@ -18,24 +18,37 @@ type Tab = typeof TABS[number]
 
 const TAB_LABELS: Record<Tab, string> = {
   info:         'Overview',
-  meds:         'Medications',
+  meds:         'Meds',
   logs:         'Logs',
   appointments: 'Appointments',
   incidents:    'Incidents',
 }
 
-export default function ResidentProfile() {
-  const { id }               = useParams<{ id: string }>()
-  const navigate             = useNavigate()
-  const { isManagerOrAbove } = useRole()
+function getInitials(first: string, last: string) {
+  return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase()
+}
 
-  const [resident, setResident]         = useState<Resident | null>(null)
-  const [loading, setLoading]           = useState(true)
-  const [error, setError]               = useState<string | null>(null)
-  const [tab, setTab]                   = useState<Tab>('info')
-  const [showEdit, setShowEdit]         = useState(false)
-  const [showAddAppt, setShowAddAppt]   = useState(false)
-  const [apptKey, setApptKey]           = useState(0)
+export default function ResidentProfile() {
+  const { id }                        = useParams<{ id: string }>()
+  const navigate                      = useNavigate()
+  const { isOrgAdmin }                = useRole()
+
+  const [resident, setResident]       = useState<Resident | null>(null)
+  const [loading, setLoading]         = useState(true)
+  const [error, setError]             = useState<string | null>(null)
+  const [tab, setTab]                 = useState<Tab>('info')
+  const [showEdit, setShowEdit]       = useState(false)
+  const [showAddAppt, setShowAddAppt] = useState(false)
+  const [apptKey, setApptKey]         = useState(0)
+  const [archiving, setArchiving]     = useState(false)
+
+  async function handleArchive() {
+    if (!resident) return
+    if (!window.confirm(`Archive ${resident.first_name} ${resident.last_name}? This will mark them as inactive.`)) return
+    setArchiving(true)
+    try { await archiveResident(resident.id); navigate(-1) }
+    catch { setArchiving(false) }
+  }
 
   const fetchResident = useCallback(() => {
     if (!id) return
@@ -48,63 +61,109 @@ export default function ResidentProfile() {
   useEffect(() => { fetchResident() }, [fetchResident])
 
   if (loading) return (
-    <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
-      <div className='w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin' />
+    <div className='min-h-screen bg-zinc-50 dark:bg-black flex items-center justify-center min-h-[200px]'>
+      <div className='w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin' />
     </div>
   )
-  if (error)     return <div className='p-4 text-sm text-red-600'>{error}</div>
-  if (!resident) return <div className='p-4 text-sm text-gray-500'>Resident not found</div>
+  if (error) return (
+    <div className='min-h-screen bg-zinc-50 dark:bg-black px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400'>
+      {error}
+    </div>
+  )
+  if (!resident) return (
+    <div className='min-h-screen bg-zinc-50 dark:bg-black px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400'>
+      Resident not found
+    </div>
+  )
+
+  const initials = getInitials(resident.first_name, resident.last_name)
 
   return (
-    <div className='pb-20 min-h-screen bg-gray-50'>
+    <div className='min-h-screen bg-zinc-50 dark:bg-black pb-8'>
+      <div className='max-w-4xl mx-auto'>
 
-      {/* Header */}
-      <div className='bg-white px-4 pt-5 pb-0 border-b border-gray-100'>
-        <div className='flex items-center gap-3 pb-3'>
+      {/* Back button */}
+      <div className='flex items-center gap-2 px-4 pt-5 pb-3'>
+        <button
+          onClick={() => navigate(-1)}
+          className='flex items-center gap-1 min-h-[44px]'
+          aria-label='Back to residents'
+        >
+          <ChevronLeft className='h-5 w-5 text-zinc-500' />
+          <span className='text-sm text-zinc-500 dark:text-zinc-400 font-medium'>Residents</span>
+        </button>
+      </div>
+
+      {/* Resident name */}
+      <h1 className='text-xl font-bold text-zinc-900 dark:text-white px-4'>
+        {resident.first_name} {resident.last_name}
+      </h1>
+
+      {/* Status badge */}
+      <div className='px-4 mt-1'>
+        {resident.is_active ? (
+          <span className='inline-flex bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold px-2.5 py-0.5 rounded-full'>
+            Active
+          </span>
+        ) : (
+          <span className='inline-flex bg-zinc-200 dark:bg-zinc-800 text-zinc-500 text-[11px] font-semibold px-2.5 py-0.5 rounded-full'>
+            Inactive
+          </span>
+        )}
+      </div>
+
+      {/* Room */}
+      {resident.room && (
+        <p className='text-[13px] text-zinc-500 dark:text-zinc-400 px-4 mt-0.5'>
+          Room {resident.room}
+        </p>
+      )}
+
+      {/* Avatar */}
+      <div className='mx-auto mt-4 w-20 h-20 rounded-full bg-indigo-500/15 text-indigo-400 text-2xl font-bold flex items-center justify-center'>
+        {initials}
+      </div>
+
+      {/* Action buttons — org_admin only */}
+      {isOrgAdmin && (
+        <div className='flex gap-2 justify-center px-4 mt-4'>
           <button
-            onClick={() => navigate(-1)}
-            className='text-gray-500 min-h-[44px] min-w-[44px] flex items-center justify-center text-xl shrink-0'
-            aria-label='Back'
+            onClick={() => setShowEdit(true)}
+            className='flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium px-4 py-2 rounded-xl min-h-[40px]'
           >
-            ←
+            <Pencil className='h-4 w-4' />
+            Edit
           </button>
-          <div className='flex-1 min-w-0'>
-            <h1 className='text-xl font-bold text-gray-900 truncate'>
-              {resident.first_name} {resident.last_name}
-            </h1>
-            {resident.room && (
-              <p className='text-sm text-gray-500'>Room {resident.room}</p>
+          <button
+            disabled={archiving}
+            onClick={() => { void handleArchive() }}
+            className='flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-red-200 dark:border-red-900/40 text-red-500 text-sm font-medium px-4 py-2 rounded-xl min-h-[40px] disabled:opacity-50'
+          >
+            <Archive className='h-4 w-4' />
+            {archiving ? 'Archiving…' : 'Archive'}
+          </button>
+        </div>
+      )}
+
+      {/* Tab bar */}
+      <div
+        className='flex border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 mt-5 overflow-x-auto'
+        style={{ scrollbarWidth: 'none' }}
+      >
+        {TABS.map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={cn(
+              'flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors min-h-[44px]',
+              tab === t
+                ? 'border-indigo-500 text-zinc-900 dark:text-white'
+                : 'border-transparent text-zinc-500'
             )}
-          </div>
-
-          {/* Manager: Edit profile button */}
-          {isManagerOrAbove && (
-            <button
-              onClick={() => setShowEdit(true)}
-              className='shrink-0 text-sm font-medium text-blue-600 border border-blue-200 rounded-xl px-3 py-2 min-h-[44px] hover:bg-blue-50 transition-colors'
-            >
-              Edit
-            </button>
-          )}
-        </div>
-
-        {/* Tab bar */}
-        <div className='flex overflow-x-auto gap-1 pb-0 -mx-1 px-1' style={{ scrollbarWidth: 'none' }}>
-          {TABS.map(t => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={cn(
-                'px-4 py-2.5 text-sm font-medium whitespace-nowrap rounded-t-lg min-h-[44px] transition-colors shrink-0',
-                tab === t
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                  : 'text-gray-500 hover:text-gray-700'
-              )}
-            >
-              {TAB_LABELS[t]}
-            </button>
-          ))}
-        </div>
+          >
+            {TAB_LABELS[t]}
+          </button>
+        ))}
       </div>
 
       {/* Tab content */}
@@ -121,8 +180,6 @@ export default function ResidentProfile() {
       {tab === 'incidents' && (
         <IncidentsTab residentId={resident.id} homeId={resident.home_id} />
       )}
-
-      <BottomNav />
 
       {/* Edit resident form */}
       {showEdit && (
@@ -146,6 +203,7 @@ export default function ResidentProfile() {
           onCancel={() => setShowAddAppt(false)}
         />
       )}
+      </div>
     </div>
   )
 }

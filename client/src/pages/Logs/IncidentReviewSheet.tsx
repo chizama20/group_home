@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { X } from 'lucide-react'
 import type { Incident } from '../../types/incident'
 import { signOffIncident } from '../../api/incidents'
 import { formatDate } from '../../utils/date'
@@ -12,8 +13,8 @@ interface Props {
 }
 
 export default function IncidentReviewSheet({ incident, onClose, onUpdate }: Props) {
-  const [signingOff, setSigningOff]   = useState(false)
-  const [error, setError]             = useState<string | null>(null)
+  const [signingOff, setSigningOff] = useState(false)
+  const [error, setError]           = useState<string | null>(null)
 
   const canSignOff = incident.status === 'open' || incident.status === 'reviewed'
 
@@ -34,75 +35,72 @@ export default function IncidentReviewSheet({ incident, onClose, onUpdate }: Pro
   return (
     <>
       <div className='fixed inset-0 bg-black/40 z-40' onClick={onClose} />
-      <div className='fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 max-h-[90vh] flex flex-col'>
-        <div className='w-12 h-1 bg-gray-300 rounded-full mx-auto mt-3 shrink-0' />
+      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-xl md:rounded-2xl md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-2xl z-50 max-h-[90vh] flex flex-col'>
+        <div className='w-12 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 shrink-0 md:hidden' />
 
-        <div className='px-4 pt-3 pb-2 border-b border-gray-100 shrink-0 flex items-center justify-between'>
-          <p className='text-base font-semibold text-gray-900'>Incident Review</p>
+        <div className='px-4 pt-3 pb-2 border-b border-zinc-200 dark:border-zinc-800 shrink-0 flex items-center justify-between'>
+          <p className='text-base font-semibold text-zinc-900 dark:text-white'>Incident Review</p>
           <button
             onClick={onClose}
-            className='text-gray-400 min-h-[44px] min-w-[44px] flex items-center justify-center text-xl'
+            className='text-zinc-400 dark:text-zinc-500 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors'
           >
-            ✕
+            <X className='h-5 w-5' />
           </button>
         </div>
 
         <div className='overflow-y-auto flex-1 px-4 py-4 pb-8 space-y-4'>
 
-          {/* Status + type */}
           <div className='flex items-start justify-between gap-2'>
             <div>
-              <p className='text-sm font-semibold text-gray-900'>
+              <p className='text-sm font-semibold text-zinc-900 dark:text-white'>
                 {incident.incident_type ?? incident.title}
               </p>
-              <p className='text-xs text-gray-400 mt-0.5'>{formatDate(incident.created_at)}</p>
+              <p className='text-xs text-zinc-400 dark:text-zinc-500 mt-0.5'>{formatDate(incident.created_at)}</p>
             </div>
             <StatusBadge status={incident.status} />
           </div>
 
-          {/* Severity */}
           {incident.severity && (
             <span className={cn(
               'inline-block text-xs font-semibold px-3 py-1 rounded-full',
-              incident.severity === 'high'   ? 'bg-red-100 text-red-700' :
-              incident.severity === 'medium' ? 'bg-amber-100 text-amber-700' :
-                                               'bg-green-100 text-green-700'
+              incident.severity === 'high'
+                ? 'bg-red-500/10 text-red-500 dark:text-red-400'
+                : incident.severity === 'medium'
+                ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
             )}>
               {incident.severity.charAt(0).toUpperCase() + incident.severity.slice(1)} severity
             </span>
           )}
 
-          {/* Occurred at */}
           {incident.occurred_at && (
-            <div className='bg-gray-50 rounded-xl px-4 py-3'>
-              <p className='text-xs text-gray-400 mb-0.5'>Time occurred</p>
-              <p className='text-sm text-gray-900'>{formatDate(incident.occurred_at)}</p>
+            <div className='bg-zinc-50 dark:bg-zinc-800/60 rounded-xl px-4 py-3'>
+              <p className='text-xs text-zinc-400 dark:text-zinc-500 mb-0.5'>Time occurred</p>
+              <p className='text-sm text-zinc-900 dark:text-white'>{formatDate(incident.occurred_at)}</p>
             </div>
           )}
 
-          {/* Description */}
-          <div className='bg-gray-50 rounded-xl px-4 py-3'>
-            <p className='text-xs text-gray-400 mb-1'>Description</p>
-            <p className='text-sm text-gray-900 whitespace-pre-wrap'>{incident.description}</p>
+          <div className='bg-zinc-50 dark:bg-zinc-800/60 rounded-xl px-4 py-3'>
+            <p className='text-xs text-zinc-400 dark:text-zinc-500 mb-1'>Description</p>
+            <p className='text-sm text-zinc-900 dark:text-zinc-100 whitespace-pre-wrap'>{incident.description}</p>
           </div>
 
-          {/* Sign-off info */}
           {incident.signed_off_at && (
-            <div className='bg-green-50 border border-green-100 rounded-xl px-4 py-3'>
-              <p className='text-xs text-green-600 font-semibold'>Signed off</p>
-              <p className='text-xs text-green-700 mt-0.5'>{formatDate(incident.signed_off_at)}</p>
+            <div className='bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3'>
+              <p className='text-xs text-emerald-600 dark:text-emerald-400 font-semibold'>Signed off</p>
+              <p className='text-xs text-emerald-700 dark:text-emerald-500 mt-0.5'>{formatDate(incident.signed_off_at)}</p>
             </div>
           )}
 
           {error && (
-            <p className='text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg'>{error}</p>
+            <p className='text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 px-3 py-2 rounded-lg'>{error}</p>
           )}
 
           {canSignOff && (
             <button
               onClick={() => { void handleSignOff() }}
               disabled={signingOff}
-              className='w-full bg-blue-600 text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] disabled:opacity-50'
+              className='w-full bg-indigo-600 text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
             >
               {signingOff ? 'Signing off…' : 'Sign off incident'}
             </button>

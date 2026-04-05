@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import BottomNav from '../../components/BottomNav'
+import { Plus } from 'lucide-react'
 import HomeSwitcherStrip from '../../components/HomeSwitcherStrip'
 import { useHome } from '../../context/HomeContext'
 import { useResidents } from '../../hooks/useResidents'
@@ -16,7 +16,7 @@ type LogTab = 'ipos' | 'behavioral' | 'incident'
 const TABS: { id: LogTab; label: string }[] = [
   { id: 'ipos',       label: 'IPOS' },
   { id: 'behavioral', label: 'Behavioral' },
-  { id: 'incident',   label: 'Incident' },
+  { id: 'incident',   label: 'Incidents' },
 ]
 
 export default function LogsPage() {
@@ -25,6 +25,7 @@ export default function LogsPage() {
   const { residents }         = useResidents(homeId)
   const { isManagerOrAbove }  = useRole()
   const [showExport, setShowExport] = useState(false)
+  const [showFab, setShowFab] = useState(false)
 
   const initialTab = (searchParams.get('tab') as LogTab | null) ?? 'ipos'
   const [tab, setTab] = useState<LogTab>(
@@ -38,56 +39,69 @@ export default function LogsPage() {
   }, [searchParams])
 
   return (
-    <div className='pb-20 min-h-screen bg-gray-50'>
+    <div className='min-h-screen bg-zinc-50 dark:bg-black pb-8'>
+      <div className='max-w-4xl mx-auto'>
       {/* Header */}
-      <div className='bg-white border-b border-gray-200'>
-        <div className='px-4 pt-5 pb-0'>
-          <div className='flex items-center justify-between mb-3'>
-            <h1 className='text-xl font-bold text-gray-900'>Logs</h1>
-            {isManagerOrAbove && homeId && (
-              <button
-                onClick={() => setShowExport(true)}
-                className='text-sm font-medium text-blue-600 border border-blue-200 rounded-xl px-3 py-2 min-h-[40px] hover:bg-blue-50 transition-colors'
-              >
-                Export
-              </button>
-            )}
-          </div>
-        </div>
-        <HomeSwitcherStrip />
-
-        {/* Sub-nav tabs */}
-        <div className='flex gap-1'>
-          {TABS.map(t => (
+      <div className='px-4 pt-5 pb-0'>
+        <div className='flex items-center justify-between'>
+          <h1 className='text-xl font-bold text-zinc-900 dark:text-white'>Logs</h1>
+          {isManagerOrAbove && homeId && (
             <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={cn(
-                'px-4 py-2.5 text-sm font-medium whitespace-nowrap min-h-[44px] border-b-2 transition-colors',
-                tab === t.id
-                  ? 'text-blue-600 border-blue-600'
-                  : 'text-gray-500 border-transparent'
-              )}
+              onClick={() => setShowExport(true)}
+              className='text-sm font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50 rounded-xl px-3 py-2 min-h-[40px] transition-colors'
             >
-              {t.label}
+              Export
             </button>
-          ))}
+          )}
         </div>
       </div>
 
+      <HomeSwitcherStrip />
+
+      {/* Tab bar */}
+      <div className='flex border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 mt-3'>
+        {TABS.map(t => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-medium border-b-2 transition-colors min-h-[44px]',
+              tab === t.id
+                ? 'border-indigo-500 text-zinc-900 dark:text-white'
+                : 'border-transparent text-zinc-500'
+            )}
+          >
+            {t.id === 'ipos' && (
+              <span className='w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0' />
+            )}
+            {t.label}
+            {t.id === 'incident' && (
+              <span className='w-1.5 h-1.5 rounded-full bg-red-500 shrink-0' />
+            )}
+          </button>
+        ))}
+      </div>
+
       {!homeId && (
-        <p className='p-4 text-sm text-gray-500'>No home selected</p>
+        <p className='p-4 text-sm text-zinc-500'>No home selected</p>
       )}
 
       {homeId && (
-        <>
-          {tab === 'ipos'       && <IposTab       homeId={homeId} residents={residents} />}
+        <div className='flex-1'>
+          {tab === 'ipos'       && <IposTab       homeId={homeId} residents={residents} showFab={showFab} onFabHandled={() => setShowFab(false)} />}
           {tab === 'behavioral' && <BehavioralTab homeId={homeId} residents={residents} />}
-          {tab === 'incident'   && <IncidentTab   homeId={homeId} residents={residents} />}
-        </>
+          {tab === 'incident'   && <IncidentTab   homeId={homeId} residents={residents} showFab={showFab} onFabHandled={() => setShowFab(false)} />}
+        </div>
       )}
 
-      <BottomNav />
+      {/* FAB */}
+      <button
+        onClick={() => setShowFab(true)}
+        className='fixed bottom-4 right-4 md:bottom-6 md:right-6 z-30 w-14 h-14 bg-indigo-600 rounded-full shadow-lg shadow-indigo-500/40 flex items-center justify-center'
+        aria-label='New log'
+      >
+        <Plus size={22} color='white' />
+      </button>
 
       {showExport && homeId && (
         <ExportSheet
@@ -96,6 +110,7 @@ export default function LogsPage() {
           onClose={() => setShowExport(false)}
         />
       )}
+      </div>
     </div>
   )
 }

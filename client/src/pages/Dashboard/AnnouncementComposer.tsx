@@ -8,15 +8,15 @@ interface Props {
 }
 
 export default function AnnouncementComposer({ homeId, onPosted }: Props) {
-  const { org, user }         = useAuth()
-  const isOrgAdmin            = user?.role === 'org_admin'
-  const [open, setOpen]       = useState(false)
-  const [title, setTitle]     = useState('')
-  const [body, setBody]       = useState('')
-  const [pinned, setPinned]   = useState(false)
+  const { org, user }           = useAuth()
+  const isOrgAdmin              = user?.role === 'org_admin'
+  const [open, setOpen]         = useState(false)
+  const [title, setTitle]       = useState('')
+  const [body, setBody]         = useState('')
+  const [pinned, setPinned]     = useState(false)
   const [allHomes, setAllHomes] = useState(false)
-  const [posting, setPosting] = useState(false)
-  const [error, setError]     = useState<string | null>(null)
+  const [posting, setPosting]   = useState(false)
+  const [error, setError]       = useState<string | null>(null)
 
   async function handlePost(e: FormEvent) {
     e.preventDefault()
@@ -44,7 +44,7 @@ export default function AnnouncementComposer({ homeId, onPosted }: Props) {
       <div className='mx-4 mt-4'>
         <button
           onClick={() => setOpen(true)}
-          className='w-full bg-white border border-dashed border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-400 text-left min-h-[44px] hover:border-blue-300 hover:text-blue-400 transition-colors'
+          className='w-full bg-white dark:bg-zinc-900 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-400 dark:text-zinc-500 text-left min-h-[44px] hover:border-indigo-400 dark:hover:border-indigo-600 hover:text-indigo-500 transition-colors'
         >
           + Post an announcement…
         </button>
@@ -52,9 +52,11 @@ export default function AnnouncementComposer({ homeId, onPosted }: Props) {
     )
   }
 
+  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+
   return (
-    <div className='mx-4 mt-4 bg-white border border-blue-200 rounded-xl p-4'>
-      <p className='text-xs font-semibold text-blue-600 uppercase tracking-wide mb-3'>New Announcement</p>
+    <div className='mx-4 mt-4 bg-white dark:bg-zinc-900 border border-indigo-200 dark:border-indigo-500/30 rounded-xl p-4'>
+      <p className='text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-3'>New Announcement</p>
       <form onSubmit={e => { void handlePost(e) }} className='space-y-3'>
         <input
           type='text'
@@ -62,7 +64,7 @@ export default function AnnouncementComposer({ homeId, onPosted }: Props) {
           required
           value={title}
           onChange={e => setTitle(e.target.value)}
-          className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
+          className={inputClass}
         />
         <textarea
           placeholder='Message…'
@@ -70,51 +72,51 @@ export default function AnnouncementComposer({ homeId, onPosted }: Props) {
           rows={3}
           value={body}
           onChange={e => setBody(e.target.value)}
-          className='w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500'
+          className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500'
         />
-        <label className='flex items-center gap-2 text-sm text-gray-600 cursor-pointer'>
+        <label className='flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 cursor-pointer'>
           <input
             type='checkbox'
             checked={pinned}
             onChange={e => setPinned(e.target.checked)}
-            className='w-4 h-4 accent-blue-600'
+            className='w-4 h-4 accent-indigo-600'
           />
           Pin announcement
         </label>
 
         {isOrgAdmin && (
-          <div className='flex rounded-lg border border-gray-200 overflow-hidden text-sm'>
+          <div className='flex rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden text-sm'>
             <button
               type='button'
               onClick={() => setAllHomes(false)}
-              className={`flex-1 py-2 ${!allHomes ? 'bg-blue-600 text-white font-semibold' : 'text-gray-500'}`}
+              className={`flex-1 py-2 transition-colors ${!allHomes ? 'bg-indigo-600 text-white font-semibold' : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}
             >
               This home
             </button>
             <button
               type='button'
               onClick={() => setAllHomes(true)}
-              className={`flex-1 py-2 ${allHomes ? 'bg-blue-600 text-white font-semibold' : 'text-gray-500'}`}
+              className={`flex-1 py-2 transition-colors ${allHomes ? 'bg-indigo-600 text-white font-semibold' : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}
             >
               All homes
             </button>
           </div>
         )}
 
-        {error && <p className='text-xs text-red-600'>{error}</p>}
+        {error && <p className='text-xs text-red-500 dark:text-red-400'>{error}</p>}
 
         <div className='flex gap-2 pt-1'>
           <button
             type='button'
             onClick={() => { setOpen(false); setTitle(''); setBody(''); setError(null) }}
-            className='flex-1 border border-gray-300 rounded-lg py-2.5 text-sm text-gray-600 min-h-[44px]'
+            className='flex-1 border border-zinc-300 dark:border-zinc-700 rounded-lg py-2.5 text-sm text-zinc-600 dark:text-zinc-400 min-h-[44px] hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors'
           >
             Cancel
           </button>
           <button
             type='submit'
             disabled={posting || !title.trim() || !body.trim()}
-            className='flex-1 bg-blue-600 text-white rounded-lg py-2.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
+            className='flex-1 bg-indigo-600 text-white rounded-lg py-2.5 text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
           >
             {posting ? 'Posting…' : 'Post'}
           </button>

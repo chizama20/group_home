@@ -58,42 +58,44 @@ export default function ResidentForm({ homeId, resident, onSuccess, onCancel }: 
     }
   }
 
+  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+  const labelClass = 'block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1'
+  const sectionLabelClass = 'text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500 mb-2'
+
   return (
     <>
-      <div className='fixed inset-0 bg-black/40 z-40' onClick={onCancel} />
-      <div className='fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 max-h-[92vh] flex flex-col'>
-        <div className='w-12 h-1 bg-gray-300 rounded-full mx-auto mt-3 shrink-0' />
+      <div className='fixed inset-0 bg-black/60 z-40' onClick={onCancel} />
+      <div className='fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 rounded-t-3xl z-50 max-h-[90vh] overflow-y-auto'>
+        <div className='w-9 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-4' />
 
-        <div className='px-4 pt-3 pb-2 border-b border-gray-100 shrink-0'>
-          <h2 className='text-base font-semibold text-gray-900'>
-            {isEdit ? 'Edit resident' : 'Add resident'}
-          </h2>
-        </div>
+        <p className='text-[17px] font-semibold text-zinc-900 dark:text-white px-4 mb-4'>
+          {isEdit ? 'Edit resident' : 'Add resident'}
+        </p>
 
         <form
           onSubmit={e => { void handleSubmit(e) }}
-          className='overflow-y-auto flex-1 px-4 py-4 space-y-4 pb-8'
+          className='px-4 pb-8 space-y-4'
         >
           {/* Required fields */}
           <div>
-            <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2'>Required</p>
+            <p className={sectionLabelClass}>Required</p>
             <div className='space-y-3'>
               <input
                 type='text' placeholder='First name' required value={firstName}
                 onChange={e => setFirstName(e.target.value)}
-                className='w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
+                className={inputClass}
               />
               <input
                 type='text' placeholder='Last name' required value={lastName}
                 onChange={e => setLastName(e.target.value)}
-                className='w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
+                className={inputClass}
               />
               <div>
-                <label className='block text-xs text-gray-500 mb-1'>Date of birth</label>
+                <label className={labelClass}>Date of birth</label>
                 <input
                   type='date' required value={dob}
                   onChange={e => setDob(e.target.value)}
-                  className='w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className={inputClass}
                 />
               </div>
             </div>
@@ -101,44 +103,44 @@ export default function ResidentForm({ homeId, resident, onSuccess, onCancel }: 
 
           {/* Optional fields */}
           <div>
-            <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2'>Optional</p>
+            <p className={sectionLabelClass}>Optional</p>
             <div className='space-y-3'>
               <input
                 type='text' placeholder='Room number' value={room}
                 onChange={e => setRoom(e.target.value)}
-                className='w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
+                className={inputClass}
               />
               <textarea
                 placeholder='Diagnosis' rows={2} value={diagnosis}
                 onChange={e => setDiagnosis(e.target.value)}
-                className='w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500'
+                className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500'
               />
               <input
                 type='text' placeholder='Physician name' value={physician}
                 onChange={e => setPhysician(e.target.value)}
-                className='w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
+                className={inputClass}
               />
             </div>
           </div>
 
           {/* Primary contact */}
           <div>
-            <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2'>Primary Contact</p>
+            <p className={sectionLabelClass}>Primary Contact</p>
             <div className='space-y-3'>
               <input
                 type='text' placeholder='Contact name' value={contactName}
                 onChange={e => setContactName(e.target.value)}
-                className='w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
+                className={inputClass}
               />
               <input
                 type='tel' placeholder='Contact phone' value={contactPhone}
                 onChange={e => setContactPhone(e.target.value)}
-                className='w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
+                className={inputClass}
               />
               <input
                 type='text' placeholder='Relationship (e.g. daughter)' value={contactRel}
                 onChange={e => setContactRel(e.target.value)}
-                className='w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500'
+                className={inputClass}
               />
             </div>
           </div>
@@ -147,24 +149,28 @@ export default function ResidentForm({ homeId, resident, onSuccess, onCancel }: 
           <textarea
             placeholder='General notes' rows={3} value={notes}
             onChange={e => setNotes(e.target.value)}
-            className='w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500'
+            className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500'
           />
 
-          {error && <p className='text-xs text-red-600'>{error}</p>}
+          {error && (
+            <div className='bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-3 py-2 rounded-xl'>
+              {error}
+            </div>
+          )}
 
-          <div className='flex gap-2 pt-2'>
-            <button
-              type='button' onClick={onCancel}
-              className='flex-1 border border-gray-300 rounded-xl py-3 text-sm text-gray-600 min-h-[44px]'
-            >
-              Cancel
-            </button>
+          <div className='space-y-2 pt-2'>
             <button
               type='submit'
               disabled={saving || !firstName.trim() || !lastName.trim() || !dob}
-              className='flex-1 bg-blue-600 text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] disabled:opacity-50'
+              className='w-full bg-indigo-600 text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
             >
               {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Add resident'}
+            </button>
+            <button
+              type='button' onClick={onCancel}
+              className='w-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-xl py-3 text-sm font-semibold min-h-[44px]'
+            >
+              Cancel
             </button>
           </div>
         </form>

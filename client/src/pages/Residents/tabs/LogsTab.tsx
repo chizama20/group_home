@@ -30,36 +30,43 @@ export default function LogsTab({ residentId }: { residentId: string }) {
       .finally(() => setLoading(false))
   }, [residentId])
 
-  if (loading) return <p className='p-4 text-sm text-gray-500'>Loading…</p>
-  if (error)   return <p className='p-4 text-sm text-red-600'>{error}</p>
-  if (!entries.length) return <p className='p-4 text-sm text-gray-500'>No logs yet</p>
+  if (loading) return (
+    <div className='flex items-center justify-center min-h-[200px]'>
+      <div className='w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin' />
+    </div>
+  )
+  if (error)   return <p className='px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400'>{error}</p>
+  if (!entries.length) return <p className='text-center py-8 text-sm text-zinc-400 dark:text-zinc-600'>No logs yet</p>
 
   return (
     <div className='p-4 space-y-3'>
       {entries.map((entry, i) => (
-        <div key={i} className={`bg-white rounded-xl shadow-sm overflow-hidden border-l-4 ${
-          entry.kind === 'ipos' ? 'border-blue-400' : 'border-amber-400'
-        }`}>
+        <div
+          key={i}
+          className={`bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden border-l-4 ${
+            entry.kind === 'ipos' ? 'border-l-indigo-400' : 'border-l-amber-400'
+          }`}
+        >
           <div className='px-4 py-3'>
             <div className='flex items-center justify-between mb-1'>
               <span className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${
                 entry.kind === 'ipos'
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'bg-amber-50 text-amber-600'
+                  ? 'bg-indigo-500/10 text-indigo-400'
+                  : 'bg-amber-500/10 text-amber-400'
               }`}>
                 {entry.kind === 'ipos' ? `IPOS · ${entry.data.shift}` : 'Behavioral'}
               </span>
-              <span className='text-xs text-gray-400'>{formatDate(entry.data.created_at)}</span>
+              <span className='text-xs text-zinc-400 dark:text-zinc-500'>{formatDate(entry.data.created_at)}</span>
             </div>
             {entry.kind === 'ipos' && (
-              <p className='text-sm text-gray-700 mt-1'>{entry.data.content}</p>
+              <p className='text-sm text-zinc-700 dark:text-zinc-300 mt-1'>{entry.data.content}</p>
             )}
             {entry.kind === 'behavioral' && (
               <>
                 {entry.data.notes && (
-                  <p className='text-sm text-gray-700 mt-1'>{entry.data.notes}</p>
+                  <p className='text-sm text-zinc-700 dark:text-zinc-300 mt-1'>{entry.data.notes}</p>
                 )}
-                <p className='text-xs text-gray-400 mt-1'>
+                <p className='text-xs text-zinc-400 dark:text-zinc-500 mt-1'>
                   Occurred: {formatTime(entry.data.occurred_at)}
                 </p>
               </>
