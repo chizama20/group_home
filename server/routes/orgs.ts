@@ -67,7 +67,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
         `SELECT
           h.id, h.name, h.address, h.is_active,
           (SELECT COUNT(*) FROM residents r WHERE r.home_id = h.id AND r.is_active = 1) as resident_count,
-          (SELECT COUNT(*) FROM user_homes uh JOIN users u ON uh.user_id = u.id WHERE uh.home_id = h.id AND u.is_active = 1) as staff_count
+          (SELECT COUNT(*) FROM home_staff hs JOIN users u ON hs.user_id = u.id WHERE hs.home_id = h.id AND u.is_active = 1) as staff_count
          FROM homes h
          WHERE h.org_id = ? AND h.is_active = 1
          ORDER BY h.name`,

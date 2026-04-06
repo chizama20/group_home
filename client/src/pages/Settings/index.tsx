@@ -22,6 +22,9 @@ import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useHome } from '@/context/HomeContext'
 import { useRole } from '@/utils/role'
+import InviteStaffWizard from '@/components/InviteStaffWizard'
+import EditProfileSheet from '@/components/EditProfileSheet'
+import ChangePasswordSheet from '@/components/ChangePasswordSheet'
 
 // ---------------------------------------------------------------------------
 // Section wrapper
@@ -107,6 +110,9 @@ export default function SettingsPage() {
   const { isOrgAdmin, isManagerOrAbove } = useRole()
   const navigate = useNavigate()
   const [theme, setThemeState] = useState(getTheme)
+  const [showInviteWizard, setShowInviteWizard] = useState(false)
+  const [showEditProfile, setShowEditProfile] = useState(false)
+  const [showChangePassword, setShowChangePassword] = useState(false)
 
   function handleThemeToggle() {
     const next = toggleTheme()
@@ -186,12 +192,13 @@ export default function SettingsPage() {
               icon={<User className='h-4 w-4' />}
               chipColor='bg-zinc-500/20 text-zinc-400'
               label='Edit Profile'
+              onClick={() => setShowEditProfile(true)}
             />
             <SettingsRow
               icon={<Lock className='h-4 w-4' />}
               chipColor='bg-zinc-500/20 text-zinc-400'
               label='Change Password'
-              onClick={() => navigate('/forgot-password')}
+              onClick={() => setShowChangePassword(true)}
             />
             <SettingsRow
               icon={<Fingerprint className='h-4 w-4' />}
@@ -229,6 +236,7 @@ export default function SettingsPage() {
               icon={<UserPlus className='h-4 w-4' />}
               chipColor='bg-violet-500/20 text-violet-400'
               label='Invite New Staff'
+              onClick={() => setShowInviteWizard(true)}
             />
           </Section>
 
@@ -306,7 +314,7 @@ export default function SettingsPage() {
               icon={<Lock className='h-4 w-4' />}
               chipColor='bg-zinc-500/20 text-zinc-400'
               label='Change Password'
-              onClick={() => navigate('/forgot-password')}
+              onClick={() => setShowChangePassword(true)}
             />
             <SettingsRow
               icon={<Fingerprint className='h-4 w-4' />}
@@ -346,12 +354,13 @@ export default function SettingsPage() {
               icon={<User className='h-4 w-4' />}
               chipColor='bg-zinc-500/20 text-zinc-400'
               label='Edit Profile'
+              onClick={() => setShowEditProfile(true)}
             />
             <SettingsRow
               icon={<Lock className='h-4 w-4' />}
               chipColor='bg-zinc-500/20 text-zinc-400'
               label='Change Password'
-              onClick={() => navigate('/forgot-password')}
+              onClick={() => setShowChangePassword(true)}
             />
             <SettingsRow
               icon={<Fingerprint className='h-4 w-4' />}
@@ -393,6 +402,30 @@ export default function SettingsPage() {
         </button>
       </div>
       </div>
+
+      {/* Invite Staff Wizard */}
+      {showInviteWizard && (
+        <InviteStaffWizard
+          onSuccess={() => setShowInviteWizard(false)}
+          onCancel={() => setShowInviteWizard(false)}
+        />
+      )}
+
+      {/* Edit Profile Sheet */}
+      {showEditProfile && (
+        <EditProfileSheet
+          onSuccess={() => setShowEditProfile(false)}
+          onCancel={() => setShowEditProfile(false)}
+        />
+      )}
+
+      {/* Change Password Sheet */}
+      {showChangePassword && (
+        <ChangePasswordSheet
+          onSuccess={() => setShowChangePassword(false)}
+          onCancel={() => setShowChangePassword(false)}
+        />
+      )}
     </div>
   )
 }

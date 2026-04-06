@@ -19,11 +19,9 @@ export interface OrgDetails {
 }
 
 export interface InviteUserData {
-  first_name: string
-  last_name: string
   email: string
-  password: string
-  role: UserRole
+  role: 'employee' | 'manager'
+  home_id?: string
 }
 
 export interface OrgDashboardStats {
@@ -65,7 +63,7 @@ export const getOrgStaff = (orgId: string) =>
   api.get<ApiResponse<OrgStaffMember[]>>(`/orgs/${orgId}/staff`)
 
 export const inviteUser = (data: InviteUserData) =>
-  api.post<ApiResponse<{ id: string; first_name: string; last_name: string; email: string; role: UserRole }>>('/orgs/invite', data)
+  api.post<ApiResponse<{ message: string }>>('/orgs/invite', data)
 
 export const updateUserRole = (userId: string, role: UserRole) =>
   api.patch<ApiResponse<{ message: string }>>(`/users/${userId}/role`, { role })

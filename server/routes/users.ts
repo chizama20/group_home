@@ -6,11 +6,12 @@ import { orgAdminOnly } from '../middleware/rbac';
 import { hashPassword, comparePassword } from '../utils/password';
 import { Role } from '../types';
 
-interface IdParam       { id: string; }
-interface UpdateBody    { first_name?: string; last_name?: string; email?: string; }
-interface RoleBody      { role: Role; }
-interface SetPinBody    { current_password: string; pin: string; }
-interface VerifyPinBody { pin: string; }
+interface IdParam            { id: string; }
+interface UpdateBody         { first_name?: string; last_name?: string; email?: string; }
+interface RoleBody           { role: Role; }
+interface SetPinBody         { current_password: string; pin: string; }
+interface VerifyPinBody      { pin: string; }
+interface ChangePasswordBody { current_password: string; new_password: string; }
 
 const VALID_ROLES: Role[] = ['employee', 'manager', 'org_admin'];
 
@@ -80,6 +81,40 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       );
 
       return reply.send(success({ message: 'User deactivated' }));
+    }
+  );
+
+  // ── POST /users/me/password — change password (authenticated) ────────────────
+  fastify.post<{ Body: ChangePasswordBody }>(
+    '/me/password',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { id } = request.user;
+      const { current_password, new_password } = request.body;
+
+      if (!current_password || !new_password)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'current_password and new_password are required'));
+
+      if (new_password.length < 8)
+        return reply.code(400).send(failure('INVALID_PASSWORD', 'New password must be at least 8 characters'));
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT password_hash FROM users WHERE id = ?', [id]
+      );
+      if (!rows[0])
+        return reply.code(404).send(failure('NOT_FOUND', 'User not found'));
+
+      const validPassword = await comparePassword(current_password, rows[0].password_hash);
+      if (!validPassword)
+        return reply.code(401).send(failure('INVALID_PASSWORD', 'Current password is incorrect'));
+
+      const new_password_hash = await hashPassword(new_password);
+      await fastify.db.execute(
+        'UPDATE users SET password_hash = ? WHERE id = ?',
+        [new_password_hash, id]
+      );
+
+      return reply.send(success({ message: 'Password changed successfully' }));
     }
   );
 

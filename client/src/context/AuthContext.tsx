@@ -5,9 +5,10 @@ import { login as apiLogin, logout as apiLogout, getMe } from '../api/auth'
 interface AuthContextValue {
   user: AuthUser | null
   org:  { id: string; name: string } | null
-  login:   (email: string, password: string) => Promise<void>
-  logout:  () => Promise<void>
-  setUser: (user: AuthUser) => void
+  login:       (email: string, password: string) => Promise<void>
+  logout:      () => Promise<void>
+  refreshUser: () => Promise<void>
+  setUser:     (user: AuthUser) => void
   isLoading: boolean
 }
 
@@ -55,8 +56,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setOrg(null)
   }
 
+  async function refreshUser() {
+    try {
+      const res = await getMe()
+      if (res.data.success && res.data.data) {
+        const { org: userOrg, ...userData } = res.data.data
+        setUser(userData)
+        setOrg(userOrg)
+      }
+    } catch {
+      // Failed to refresh, keep existing state
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, org, login, logout, setUser, isLoading }}>
+    <AuthContext.Provider value={{ user, org, login, logout, refreshUser, setUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   )

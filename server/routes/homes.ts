@@ -235,7 +235,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
            CASE WHEN COUNT(i.id) > 0 THEN 0 ELSE 1 END,
            r.last_name, r.first_name
          LIMIT ? OFFSET ?`,
-        [...values, pg.limit, offset]
+        [...values, Number(pg.limit), Number(offset)]
       );
 
       return reply.send(success(rows, { total: Number(total), page: pg.page, limit: pg.limit, pages: Math.ceil(Number(total) / pg.limit) }));
