@@ -3,7 +3,6 @@ import {
   Home,
   Users,
   UserPlus,
-  UserCog,
   Building2,
   ClipboardList,
   Download,
@@ -13,7 +12,13 @@ import {
   Fingerprint,
   Bell,
   ChevronRight,
+  Moon,
+  Sun,
+  FileText,
+  Shield,
 } from 'lucide-react'
+import { getTheme, toggleTheme } from '@/lib/theme'
+import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useHome } from '@/context/HomeContext'
 import { useRole } from '@/utils/role'
@@ -101,6 +106,12 @@ export default function SettingsPage() {
   const { homes } = useHome()
   const { isOrgAdmin, isManagerOrAbove } = useRole()
   const navigate = useNavigate()
+  const [theme, setThemeState] = useState(getTheme)
+
+  function handleThemeToggle() {
+    const next = toggleTheme()
+    setThemeState(next)
+  }
 
   // Avatar colour by role
   const avatarColor =
@@ -169,65 +180,7 @@ export default function SettingsPage() {
       {/* ------------------------------------------------------------------ */}
       {isOrgAdmin && (
         <>
-          <Section label='ORGANISATION'>
-            <SettingsRow
-              isFirst
-              icon={<Home className='h-4 w-4' />}
-              chipColor='bg-indigo-500/20 text-indigo-400'
-              label='Manage Homes'
-              value={`${homes.length} home${homes.length !== 1 ? 's' : ''}`}
-            />
-            <SettingsRow
-              icon={<Users className='h-4 w-4' />}
-              chipColor='bg-emerald-500/20 text-emerald-400'
-              label='Staff Management'
-              value='View & manage'
-            />
-            <SettingsRow
-              icon={<UserPlus className='h-4 w-4' />}
-              chipColor='bg-red-500/20 text-red-400'
-              label='Invite New Staff'
-              badge={<span className='w-2 h-2 rounded-full bg-red-500' />}
-            />
-            <SettingsRow
-              icon={<UserCog className='h-4 w-4' />}
-              chipColor='bg-amber-500/20 text-amber-400'
-              label='Resident Management'
-              value='Add, edit, archive'
-              onClick={() => navigate('/residents')}
-            />
-            <SettingsRow
-              icon={<Building2 className='h-4 w-4' />}
-              chipColor='bg-zinc-500/20 text-zinc-400'
-              label='Org Profile'
-              value={org?.name ?? '—'}
-            />
-          </Section>
-
-          <Section label='COMPLIANCE & EXPORTS'>
-            <SettingsRow
-              isFirst
-              icon={<ClipboardList className='h-4 w-4' />}
-              chipColor='bg-indigo-500/20 text-indigo-400'
-              label='Audit Log'
-              onClick={() => navigate('/logs')}
-            />
-            <SettingsRow
-              icon={<Download className='h-4 w-4' />}
-              chipColor='bg-emerald-500/20 text-emerald-400'
-              label='Export Records'
-              onClick={() => navigate('/logs')}
-            />
-            <SettingsRow
-              icon={<FileCheck className='h-4 w-4' />}
-              chipColor='bg-emerald-500/20 text-emerald-400'
-              label='BAA Agreement'
-              value='Signed'
-              valueColor='text-emerald-400'
-            />
-          </Section>
-
-          <Section label='ACCOUNT'>
+          <Section label='PROFILE'>
             <SettingsRow
               isFirst
               icon={<User className='h-4 w-4' />}
@@ -248,10 +201,86 @@ export default function SettingsPage() {
               valueColor='text-emerald-400'
               onClick={() => navigate('/setup-pin')}
             />
+          </Section>
+
+          <Section label='ORGANIZATION'>
+            <SettingsRow
+              isFirst
+              icon={<Building2 className='h-4 w-4' />}
+              chipColor='bg-amber-500/20 text-amber-400'
+              label='Org Settings'
+              value={org?.name ?? '—'}
+            />
+            <SettingsRow
+              icon={<Home className='h-4 w-4' />}
+              chipColor='bg-indigo-500/20 text-indigo-400'
+              label='Manage Homes'
+              value={`${homes.length} home${homes.length !== 1 ? 's' : ''}`}
+              onClick={() => navigate('/homes')}
+            />
+            <SettingsRow
+              icon={<Users className='h-4 w-4' />}
+              chipColor='bg-emerald-500/20 text-emerald-400'
+              label='Staff Management'
+              value='View & manage'
+              onClick={() => navigate('/homes')}
+            />
+            <SettingsRow
+              icon={<UserPlus className='h-4 w-4' />}
+              chipColor='bg-violet-500/20 text-violet-400'
+              label='Invite New Staff'
+            />
+          </Section>
+
+          <Section label='DATA & COMPLIANCE'>
+            <SettingsRow
+              isFirst
+              icon={<ClipboardList className='h-4 w-4' />}
+              chipColor='bg-indigo-500/20 text-indigo-400'
+              label='Audit Logs'
+              onClick={() => navigate('/org-logs?tab=audit')}
+            />
+            <SettingsRow
+              icon={<Download className='h-4 w-4' />}
+              chipColor='bg-emerald-500/20 text-emerald-400'
+              label='Export Records'
+              onClick={() => navigate('/org-logs?tab=exports')}
+            />
+          </Section>
+
+          <Section label='PREFERENCES'>
+            <SettingsRow
+              isFirst
+              icon={theme === 'dark' ? <Sun className='h-4 w-4' /> : <Moon className='h-4 w-4' />}
+              chipColor='bg-zinc-500/20 text-zinc-400'
+              label={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              onClick={handleThemeToggle}
+            />
             <SettingsRow
               icon={<Bell className='h-4 w-4' />}
               chipColor='bg-zinc-500/20 text-zinc-400'
               label='Notifications'
+            />
+          </Section>
+
+          <Section label='LEGAL'>
+            <SettingsRow
+              isFirst
+              icon={<FileCheck className='h-4 w-4' />}
+              chipColor='bg-emerald-500/20 text-emerald-400'
+              label='BAA Agreement'
+              value='Signed'
+              valueColor='text-emerald-400'
+            />
+            <SettingsRow
+              icon={<FileText className='h-4 w-4' />}
+              chipColor='bg-zinc-500/20 text-zinc-400'
+              label='Terms of Service'
+            />
+            <SettingsRow
+              icon={<Shield className='h-4 w-4' />}
+              chipColor='bg-zinc-500/20 text-zinc-400'
+              label='Privacy Policy'
             />
           </Section>
         </>
@@ -287,6 +316,16 @@ export default function SettingsPage() {
               valueColor='text-emerald-400'
               onClick={() => navigate('/setup-pin')}
             />
+          </Section>
+
+          <Section label='PREFERENCES'>
+            <SettingsRow
+              isFirst
+              icon={theme === 'dark' ? <Sun className='h-4 w-4' /> : <Moon className='h-4 w-4' />}
+              chipColor='bg-zinc-500/20 text-zinc-400'
+              label={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              onClick={handleThemeToggle}
+            />
             <SettingsRow
               icon={<Bell className='h-4 w-4' />}
               chipColor='bg-zinc-500/20 text-zinc-400'
@@ -300,31 +339,45 @@ export default function SettingsPage() {
       {/* EMPLOYEE sections                                                   */}
       {/* ------------------------------------------------------------------ */}
       {!isManagerOrAbove && (
-        <Section label='ACCOUNT'>
-          <SettingsRow
-            isFirst
-            icon={<User className='h-4 w-4' />}
-            chipColor='bg-zinc-500/20 text-zinc-400'
-            label='Edit Profile'
-          />
-          <SettingsRow
-            icon={<Lock className='h-4 w-4' />}
-            chipColor='bg-zinc-500/20 text-zinc-400'
-            label='Change Password'
-          />
-          <SettingsRow
-            icon={<Fingerprint className='h-4 w-4' />}
-            chipColor='bg-indigo-500/20 text-indigo-400'
-            label='Signing PIN'
-            value='Set'
-            valueColor='text-emerald-400'
-          />
-          <SettingsRow
-            icon={<Bell className='h-4 w-4' />}
-            chipColor='bg-zinc-500/20 text-zinc-400'
-            label='Notifications'
-          />
-        </Section>
+        <>
+          <Section label='ACCOUNT'>
+            <SettingsRow
+              isFirst
+              icon={<User className='h-4 w-4' />}
+              chipColor='bg-zinc-500/20 text-zinc-400'
+              label='Edit Profile'
+            />
+            <SettingsRow
+              icon={<Lock className='h-4 w-4' />}
+              chipColor='bg-zinc-500/20 text-zinc-400'
+              label='Change Password'
+              onClick={() => navigate('/forgot-password')}
+            />
+            <SettingsRow
+              icon={<Fingerprint className='h-4 w-4' />}
+              chipColor='bg-indigo-500/20 text-indigo-400'
+              label='Signing PIN'
+              value='Set'
+              valueColor='text-emerald-400'
+              onClick={() => navigate('/setup-pin')}
+            />
+          </Section>
+
+          <Section label='PREFERENCES'>
+            <SettingsRow
+              isFirst
+              icon={theme === 'dark' ? <Sun className='h-4 w-4' /> : <Moon className='h-4 w-4' />}
+              chipColor='bg-zinc-500/20 text-zinc-400'
+              label={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              onClick={handleThemeToggle}
+            />
+            <SettingsRow
+              icon={<Bell className='h-4 w-4' />}
+              chipColor='bg-zinc-500/20 text-zinc-400'
+              label='Notifications'
+            />
+          </Section>
+        </>
       )}
 
       {/* ------------------------------------------------------------------ */}

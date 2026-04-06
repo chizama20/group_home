@@ -20,7 +20,7 @@ interface Props {
   onRefresh: () => void
 }
 
-export default function InfoTab({ resident, onRefresh }: Props) {
+export default function InfoTab({ resident }: Props) {
   const navigate                            = useNavigate()
   const { isManagerOrAbove, isOrgAdmin }    = useRole()
   const [confirmArchive, setConfirmArchive] = useState(false)

@@ -6,6 +6,7 @@ import { getResident, archiveResident } from '../../api/residents'
 import { useRole } from '../../utils/role'
 import { cn } from '../../lib/cn'
 import AddAppointmentForm from '../../components/AddAppointmentForm'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import ResidentForm   from './ResidentForm'
 import InfoTab         from './tabs/InfoTab'
 import MedicationsTab  from './tabs/MedicationsTab'
@@ -41,13 +42,13 @@ export default function ResidentProfile() {
   const [showAddAppt, setShowAddAppt] = useState(false)
   const [apptKey, setApptKey]         = useState(0)
   const [archiving, setArchiving]     = useState(false)
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
 
   async function handleArchive() {
     if (!resident) return
-    if (!window.confirm(`Archive ${resident.first_name} ${resident.last_name}? This will mark them as inactive.`)) return
     setArchiving(true)
     try { await archiveResident(resident.id); navigate(-1) }
-    catch { setArchiving(false) }
+    catch { setArchiving(false); setShowArchiveConfirm(false) }
   }
 
   const fetchResident = useCallback(() => {
@@ -136,7 +137,7 @@ export default function ResidentProfile() {
           </button>
           <button
             disabled={archiving}
-            onClick={() => { void handleArchive() }}
+            onClick={() => setShowArchiveConfirm(true)}
             className='flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-red-200 dark:border-red-900/40 text-red-500 text-sm font-medium px-4 py-2 rounded-xl min-h-[40px] disabled:opacity-50'
           >
             <Archive className='h-4 w-4' />
@@ -203,6 +204,17 @@ export default function ResidentProfile() {
           onCancel={() => setShowAddAppt(false)}
         />
       )}
+
+      {/* Archive confirmation dialog */}
+      <ConfirmDialog
+        open={showArchiveConfirm}
+        title={`Archive ${resident.first_name} ${resident.last_name}?`}
+        description="This will mark them as inactive. They will no longer appear in active resident lists."
+        confirmLabel="Archive"
+        confirmVariant="destructive"
+        onConfirm={() => { void handleArchive() }}
+        onCancel={() => setShowArchiveConfirm(false)}
+      />
       </div>
     </div>
   )

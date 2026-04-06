@@ -1,7 +1,8 @@
 /// <reference path="./types/fastify.d.ts" />
 import 'dotenv/config';
 import Fastify from 'fastify';
-import rateLimit from '@fastify/rate-limit';
+import rateLimit, { RateLimitPluginOptions } from '@fastify/rate-limit';
+import { FastifyRequest } from 'fastify';
 
 import corsPlugin          from './plugins/cors';
 import cookiePlugin        from './plugins/cookie';
@@ -22,6 +23,7 @@ import incidentsRoutes     from './routes/incidents';
 import appointmentsRoutes  from './routes/appointments';
 import tasksRoutes         from './routes/tasks';
 import exportsRoutes       from './routes/exports';
+import auditRoutes         from './routes/audit';
 
 import adminAuthRoutes     from './routes/admin/auth';
 import adminOrgReqRoutes   from './routes/admin/orgRequests';
@@ -40,7 +42,7 @@ fastify.register(sessionMiddleware);
 // Rate limiting — global: false means routes must opt-in via config.rateLimit
 fastify.register(rateLimit, {
   global: false,
-  errorResponseBuilder: (_request, context) => ({
+  errorResponseBuilder: (_request: FastifyRequest, context: { after: string; max: number; ttl: number }) => ({
     success: false,
     error: {
       code:    'RATE_LIMITED',
@@ -74,6 +76,7 @@ fastify.register(incidentsRoutes,     { prefix: '/incidents' });
 fastify.register(appointmentsRoutes,  { prefix: '/appointments' });
 fastify.register(tasksRoutes,         { prefix: '/tasks' });
 fastify.register(exportsRoutes,       { prefix: '/exports' });
+fastify.register(auditRoutes,         { prefix: '/audit-logs' });
 
 // Admin routes — env-based auth, no DB lookup
 fastify.register(adminAuthRoutes,   { prefix: '/admin/auth' });

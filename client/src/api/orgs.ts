@@ -26,6 +26,35 @@ export interface InviteUserData {
   role: UserRole
 }
 
+export interface OrgDashboardStats {
+  totalHomes: number
+  totalResidents: number
+  totalStaff: number
+  openIncidents: number
+}
+
+export interface OrgDashboardHome {
+  id: string
+  name: string
+  address: string
+  is_active: boolean
+  resident_count: number
+  staff_count: number
+}
+
+export interface NeedsAttentionItem {
+  type: string
+  count: number
+  label: string
+  severity: 'info' | 'warning' | 'error'
+}
+
+export interface OrgDashboardData {
+  stats: OrgDashboardStats
+  homes: OrgDashboardHome[]
+  needsAttention: NeedsAttentionItem[]
+}
+
 export const getOrg = () =>
   api.get<ApiResponse<OrgDetails>>('/organizations')
 
@@ -43,3 +72,6 @@ export const updateUserRole = (userId: string, role: UserRole) =>
 
 export const deactivateUser = (userId: string) =>
   api.patch<ApiResponse<{ message: string }>>(`/users/${userId}/deactivate`)
+
+export const getOrgDashboard = () =>
+  api.get<ApiResponse<OrgDashboardData>>('/orgs/dashboard')

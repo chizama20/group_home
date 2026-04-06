@@ -27,7 +27,7 @@ export default function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={isOpen => { if (!isOpen) onCancel() }}>
+    <Dialog open={open} onOpenChange={(isOpen: boolean) => { if (!isOpen) onCancel() }}>
       <DialogContent className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl'>
         <DialogHeader>
           <DialogTitle className='text-[17px] font-semibold text-zinc-900 dark:text-white'>

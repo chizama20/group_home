@@ -28,6 +28,13 @@ import AdminRequests      from './pages/Admin/Requests'
 import AdminRequestDetail from './pages/Admin/RequestDetail'
 import AdminOrgs          from './pages/Admin/Orgs'
 import AdminRoute         from './components/AdminRoute'
+import OrgAdminRoute      from './components/OrgAdminRoute'
+
+import OrgDashboard       from './pages/OrgDashboard/index'
+import HomesPage          from './pages/Homes/index'
+import CreateHomeWizard   from './pages/Homes/CreateHomeWizard'
+import HomeDetail         from './pages/Homes/HomeDetail'
+import OrgLogsPage        from './pages/OrgLogs/index'
 
 function AppRoutes() {
   const { user, logout }              = useAuth()
@@ -112,6 +119,33 @@ function AppRoutes() {
           <ManagerRoute>
             <AppLayout><HomeSelectionPage /></AppLayout>
           </ManagerRoute>
+        } />
+
+        {/* ── Org Admin only ─────────────────────────────────────────────────── */}
+        <Route path='/dashboard' element={
+          <OrgAdminRoute>
+            <AppLayout><OrgDashboard /></AppLayout>
+          </OrgAdminRoute>
+        } />
+        <Route path='/homes' element={
+          <OrgAdminRoute>
+            <AppLayout><HomesPage /></AppLayout>
+          </OrgAdminRoute>
+        } />
+        <Route path='/homes/new' element={
+          <OrgAdminRoute>
+            <AppLayout><CreateHomeWizard /></AppLayout>
+          </OrgAdminRoute>
+        } />
+        <Route path='/homes/:id' element={
+          <OrgAdminRoute>
+            <AppLayout><HomeDetail /></AppLayout>
+          </OrgAdminRoute>
+        } />
+        <Route path='/org-logs' element={
+          <OrgAdminRoute>
+            <AppLayout><OrgLogsPage /></AppLayout>
+          </OrgAdminRoute>
         } />
       </Routes>
     </>

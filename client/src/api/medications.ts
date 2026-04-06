@@ -1,6 +1,6 @@
 import api from './client'
 import type { ApiResponse } from '../types/api'
-import type { Medication, MedicationLog, MedicationOutcome, BulkAdministerResult } from '../types/medication'
+import type { Medication, MedicationOutcome, BulkAdministerResult } from '../types/medication'
 
 export const getHomeMedications = (homeId: string) =>
   api.get<ApiResponse<Medication[]>>(`/homes/${homeId}/medications`)

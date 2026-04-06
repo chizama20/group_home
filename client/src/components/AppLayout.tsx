@@ -1,16 +1,19 @@
-import { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { useState, useMemo } from 'react'
+import { NavLink } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { useHome } from '@/context/HomeContext'
+import { useRole } from '@/utils/role'
 import { cn } from '@/lib/utils'
 import OfflineBanner from '@/components/OfflineBanner'
 import { getTheme, toggleTheme } from '@/lib/theme'
 import {
   Home, Users, FileText, CalendarDays, Settings,
   Sun, Moon, ChevronLeft, ChevronRight, ChevronsUpDown,
+  Building2, ClipboardList, LayoutDashboard,
 } from 'lucide-react'
 
-const NAV_ITEMS = [
+// Staff navigation (employees, managers)
+const STAFF_NAV = [
   { to: '/',          label: 'Home',      icon: Home,         exact: true },
   { to: '/residents', label: 'Residents', icon: Users },
   { to: '/logs',      label: 'Logs',      icon: FileText },
@@ -18,24 +21,31 @@ const NAV_ITEMS = [
   { to: '/settings',  label: 'Settings',  icon: Settings },
 ]
 
+// Org admin navigation
+const ORG_ADMIN_NAV = [
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { to: '/homes',     label: 'Homes',     icon: Building2 },
+  { to: '/org-logs',  label: 'Org Logs',  icon: ClipboardList },
+  { to: '/calendar',  label: 'Calendar',  icon: CalendarDays },
+  { to: '/settings',  label: 'Settings',  icon: Settings },
+]
+
 interface Props { children: React.ReactNode }
 
 export default function AppLayout({ children }: Props) {
-  const { user, logout }                    = useAuth()
+  const { user }                            = useAuth()
   const { homes, selectedHome, selectHome } = useHome()
-  const navigate                            = useNavigate()
+  const { isOrgAdmin }                      = useRole()
   const [collapsed, setCollapsed]           = useState(false)
   const [showHomePicker, setShowHomePicker] = useState(false)
   const [theme, setThemeState]              = useState(getTheme)
 
+  // Select navigation based on role
+  const NAV_ITEMS = useMemo(() => isOrgAdmin ? ORG_ADMIN_NAV : STAFF_NAV, [isOrgAdmin])
+
   function handleThemeToggle() {
     const next = toggleTheme()
     setThemeState(next)
-  }
-
-  async function handleLogout() {
-    await logout()
-    navigate('/login', { replace: true })
   }
 
   const initials = user

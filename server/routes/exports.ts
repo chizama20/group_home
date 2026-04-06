@@ -1,8 +1,28 @@
 import { FastifyInstance, FastifyReply } from 'fastify';
 import { RowDataPacket } from 'mysql2';
 import PDFDocument from 'pdfkit';
-import { failure } from '../utils/response';
+import { success, failure } from '../utils/response';
 import { managerOrAbove } from '../middleware/rbac';
+
+interface CsvExportBody {
+  type: 'incidents' | 'ipos' | 'medications';
+  home_id?: string;
+  date_from?: string;
+  date_to?: string;
+}
+
+function escapeCsv(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  const str = String(value);
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+function toCsvRow(values: unknown[]): string {
+  return values.map(escapeCsv).join(',');
+}
 
 interface MARQuery        { resident_id: string; date_from: string; date_to: string; }
 interface IposQuery       { home_id?: string; resident_id?: string; date_from?: string; date_to?: string; }
@@ -229,6 +249,123 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
       doc.end();
       return reply;
+    }
+  );
+
+  // ── POST /exports/csv — CSV export for incidents, ipos, or medications ─────
+  fastify.post<{ Body: CsvExportBody }>(
+    '/csv',
+    { preHandler: [fastify.authenticate, managerOrAbove] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const { type, home_id, date_from, date_to } = request.body;
+
+      if (!type || !['incidents', 'ipos', 'medications'].includes(type))
+        return reply.code(400).send(failure('INVALID_TYPE', 'type must be incidents, ipos, or medications'));
+
+      // Validate home_id belongs to org if provided
+      if (home_id) {
+        const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+          'SELECT id FROM homes WHERE id = ? AND org_id = ?', [home_id, org_id]
+        );
+        if (!homeCheck[0])
+          return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      }
+
+      let csvContent = '';
+      const filename = `${type}_export_${new Date().toISOString().slice(0, 10)}.csv`;
+
+      if (type === 'incidents') {
+        const filters: string[] = ['h.org_id = ?'];
+        const values: string[] = [org_id];
+        if (home_id)   { filters.push('i.home_id = ?');           values.push(home_id); }
+        if (date_from) { filters.push('DATE(i.created_at) >= ?'); values.push(date_from); }
+        if (date_to)   { filters.push('DATE(i.created_at) <= ?'); values.push(date_to); }
+
+        const [rows] = await fastify.db.execute<RowDataPacket[]>(
+          `SELECT i.id, i.title, i.description, i.incident_type, i.severity, i.status,
+                  i.occurred_at, i.created_at,
+                  h.name as home_name,
+                  r.first_name as resident_first, r.last_name as resident_last,
+                  u.first_name as reporter_first, u.last_name as reporter_last
+           FROM incidents i
+           JOIN homes h ON i.home_id = h.id
+           JOIN residents r ON i.resident_id = r.id
+           JOIN users u ON i.reported_by = u.id
+           WHERE ${filters.join(' AND ')}
+           ORDER BY i.created_at DESC`,
+          values
+        );
+
+        csvContent = toCsvRow(['ID', 'Title', 'Description', 'Type', 'Severity', 'Status', 'Occurred At', 'Created At', 'Home', 'Resident', 'Reporter']) + '\n';
+        for (const row of rows) {
+          csvContent += toCsvRow([
+            row.id, row.title, row.description, row.incident_type, row.severity, row.status,
+            row.occurred_at, row.created_at, row.home_name,
+            `${row.resident_first} ${row.resident_last}`,
+            `${row.reporter_first} ${row.reporter_last}`
+          ]) + '\n';
+        }
+      } else if (type === 'ipos') {
+        const filters: string[] = ['h.org_id = ?'];
+        const values: string[] = [org_id];
+        if (home_id)   { filters.push('il.home_id = ?');    values.push(home_id); }
+        if (date_from) { filters.push('il.log_date >= ?');  values.push(date_from); }
+        if (date_to)   { filters.push('il.log_date <= ?');  values.push(date_to); }
+
+        const [rows] = await fastify.db.execute<RowDataPacket[]>(
+          `SELECT il.id, il.log_date, il.shift, il.content, il.created_at,
+                  h.name as home_name,
+                  r.first_name as resident_first, r.last_name as resident_last,
+                  u.first_name as staff_first, u.last_name as staff_last
+           FROM ipos_logs il
+           JOIN homes h ON il.home_id = h.id
+           JOIN residents r ON il.resident_id = r.id
+           JOIN users u ON il.user_id = u.id
+           WHERE ${filters.join(' AND ')}
+           ORDER BY il.log_date DESC`,
+          values
+        );
+
+        csvContent = toCsvRow(['ID', 'Log Date', 'Shift', 'Content', 'Created At', 'Home', 'Resident', 'Staff']) + '\n';
+        for (const row of rows) {
+          csvContent += toCsvRow([
+            row.id, row.log_date, row.shift, row.content, row.created_at, row.home_name,
+            `${row.resident_first} ${row.resident_last}`,
+            `${row.staff_first} ${row.staff_last}`
+          ]) + '\n';
+        }
+      } else if (type === 'medications') {
+        const filters: string[] = ['h.org_id = ?'];
+        const values: string[] = [org_id];
+        if (home_id) { filters.push('r.home_id = ?'); values.push(home_id); }
+
+        const [rows] = await fastify.db.execute<RowDataPacket[]>(
+          `SELECT m.id, m.name, m.dosage, m.frequency, m.route, m.scheduled_time,
+                  m.instructions, m.is_active, m.created_at,
+                  h.name as home_name,
+                  r.first_name as resident_first, r.last_name as resident_last
+           FROM medications m
+           JOIN residents r ON m.resident_id = r.id
+           JOIN homes h ON r.home_id = h.id
+           WHERE ${filters.join(' AND ')}
+           ORDER BY r.last_name, r.first_name, m.name`,
+          values
+        );
+
+        csvContent = toCsvRow(['ID', 'Name', 'Dosage', 'Frequency', 'Route', 'Scheduled Time', 'Instructions', 'Active', 'Created At', 'Home', 'Resident']) + '\n';
+        for (const row of rows) {
+          csvContent += toCsvRow([
+            row.id, row.name, row.dosage, row.frequency, row.route, row.scheduled_time,
+            row.instructions, row.is_active ? 'Yes' : 'No', row.created_at, row.home_name,
+            `${row.resident_first} ${row.resident_last}`
+          ]) + '\n';
+        }
+      }
+
+      reply.header('Content-Type', 'text/csv');
+      reply.header('Content-Disposition', `attachment; filename="${filename}"`);
+      return reply.send(csvContent);
     }
   );
 };

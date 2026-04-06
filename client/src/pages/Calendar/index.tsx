@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Plus, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useHome } from '../../context/HomeContext'
 import { useRole } from '../../utils/role'
@@ -376,7 +376,7 @@ function AppointmentCard({ event }: { event: ApptEvent }) {
   )
 }
 
-function DotColor({ event }: { event: TimelineEvent }): JSX.Element {
+function DotColor({ event }: { event: TimelineEvent }): React.JSX.Element {
   if (event.kind === 'appt') return <div className='w-2.5 h-2.5 rounded-full mt-3 shrink-0 bg-violet-400' />
   const r = event as MedRound
   if (r.isDone)                return <div className='w-2.5 h-2.5 rounded-full mt-3 shrink-0 bg-emerald-400' />
@@ -551,10 +551,13 @@ export default function CalendarPage() {
               const isSelected  = cell === selectedDate
               const isTodayCell = cell === today
               const dots        = dotsMap.get(cell)
+              // Get appointments for this day for mobile display
+              const dayAppts = appointments.filter(a => a.appointment_date.slice(0, 10) === cell)
+              const firstAppt = dayAppts[0]
               return (
                 <button key={cell} onClick={() => selectDate(cell)}
                   className={cn(
-                    'flex flex-col items-center justify-center h-10 rounded-xl text-sm transition-colors',
+                    'flex flex-col items-center justify-center h-14 rounded-xl text-sm transition-colors',
                     isSelected
                       ? 'bg-indigo-600 text-white'
                       : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'
@@ -568,8 +571,17 @@ export default function CalendarPage() {
                   )}>
                     {new Date(cell + 'T00:00:00').getDate()}
                   </span>
+                  {/* Show truncated event title on mobile, dots on larger screens */}
+                  {firstAppt ? (
+                    <p className={cn(
+                      'text-[8px] leading-tight mt-0.5 w-full px-0.5 truncate text-center md:hidden',
+                      isSelected ? 'text-white/80' : 'text-violet-500 dark:text-violet-400'
+                    )}>
+                      {firstAppt.title}
+                    </p>
+                  ) : null}
                   {dots && (dots.meds || dots.appts) && (
-                    <div className='flex gap-0.5 mt-0.5'>
+                    <div className={cn('gap-0.5 mt-0.5', firstAppt ? 'hidden md:flex' : 'flex')}>
                       {dots.meds  && <div className={cn('w-1 h-1 rounded-full', isSelected ? 'bg-white/70' : 'bg-amber-400')} />}
                       {dots.appts && <div className={cn('w-1 h-1 rounded-full', isSelected ? 'bg-white/70' : 'bg-violet-400')} />}
                     </div>
@@ -612,7 +624,7 @@ export default function CalendarPage() {
         ) : (
           <div className='px-4'>
             {(() => {
-              const rows: JSX.Element[] = []
+              const rows: React.JSX.Element[] = []
               let lastTime = ''
 
               allEvents.forEach((event, idx) => {

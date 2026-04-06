@@ -312,7 +312,7 @@ function ShiftTasksSection({
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const { user, logout }   = useAuth()
+  const { user }   = useAuth()
   const navigate           = useNavigate()
   const { homeId, selectedHome: _selectedHome, homes, isLoading: homeIsLoading } = useHome()
   const { isManagerOrAbove } = useRole()
@@ -456,7 +456,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Staff on shift */}
-            <div onClick={() => navigate('/residents')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 cursor-pointer'>
+            <div onClick={() => navigate('/settings')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 cursor-pointer'>
               <div className='flex items-center justify-between'>
                 <div className='w-8 h-8 rounded-xl flex items-center justify-center bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'>
                   <Users className='w-4 h-4' />
