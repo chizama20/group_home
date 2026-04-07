@@ -161,7 +161,7 @@ function Section({
 export default function ResidentsPage() {
   const { homeId }                              = useHome()
   const { residents, loading, error, refresh }  = useResidents(homeId)
-  const { isOrgAdmin }                          = useRole()
+  const { isManagerOrAbove }                     = useRole()
   const [search, setSearch]                     = useState('')
   const [filedIds, setFiledIds]                 = useState<Set<string>>(new Set())
   const [showAdd, setShowAdd]                   = useState(false)
@@ -230,7 +230,7 @@ export default function ResidentsPage() {
       {/* Header */}
       <div className='px-4 pt-5 pb-3 flex items-center justify-between'>
         <h1 className='text-xl font-bold text-zinc-900 dark:text-white'>Residents</h1>
-        {isOrgAdmin && homeId && (
+        {isManagerOrAbove && homeId && (
           <button
             onClick={() => setShowAdd(true)}
             className='w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center'
