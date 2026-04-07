@@ -118,9 +118,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       }
 
       const id = uuidv4();
-      // administered_at defaults to NOW() in the DB — never accept from client
+      // administered_at and scheduled_date are always server-set — never from client
       await fastify.db.execute(
-        'INSERT INTO medication_logs (id, medication_id, resident_id, administered_by, outcome, notes) VALUES (?, ?, ?, ?, ?, ?)',
+        `INSERT INTO medication_logs (id, medication_id, resident_id, administered_by, outcome, notes, scheduled_date)
+         VALUES (?, ?, ?, ?, ?, ?, DATE(NOW()))`,
         [id, request.params.id, check[0].resident_id, administered_by, outcome, notes ?? null]
       );
       return reply.code(201).send(success({ id }));
@@ -178,7 +179,8 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
         const logId = uuidv4();
         await fastify.db.execute(
-          'INSERT INTO medication_logs (id, medication_id, resident_id, administered_by, outcome, notes) VALUES (?, ?, ?, ?, ?, ?)',
+          `INSERT INTO medication_logs (id, medication_id, resident_id, administered_by, outcome, notes, scheduled_date)
+           VALUES (?, ?, ?, ?, ?, ?, DATE(NOW()))`,
           [logId, medId, check[0].resident_id, administered_by, outcome, notes ?? null]
         );
         results.push({ id: logId, medication_id: medId, status: 'ok' });

@@ -274,6 +274,49 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
+  // ── GET /residents/:id/medication-logs — MAR data for a date (all roles) ───
+  fastify.get<{ Params: IdParam; Querystring: { date?: string } }>(
+    '/:id/medication-logs',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const [resident] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
+      );
+      if (!resident[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      if (!await canAccessHome(fastify, request.user, resident[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      const date = request.query.date ?? new Date().toISOString().split('T')[0];
+
+      // Return all active meds with their log for the requested date (if any)
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT
+           m.id            AS medication_id,
+           m.name          AS med_name,
+           m.dosage        AS med_dosage,
+           m.frequency     AS med_frequency,
+           m.scheduled_time,
+           m.instructions,
+           ml.id           AS log_id,
+           ml.outcome,
+           ml.notes        AS log_notes,
+           ml.administered_at,
+           ml.scheduled_date,
+           u.first_name    AS admin_first,
+           u.last_name     AS admin_last
+         FROM medications m
+         LEFT JOIN medication_logs ml
+           ON ml.medication_id = m.id AND ml.scheduled_date = ?
+         LEFT JOIN users u ON ml.administered_by = u.id
+         WHERE m.resident_id = ? AND m.is_active = 1
+         ORDER BY m.scheduled_time, m.name`,
+        [date, request.params.id]
+      );
+      return reply.send(success(rows));
+    }
+  );
+
   // ── GET /residents/:id/ipos — IPOS history (all roles) ────────────────────
   fastify.get<{ Params: IdParam }>(
     '/:id/ipos',

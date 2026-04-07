@@ -385,6 +385,54 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
+  // ── GET /homes/:id/mar?date=YYYY-MM-DD — daily MAR across all residents ──────
+  fastify.get<{ Params: HomeParam; Querystring: { date?: string } }>(
+    '/:id/mar',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, request.params.id))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const date = request.query.date ?? new Date().toISOString().split('T')[0];
+
+      // All active meds for the home + their log entry for the requested date
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT
+           r.id            AS resident_id,
+           r.first_name    AS resident_first,
+           r.last_name     AS resident_last,
+           r.room,
+           m.id            AS medication_id,
+           m.name          AS med_name,
+           m.dosage        AS med_dosage,
+           m.frequency     AS med_frequency,
+           m.scheduled_time,
+           m.instructions,
+           ml.id           AS log_id,
+           ml.outcome,
+           ml.notes        AS log_notes,
+           ml.administered_at,
+           ml.scheduled_date,
+           u.first_name    AS admin_first,
+           u.last_name     AS admin_last
+         FROM residents r
+         JOIN medications m ON m.resident_id = r.id AND m.is_active = 1
+         LEFT JOIN medication_logs ml
+           ON ml.medication_id = m.id AND ml.scheduled_date = ?
+         LEFT JOIN users u ON ml.administered_by = u.id
+         WHERE r.home_id = ? AND r.is_active = 1
+         ORDER BY m.scheduled_time, r.last_name, r.first_name`,
+        [date, request.params.id]
+      );
+      return reply.send(success(rows));
+    }
+  );
+
   // ═══════════════════════════════════════════════════════════════════════════
   // IPOS LOGS
   // ═══════════════════════════════════════════════════════════════════════════

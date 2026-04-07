@@ -14,6 +14,7 @@ import LogsTab         from './tabs/LogsTab'
 import AppointmentsTab from './tabs/AppointmentsTab'
 import IncidentsTab    from './tabs/IncidentsTab'
 import VitalsTab       from './tabs/VitalsTab'
+import MarTab          from './tabs/MarTab'
 
 const TABS = ['info', 'meds', 'logs', 'appointments', 'incidents', 'mar', 'vitals'] as const
 type Tab = typeof TABS[number]
@@ -28,16 +29,6 @@ const TAB_LABELS: Record<Tab, string> = {
   vitals:       'Vitals',
 }
 
-function MARTab() {
-  return (
-    <div className='p-4'>
-      <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 text-center'>
-        <p className='text-sm font-medium text-zinc-900 dark:text-white mb-1'>MAR coming in Phase 3</p>
-        <p className='text-xs text-zinc-500 dark:text-zinc-400'>Medication Administration Records will be available here.</p>
-      </div>
-    </div>
-  )
-}
 
 function getInitials(first: string, last: string) {
   return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase()
@@ -195,7 +186,7 @@ export default function ResidentProfile() {
       {tab === 'incidents' && (
         <IncidentsTab residentId={resident.id} homeId={resident.home_id} />
       )}
-      {tab === 'mar'    && <MARTab />}
+      {tab === 'mar'    && <MarTab residentId={resident.id} />}
       {tab === 'vitals' && <VitalsTab residentId={resident.id} />}
 
       {/* Edit resident form */}
