@@ -20,6 +20,7 @@ import { currentShift } from '../../types/log'
 import { todayStr } from '../../utils/date'
 import { clockIn, clockOut } from '../../api/homes'
 import { claimTask } from '../../api/tasks'
+import { pinAnnouncement, deleteAnnouncement } from '../../api/logs'
 import type { Task } from '../../types/task'
 import type { Appointment } from '../../types/appointment'
 import type { Announcement } from '../../types/log'
@@ -56,7 +57,29 @@ function getResidentName(
 
 // ── Sub-sections ─────────────────────────────────────────────────────────────
 
-function AnnouncementCard({ announcements }: { announcements: Announcement[] }) {
+function AnnouncementCard({
+  announcements,
+  isManager,
+  onRefresh,
+}: {
+  announcements: Announcement[]
+  isManager:     boolean
+  onRefresh:     () => void
+}) {
+  const [acting, setActing] = useState<string | null>(null)
+
+  async function handlePin(id: string) {
+    setActing(id)
+    try { await pinAnnouncement(id); onRefresh() }
+    finally { setActing(null) }
+  }
+
+  async function handleDelete(id: string) {
+    setActing(id)
+    try { await deleteAnnouncement(id); onRefresh() }
+    finally { setActing(null) }
+  }
+
   if (!announcements.length) {
     return (
       <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 text-sm text-zinc-400 dark:text-zinc-500'>
@@ -65,33 +88,63 @@ function AnnouncementCard({ announcements }: { announcements: Announcement[] }) 
     )
   }
 
-  const pinned = announcements.find(a => a.is_pinned)
-  const shown = pinned ?? announcements[0]
-
-  const posterName =
-    shown.poster_first && shown.poster_last
-      ? `${shown.poster_first} ${shown.poster_last}`
-      : 'Staff'
+  // Pinned first, then chronological
+  const sorted = [...announcements].sort((a, b) => {
+    if (a.is_pinned && !b.is_pinned) return -1
+    if (!a.is_pinned && b.is_pinned) return 1
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  })
 
   return (
-    <div
-      className='mx-4 rounded-2xl p-4 border border-violet-800/40'
-      style={{ background: 'linear-gradient(135deg, #1a1040, #0f0a2a)' }}
-    >
-      <div className='flex items-center justify-between'>
-        <div className='flex items-center gap-2'>
-          {shown.is_pinned && (
-            <span className='bg-violet-500/30 text-violet-300 text-[11px] font-semibold px-2 py-0.5 rounded-full'>
-              Pinned
-            </span>
-          )}
-          {shown.title ? (
-            <span className='text-violet-300 text-[11px] font-semibold'>{shown.title}</span>
-          ) : null}
-        </div>
-        <span className='text-violet-400 text-xs'>{posterName}</span>
-      </div>
-      <p className='text-violet-200 text-sm leading-relaxed mt-2'>{shown.body}</p>
+    <div className='mx-4 space-y-2'>
+      {sorted.map(a => {
+        const posterName = a.poster_first && a.poster_last
+          ? `${a.poster_first} ${a.poster_last}`
+          : 'Staff'
+
+        return (
+          <div
+            key={a.id}
+            className='rounded-2xl p-4 border border-violet-800/40'
+            style={{ background: 'linear-gradient(135deg, #1a1040, #0f0a2a)' }}
+          >
+            <div className='flex items-start justify-between gap-2'>
+              <div className='flex items-center gap-2 flex-wrap flex-1 min-w-0'>
+                {a.is_pinned && (
+                  <span className='bg-violet-500/30 text-violet-300 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0'>
+                    Pinned
+                  </span>
+                )}
+                {a.title && (
+                  <span className='text-violet-300 text-[11px] font-semibold'>{a.title}</span>
+                )}
+              </div>
+
+              {isManager && (
+                <div className='flex items-center gap-1 shrink-0'>
+                  <button
+                    onClick={() => { void handlePin(a.id) }}
+                    disabled={acting === a.id}
+                    className='text-[11px] font-semibold text-violet-400 hover:text-violet-200 px-2 py-1 rounded-lg min-h-[28px] disabled:opacity-50 transition-colors'
+                  >
+                    {a.is_pinned ? 'Unpin' : 'Pin'}
+                  </button>
+                  <button
+                    onClick={() => { void handleDelete(a.id) }}
+                    disabled={acting === a.id}
+                    className='text-[11px] font-semibold text-red-400 hover:text-red-300 px-2 py-1 rounded-lg min-h-[28px] disabled:opacity-50 transition-colors'
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <p className='text-violet-200 text-sm leading-relaxed mt-2'>{a.body}</p>
+            <p className='text-violet-400/60 text-xs mt-1.5'>{posterName}</p>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -229,7 +282,7 @@ function QuickActionsSection() {
           </div>
           <span className='text-xs font-medium text-zinc-700 dark:text-zinc-300 text-center'>Incident</span>
         </button>
-        <button onClick={() => navigate('/logs?tab=behavioral')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col items-center gap-2 min-h-[80px] cursor-pointer'>
+        <button onClick={() => navigate('/logs?tab=shift-notes')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col items-center gap-2 min-h-[80px] cursor-pointer'>
           <div className='w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/20 text-emerald-400'>
             <MessageSquare className='w-5 h-5' />
           </div>
@@ -477,7 +530,7 @@ export default function DashboardPage() {
         <p className='text-[17px] font-semibold text-zinc-900 dark:text-white px-4 mb-3'>
           From Management
         </p>
-        <AnnouncementCard announcements={announcements} />
+        <AnnouncementCard announcements={announcements} isManager={isManagerOrAbove} onRefresh={refresh} />
 
         {/* Manager: Announcement Composer */}
         {isManagerOrAbove && homeId && (

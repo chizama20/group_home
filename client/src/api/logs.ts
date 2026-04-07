@@ -66,6 +66,12 @@ export const getAnnouncements = (homeId: string) =>
 export const createAnnouncement = (orgId: string, data: { title: string; body: string; home_id?: string; is_pinned?: boolean }) =>
   api.post<ApiResponse<{ id: string }>>(`/orgs/${orgId}/announcements`, data)
 
+export const pinAnnouncement = (id: string) =>
+  api.patch<ApiResponse<{ is_pinned: boolean }>>(`/announcements/${id}/pin`)
+
+export const deleteAnnouncement = (id: string) =>
+  api.delete<ApiResponse<{ message: string }>>(`/announcements/${id}`)
+
 // Vitals logs
 export const getVitalsLogs = (residentId: string, params?: { vital_type?: string; from?: string; to?: string }) =>
   api.get<ApiResponse<VitalsLog[]>>(`/residents/${residentId}/vitals`, { params })

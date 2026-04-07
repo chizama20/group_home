@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import type { Incident } from '../../types/incident'
-import { signOffIncident } from '../../api/incidents'
+import { signOffIncident, escalateIncident } from '../../api/incidents'
 import { formatDate } from '../../utils/date'
 import { cn } from '../../lib/cn'
 import StatusBadge from '../../components/StatusBadge'
@@ -13,10 +13,11 @@ interface Props {
 }
 
 export default function IncidentReviewSheet({ incident, onClose, onUpdate }: Props) {
-  const [signingOff, setSigningOff] = useState(false)
-  const [error, setError]           = useState<string | null>(null)
+  const [signingOff,  setSigningOff]  = useState(false)
+  const [escalating,  setEscalating]  = useState(false)
+  const [error,       setError]       = useState<string | null>(null)
 
-  const canSignOff = incident.status === 'open' || incident.status === 'reviewed'
+  const canAct = incident.status === 'open' || incident.status === 'reviewed'
 
   async function handleSignOff() {
     setSigningOff(true)
@@ -29,6 +30,20 @@ export default function IncidentReviewSheet({ incident, onClose, onUpdate }: Pro
       setError('Failed to sign off')
     } finally {
       setSigningOff(false)
+    }
+  }
+
+  async function handleEscalate() {
+    setEscalating(true)
+    setError(null)
+    try {
+      await escalateIncident(incident.id)
+      onUpdate()
+      onClose()
+    } catch {
+      setError('Failed to escalate')
+    } finally {
+      setEscalating(false)
     }
   }
 
@@ -55,6 +70,11 @@ export default function IncidentReviewSheet({ incident, onClose, onUpdate }: Pro
               <p className='text-sm font-semibold text-zinc-900 dark:text-white'>
                 {incident.incident_type ?? incident.title}
               </p>
+              {incident.resident_first && (
+                <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-0.5'>
+                  {incident.resident_first} {incident.resident_last}
+                </p>
+              )}
               <p className='text-xs text-zinc-400 dark:text-zinc-500 mt-0.5'>{formatDate(incident.created_at)}</p>
             </div>
             <StatusBadge status={incident.status} />
@@ -92,18 +112,34 @@ export default function IncidentReviewSheet({ incident, onClose, onUpdate }: Pro
             </div>
           )}
 
+          {incident.status === 'escalated' && (
+            <div className='bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3'>
+              <p className='text-xs text-red-400 font-semibold'>Escalated</p>
+              <p className='text-xs text-red-400/70 mt-0.5'>This incident has been flagged for escalation.</p>
+            </div>
+          )}
+
           {error && (
             <p className='text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 px-3 py-2 rounded-lg'>{error}</p>
           )}
 
-          {canSignOff && (
-            <button
-              onClick={() => { void handleSignOff() }}
-              disabled={signingOff}
-              className='w-full bg-indigo-600 text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
-            >
-              {signingOff ? 'Signing off…' : 'Sign off incident'}
-            </button>
+          {canAct && (
+            <div className='space-y-2'>
+              <button
+                onClick={() => { void handleSignOff() }}
+                disabled={signingOff || escalating}
+                className='w-full bg-indigo-600 text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
+              >
+                {signingOff ? 'Signing off…' : 'Sign off incident'}
+              </button>
+              <button
+                onClick={() => { void handleEscalate() }}
+                disabled={signingOff || escalating}
+                className='w-full bg-red-600/10 border border-red-500/30 text-red-400 rounded-xl py-3 text-sm font-semibold min-h-[44px] hover:bg-red-600/20 disabled:opacity-50 transition-colors'
+              >
+                {escalating ? 'Escalating…' : 'Escalate incident'}
+              </button>
+            </div>
           )}
         </div>
       </div>

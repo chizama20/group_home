@@ -16,4 +16,9 @@ export interface Incident {
   escalated_to: string | null
   created_at: string
   updated_at: string
+  // Joined fields returned by GET endpoints
+  resident_first?: string
+  resident_last?: string
+  reporter_first?: string
+  reporter_last?: string
 }
