@@ -16,6 +16,9 @@ interface ResidentBody {
   room?: string; diagnosis?: string; physician?: string;
   primary_contact_name?: string; primary_contact_phone?: string;
   primary_contact_relation?: string; notes?: string;
+  gender?: string; medicaid_id?: string; admit_date?: string;
+  hab_waiver?: boolean; loa_info?: string; sleep_hours?: number;
+  attends_day_program?: boolean; day_program_days_per_week?: number;
 }
 
 interface IposBody {
@@ -244,7 +247,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
   fastify.post<{ Params: HomeParam; Body: ResidentBody }>(
     '/:id/residents',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, managerOrAbove] },
     async (request, reply) => {
       const { id: created_by, org_id } = request.user;
       const homeId = request.params.id;
@@ -261,16 +264,30 @@ export default async (fastify: FastifyInstance): Promise<void> => {
         primary_contact_name, primary_contact_phone, primary_contact_relation, notes
       } = parsedResident.data;
 
+      const body = request.body as ResidentBody;
+      const gender                    = body.gender ?? null;
+      const medicaid_id               = body.medicaid_id ?? null;
+      const admit_date                = body.admit_date ?? null;
+      const hab_waiver                = body.hab_waiver ?? false;
+      const loa_info                  = body.loa_info ?? null;
+      const sleep_hours               = body.sleep_hours ?? null;
+      const attends_day_program       = body.attends_day_program ?? false;
+      const day_program_days_per_week = body.day_program_days_per_week ?? null;
+
       const id = uuidv4();
       await fastify.db.execute(
         `INSERT INTO residents
          (id, home_id, first_name, last_name, date_of_birth, room, diagnosis, physician,
-          primary_contact_name, primary_contact_phone, primary_contact_relation, notes, created_by)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          primary_contact_name, primary_contact_phone, primary_contact_relation, notes,
+          gender, medicaid_id, admit_date, hab_waiver, loa_info, sleep_hours,
+          attends_day_program, day_program_days_per_week, created_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [id, homeId, first_name, last_name, date_of_birth,
          room ?? null, diagnosis ?? null, physician ?? null,
          primary_contact_name ?? null, primary_contact_phone ?? null,
-         primary_contact_relation ?? null, notes ?? null, created_by]
+         primary_contact_relation ?? null, notes ?? null,
+         gender, medicaid_id, admit_date, hab_waiver ? 1 : 0, loa_info,
+         sleep_hours, attends_day_program ? 1 : 0, day_program_days_per_week, created_by]
       );
       return reply.code(201).send(success({ id }));
     }

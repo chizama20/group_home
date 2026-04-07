@@ -28,6 +28,28 @@ interface MedicationBody {
   instructions?: string;
   prescriber?: string;
 }
+interface ContactBody {
+  name: string;
+  relationship?: string;
+  phone?: string;
+  email?: string;
+  is_emergency_contact?: boolean;
+  notify_on_incident?: boolean;
+}
+interface GoalBody {
+  goal_type: 'cls' | 'pc';
+  code: string;
+  description?: string;
+}
+interface VitalsConfigBody {
+  vital_type: string;
+  label?: string;
+  frequency?: string;
+  meal_timing?: string;
+  target_min?: number;
+  target_max?: number;
+  unit?: string;
+}
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
@@ -44,10 +66,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     return reply.send(success(rows[0]));
   });
 
-  // ── PATCH /residents/:id — edit profile fields (org_admin only) ──────────
+  // ── PATCH /residents/:id — edit profile fields (manager+) ───────────────
   fastify.patch<{ Params: IdParam; Body: PatchBody }>(
     '/:id',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, managerOrAbove] },
     async (request, reply) => {
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
@@ -296,6 +318,177 @@ export default async (fastify: FastifyInstance): Promise<void> => {
         [request.params.id]
       );
       return reply.send(success(rows));
+    }
+  );
+
+  // ── POST /residents/:id/discharge — discharge resident (org_admin only) ──
+  fastify.post<{ Params: IdParam }>(
+    '/:id/discharge',
+    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    async (request, reply) => {
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
+      );
+      if (!rows[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      if (!await canAccessHome(fastify, request.user, rows[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      await fastify.db.execute(
+        'UPDATE residents SET is_active = 0, discharge_date = NOW(), discharged_by = ? WHERE id = ?',
+        [request.user.id, request.params.id]
+      );
+      return reply.send(success({ message: 'Resident discharged' }));
+    }
+  );
+
+  // ── GET /residents/:id/contacts — list contacts (all roles) ──────────────
+  fastify.get<{ Params: IdParam }>(
+    '/:id/contacts',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const [resident] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
+      );
+      if (!resident[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      if (!await canAccessHome(fastify, request.user, resident[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT * FROM resident_contacts WHERE resident_id = ? AND is_active = 1 ORDER BY name',
+        [request.params.id]
+      );
+      return reply.send(success(rows));
+    }
+  );
+
+  // ── POST /residents/:id/contacts — add contact (manager+) ────────────────
+  fastify.post<{ Params: IdParam; Body: ContactBody }>(
+    '/:id/contacts',
+    { preHandler: [fastify.authenticate, managerOrAbove] },
+    async (request, reply) => {
+      const { name, relationship, phone, email, is_emergency_contact, notify_on_incident } = request.body;
+
+      if (!name)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'name is required'));
+
+      const [resident] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
+      );
+      if (!resident[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      if (!await canAccessHome(fastify, request.user, resident[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      const id = uuidv4();
+      await fastify.db.execute(
+        `INSERT INTO resident_contacts
+         (id, resident_id, name, relationship, phone, email, is_emergency_contact, notify_on_incident)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, request.params.id, name, relationship ?? null, phone ?? null, email ?? null,
+         is_emergency_contact ? 1 : 0, notify_on_incident ? 1 : 0]
+      );
+      return reply.code(201).send(success({ id }));
+    }
+  );
+
+  // ── GET /residents/:id/goals — list goals (all roles) ────────────────────
+  fastify.get<{ Params: IdParam }>(
+    '/:id/goals',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const [resident] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
+      );
+      if (!resident[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      if (!await canAccessHome(fastify, request.user, resident[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT * FROM resident_goals WHERE resident_id = ? AND is_active = 1 ORDER BY goal_type, code',
+        [request.params.id]
+      );
+      return reply.send(success(rows));
+    }
+  );
+
+  // ── POST /residents/:id/goals — add goal (manager+) ──────────────────────
+  fastify.post<{ Params: IdParam; Body: GoalBody }>(
+    '/:id/goals',
+    { preHandler: [fastify.authenticate, managerOrAbove] },
+    async (request, reply) => {
+      const { goal_type, code, description } = request.body;
+
+      if (!goal_type || !code)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'goal_type and code are required'));
+
+      const [resident] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
+      );
+      if (!resident[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      if (!await canAccessHome(fastify, request.user, resident[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      const id = uuidv4();
+      await fastify.db.execute(
+        'INSERT INTO resident_goals (id, resident_id, goal_type, code, description) VALUES (?, ?, ?, ?, ?)',
+        [id, request.params.id, goal_type, code, description ?? null]
+      );
+      return reply.code(201).send(success({ id }));
+    }
+  );
+
+  // ── GET /residents/:id/vitals-config — list vitals config (all roles) ────
+  fastify.get<{ Params: IdParam }>(
+    '/:id/vitals-config',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const [resident] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
+      );
+      if (!resident[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      if (!await canAccessHome(fastify, request.user, resident[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT * FROM resident_vitals_config WHERE resident_id = ? AND is_active = 1 ORDER BY vital_type',
+        [request.params.id]
+      );
+      return reply.send(success(rows));
+    }
+  );
+
+  // ── POST /residents/:id/vitals-config — add vitals config (manager+) ─────
+  fastify.post<{ Params: IdParam; Body: VitalsConfigBody }>(
+    '/:id/vitals-config',
+    { preHandler: [fastify.authenticate, managerOrAbove] },
+    async (request, reply) => {
+      const { vital_type, label, frequency, meal_timing, target_min, target_max, unit } = request.body;
+
+      if (!vital_type)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'vital_type is required'));
+
+      const [resident] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
+      );
+      if (!resident[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      if (!await canAccessHome(fastify, request.user, resident[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      const id = uuidv4();
+      await fastify.db.execute(
+        `INSERT INTO resident_vitals_config
+         (id, resident_id, vital_type, label, frequency, meal_timing, target_min, target_max, unit)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, request.params.id, vital_type, label ?? null, frequency ?? null,
+         meal_timing ?? null, target_min ?? null, target_max ?? null, unit ?? null]
+      );
+      return reply.code(201).send(success({ id }));
     }
   );
 };
