@@ -50,6 +50,35 @@ interface VitalsConfigBody {
   target_max?: number;
   unit?: string;
 }
+interface IposLogBody {
+  shift: string;
+  goal_id?: string;
+  task_id_code?: string;
+  cls_minutes?: number;
+  pc_minutes?: number;
+  progress_code?: string;
+  narrative?: string;
+}
+interface VitalsLogBody {
+  vital_type: string;
+  value_primary: number;
+  value_secondary?: number;
+  unit?: string;
+  meal_timing?: string;
+  notes?: string;
+}
+interface VitalsLogQuery {
+  vital_type?: string;
+  from?: string;
+  to?: string;
+}
+interface DayProgramLogBody {
+  program_name: string;
+  program_address?: string;
+  transport_staff?: string;
+  transport_method?: string;
+  departed_at?: string;
+}
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
@@ -487,6 +516,178 @@ export default async (fastify: FastifyInstance): Promise<void> => {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [id, request.params.id, vital_type, label ?? null, frequency ?? null,
          meal_timing ?? null, target_min ?? null, target_max ?? null, unit ?? null]
+      );
+      return reply.code(201).send(success({ id }));
+    }
+  );
+
+  // ── POST /residents/:id/ipos-logs — create or contribute to today's IPOS log
+  fastify.post<{ Params: IdParam; Body: IposLogBody }>(
+    '/:id/ipos-logs',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { shift, goal_id, task_id_code, cls_minutes, pc_minutes, progress_code, narrative } = request.body;
+
+      if (!shift)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'shift is required'));
+
+      const [resident] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
+      );
+      if (!resident[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      if (!await canAccessHome(fastify, request.user, resident[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      const today = new Date().toISOString().split('T')[0];
+
+      const [existing] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM ipos_logs WHERE resident_id = ? AND log_date = ?',
+        [request.params.id, today]
+      );
+
+      let log_id: string;
+      if (existing[0]) {
+        log_id = existing[0].id;
+      } else {
+        log_id = uuidv4();
+        await fastify.db.execute(
+          'INSERT INTO ipos_logs (id, resident_id, home_id, log_date, status) VALUES (?, ?, ?, ?, ?)',
+          [log_id, request.params.id, resident[0].home_id, today, 'draft']
+        );
+      }
+
+      const entry_id = uuidv4();
+      await fastify.db.execute(
+        `INSERT INTO ipos_entries
+         (id, log_id, user_id, shift, goal_id, task_id_code, cls_minutes, pc_minutes, progress_code, narrative)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [entry_id, log_id, request.user.id, shift,
+         goal_id ?? null, task_id_code ?? null, cls_minutes ?? null,
+         pc_minutes ?? null, progress_code ?? null, narrative ?? null]
+      );
+      return reply.code(201).send(success({ log_id, entry_id }));
+    }
+  );
+
+  // ── GET /residents/:id/vitals — list vitals logs ──────────────────────────
+  fastify.get<{ Params: IdParam; Querystring: VitalsLogQuery }>(
+    '/:id/vitals',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const [resident] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
+      );
+      if (!resident[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      if (!await canAccessHome(fastify, request.user, resident[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      const { vital_type, from, to } = request.query;
+      const conditions: string[] = ['resident_id = ?'];
+      const values: (string | number)[] = [request.params.id];
+
+      if (vital_type) { conditions.push('vital_type = ?');          values.push(vital_type); }
+      if (from)       { conditions.push('created_at >= ?');          values.push(from); }
+      if (to)         { conditions.push('created_at <= ?');          values.push(to); }
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT * FROM vitals_logs WHERE ${conditions.join(' AND ')} ORDER BY created_at DESC`,
+        values
+      );
+      return reply.send(success(rows));
+    }
+  );
+
+  // ── POST /residents/:id/vitals — record a vital ───────────────────────────
+  fastify.post<{ Params: IdParam; Body: VitalsLogBody }>(
+    '/:id/vitals',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { vital_type, value_primary, value_secondary, unit, meal_timing, notes } = request.body;
+
+      if (!vital_type || value_primary === undefined)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'vital_type and value_primary are required'));
+
+      const [resident] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
+      );
+      if (!resident[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      if (!await canAccessHome(fastify, request.user, resident[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      const [config] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT target_min, target_max FROM resident_vitals_config WHERE resident_id = ? AND vital_type = ? AND is_active = 1',
+        [request.params.id, vital_type]
+      );
+
+      let is_flagged = 0;
+      if (config[0]) {
+        const { target_min, target_max } = config[0];
+        if (value_primary < target_min || value_primary > target_max) is_flagged = 1;
+      }
+
+      const id = uuidv4();
+      await fastify.db.execute(
+        `INSERT INTO vitals_logs
+         (id, resident_id, home_id, recorded_by, vital_type, value_primary, value_secondary, unit, meal_timing, notes, is_flagged)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, request.params.id, resident[0].home_id, request.user.id,
+         vital_type, value_primary, value_secondary ?? null,
+         unit ?? null, meal_timing ?? null, notes ?? null, is_flagged]
+      );
+      return reply.code(201).send(success({ id, is_flagged }));
+    }
+  );
+
+  // ── GET /residents/:id/day-program-logs — list day program logs ───────────
+  fastify.get<{ Params: IdParam }>(
+    '/:id/day-program-logs',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const [resident] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
+      );
+      if (!resident[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      if (!await canAccessHome(fastify, request.user, resident[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT * FROM day_program_logs WHERE resident_id = ? ORDER BY departed_at DESC',
+        [request.params.id]
+      );
+      return reply.send(success(rows));
+    }
+  );
+
+  // ── POST /residents/:id/day-program-logs — log day program departure ──────
+  fastify.post<{ Params: IdParam; Body: DayProgramLogBody }>(
+    '/:id/day-program-logs',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { program_name, program_address, transport_staff, transport_method, departed_at } = request.body;
+
+      if (!program_name)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'program_name is required'));
+
+      const [resident] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
+      );
+      if (!resident[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      if (!await canAccessHome(fastify, request.user, resident[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      const id = uuidv4();
+      const departedAt = departed_at ?? new Date().toISOString();
+      await fastify.db.execute(
+        `INSERT INTO day_program_logs
+         (id, resident_id, home_id, program_name, program_address, transport_staff, transport_method, departed_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, request.params.id, resident[0].home_id, program_name,
+         program_address ?? null, transport_staff ?? null, transport_method ?? null, departedAt]
       );
       return reply.code(201).send(success({ id }));
     }

@@ -51,7 +51,8 @@
       "Bash(python3 ~/.claude/skills/ui-ux-pro-max/scripts/search.py \"e-commerce\" --design-system)",
       "Bash(claude mcp:*)",
       "Bash(find src:*)",
-      "Bash(./node_modules/.bin/tsc --noEmit)"
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(node_modules/.bin/tsc --noEmit)"
     ]
   }
 }

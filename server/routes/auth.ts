@@ -6,11 +6,13 @@ import { success, failure } from '../utils/response';
 import { sendPasswordResetEmail, sendWelcomeEmail } from '../services/email';
 import { validate, loginSchema, forgotPasswordSchema, resetPasswordSchema, acceptInviteSchema } from '../schemas';
 import { logAudit } from '../utils/audit';
+import { canAccessHome } from '../utils/homeAccess';
 
 interface LoginBody         { email: string; password: string; }
 interface SignupBody         { organizationName: string; first_name: string; last_name: string; email: string; password: string; }
 interface ForgotPasswordBody { email: string; }
 interface ResetPasswordBody  { password: string; }
+interface ShiftSelectBody    { home_id: string; shifts: string[]; }
 
 const COOKIE_OPTS = {
   httpOnly: true,
@@ -324,5 +326,27 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     } finally {
       conn.release();
     }
+  });
+
+  // ── POST /auth/shift-select — record shift selection for the day ─────────
+  fastify.post<{ Body: ShiftSelectBody }>('/shift-select', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { home_id, shifts } = request.body;
+
+    if (!home_id || !shifts || !Array.isArray(shifts) || shifts.length === 0)
+      return reply.code(400).send(failure('MISSING_FIELDS', 'home_id and a non-empty shifts array are required'));
+
+    if (!await canAccessHome(fastify, request.user, home_id))
+      return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+    const selection_date = new Date().toISOString().split('T')[0];
+    const id = uuidv4();
+
+    await fastify.db.execute(
+      `INSERT INTO shift_selections (id, user_id, home_id, selection_date, shifts)
+       VALUES (?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE shifts = VALUES(shifts), selected_at = NOW()`,
+      [id, request.user.id, home_id, selection_date, JSON.stringify(shifts)]
+    );
+    return reply.send(success({ message: 'Shift selection recorded' }));
   });
 };
