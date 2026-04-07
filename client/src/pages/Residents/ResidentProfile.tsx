@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, Pencil, Archive } from 'lucide-react'
 import type { Resident } from '../../types/resident'
-import { getResident, archiveResident } from '../../api/residents'
+import { getResident, dischargeResident } from '../../api/residents'
 import { useRole } from '../../utils/role'
 import { cn } from '../../lib/cn'
 import AddAppointmentForm from '../../components/AddAppointmentForm'
@@ -14,7 +14,7 @@ import LogsTab         from './tabs/LogsTab'
 import AppointmentsTab from './tabs/AppointmentsTab'
 import IncidentsTab    from './tabs/IncidentsTab'
 
-const TABS = ['info', 'meds', 'logs', 'appointments', 'incidents'] as const
+const TABS = ['info', 'meds', 'logs', 'appointments', 'incidents', 'mar'] as const
 type Tab = typeof TABS[number]
 
 const TAB_LABELS: Record<Tab, string> = {
@@ -23,6 +23,18 @@ const TAB_LABELS: Record<Tab, string> = {
   logs:         'Logs',
   appointments: 'Appointments',
   incidents:    'Incidents',
+  mar:          'MAR',
+}
+
+function MARTab() {
+  return (
+    <div className='p-4'>
+      <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 text-center'>
+        <p className='text-sm font-medium text-zinc-900 dark:text-white mb-1'>MAR coming in Phase 3</p>
+        <p className='text-xs text-zinc-500 dark:text-zinc-400'>Medication Administration Records will be available here.</p>
+      </div>
+    </div>
+  )
 }
 
 function getInitials(first: string, last: string) {
@@ -47,7 +59,7 @@ export default function ResidentProfile() {
   async function handleArchive() {
     if (!resident) return
     setArchiving(true)
-    try { await archiveResident(resident.id); navigate(-1) }
+    try { await dischargeResident(resident.id); navigate(-1) }
     catch { setArchiving(false); setShowArchiveConfirm(false) }
   }
 
@@ -141,7 +153,7 @@ export default function ResidentProfile() {
             className='flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-red-200 dark:border-red-900/40 text-red-500 text-sm font-medium px-4 py-2 rounded-xl min-h-[40px] disabled:opacity-50'
           >
             <Archive className='h-4 w-4' />
-            {archiving ? 'Archiving…' : 'Archive'}
+            {archiving ? 'Discharging…' : 'Discharge'}
           </button>
         </div>
       )}
@@ -181,6 +193,7 @@ export default function ResidentProfile() {
       {tab === 'incidents' && (
         <IncidentsTab residentId={resident.id} homeId={resident.home_id} />
       )}
+      {tab === 'mar' && <MARTab />}
 
       {/* Edit resident form */}
       {showEdit && (
@@ -205,12 +218,12 @@ export default function ResidentProfile() {
         />
       )}
 
-      {/* Archive confirmation dialog */}
+      {/* Discharge confirmation dialog */}
       <ConfirmDialog
         open={showArchiveConfirm}
-        title={`Archive ${resident.first_name} ${resident.last_name}?`}
-        description="This will mark them as inactive. They will no longer appear in active resident lists."
-        confirmLabel="Archive"
+        title={`Discharge ${resident.first_name} ${resident.last_name}?`}
+        description="This will mark them as discharged and remove them from the active residents list."
+        confirmLabel="Discharge"
         confirmVariant="destructive"
         onConfirm={() => { void handleArchive() }}
         onCancel={() => setShowArchiveConfirm(false)}
