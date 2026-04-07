@@ -293,6 +293,71 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
+  // ── GET /:id/ipos-logs — list structured IPOS logs for a home ───────────
+  fastify.get<{ Params: HomeParam; Querystring: { date?: string; status?: string; resident_id?: string } }>(
+    '/:id/ipos-logs',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, request.params.id))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const { date, status, resident_id } = request.query;
+      const conditions: string[] = ['il.home_id = ?'];
+      const values: string[] = [request.params.id];
+
+      if (date)        { conditions.push('il.log_date = ?');     values.push(date); }
+      if (status)      { conditions.push('il.status = ?');       values.push(status); }
+      if (resident_id) { conditions.push('il.resident_id = ?'); values.push(resident_id); }
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT il.*, r.first_name as resident_first, r.last_name as resident_last
+         FROM ipos_logs il
+         JOIN residents r ON il.resident_id = r.id
+         WHERE ${conditions.join(' AND ')}
+         ORDER BY il.log_date DESC`,
+        values
+      );
+      return reply.send(success(rows));
+    }
+  );
+
+  // ── GET /:id/ipos-logs/review-queue — submitted logs pending manager review
+  fastify.get<{ Params: HomeParam }>(
+    '/:id/ipos-logs/review-queue',
+    { preHandler: [fastify.authenticate, managerOrAbove] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, request.params.id))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT il.*, r.first_name as resident_first, r.last_name as resident_last,
+                COUNT(ie.id) as entry_count,
+                GROUP_CONCAT(DISTINCT CONCAT(u.first_name, ' ', u.last_name)) as staff_names,
+                GROUP_CONCAT(DISTINCT ie.shift) as shifts_covered,
+                DATEDIFF(DATE_ADD(il.log_date, INTERVAL 7 DAY), CURDATE()) as days_remaining
+         FROM ipos_logs il
+         JOIN residents r ON il.resident_id = r.id
+         LEFT JOIN ipos_entries ie ON ie.log_id = il.id
+         LEFT JOIN users u ON ie.user_id = u.id
+         WHERE il.home_id = ? AND il.status = 'submitted'
+         GROUP BY il.id
+         ORDER BY il.log_date ASC`,
+        [request.params.id]
+      );
+      return reply.send(success(rows));
+    }
+  );
+
   // ═══════════════════════════════════════════════════════════════════════════
   // MEDICATIONS
   // ═══════════════════════════════════════════════════════════════════════════

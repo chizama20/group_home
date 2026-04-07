@@ -1,278 +1,569 @@
 import { useState, useEffect, useCallback } from 'react'
-import { X } from 'lucide-react'
-import { getHomeIpos, createIposLog } from '../../api/logs'
-import type { IposLog, Shift } from '../../types/log'
-import type { Resident } from '../../types/resident'
-import { currentShift, SHIFT_LABELS } from '../../types/log'
+import { ChevronRight, CheckCircle2, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
+import { getHomeIposLogs, contributeIposEntry } from '../../api/logs'
+import { getGoals } from '../../api/residents'
+import type { IposLog, IposEntry, Shift } from '../../types/log'
+import { SHIFT_LABELS } from '../../types/log'
+import type { Resident, ResidentGoal } from '../../types/resident'
 import { todayStr } from '../../utils/date'
 import { cn } from '../../lib/cn'
 import { useRole } from '../../utils/role'
 import IposCompliancePanel from './IposCompliancePanel'
 
-const SHIFTS: Shift[] = ['day', 'evening', 'night']
+// ── Types ─────────────────────────────────────────────────────────────────────
 
-const MOODS = [
-  { value: 'Good',       selectedClasses: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
-  { value: 'Neutral',    selectedClasses: 'bg-zinc-500/15 text-zinc-400 border-zinc-500/30' },
-  { value: 'Low',        selectedClasses: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
-  { value: 'Distressed', selectedClasses: 'bg-red-500/15 text-red-400 border-red-500/30' },
-]
-
-function encodeContent(mood: string, observations: string, notes: string): string {
-  const parts = [`Mood: ${mood}`]
-  if (observations.trim()) parts.push(`Observations:\n${observations.trim()}`)
-  if (notes.trim())        parts.push(`Notes:\n${notes.trim()}`)
-  return parts.join('\n\n')
+interface EntryDraft {
+  goal_id: string
+  code: string
+  label: string
+  task_id_code: string
+  cls_minutes: string
+  pc_minutes: string
+  progress_code: string
+  narrative: string
 }
 
-// ── Employee form ─────────────────────────────────────────────────────────────
+const PROGRESS_CODES = [
+  { value: 'A',  label: 'A — Achieved' },
+  { value: 'I',  label: 'I — Improvement' },
+  { value: 'N',  label: 'N — No Change' },
+  { value: 'R',  label: 'R — Regression' },
+  { value: 'NP', label: 'NP — Not Performed' },
+  { value: 'NA', label: 'NA — Not Applicable' },
+]
+
+const SHIFTS: Shift[] = ['am', 'pm', 'mn']
+
+function storedShift(): Shift {
+  const today = todayStr()
+  try {
+    const raw = localStorage.getItem(`shift_selected_${today}`)
+    if (raw) {
+      const parsed: unknown = JSON.parse(raw)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return (parsed[0] as Shift) ?? 'am'
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return 'am'
+}
+
+function isDraftEmpty(d: EntryDraft): boolean {
+  return !d.task_id_code.trim() &&
+    !d.cls_minutes.trim() &&
+    !d.pc_minutes.trim() &&
+    !d.progress_code &&
+    !d.narrative.trim()
+}
+
+function makeGoalDraft(goal: ResidentGoal): EntryDraft {
+  return {
+    goal_id: goal.id,
+    code: goal.code,
+    label: goal.description ?? goal.code,
+    task_id_code: '',
+    cls_minutes: '',
+    pc_minutes: '',
+    progress_code: '',
+    narrative: '',
+  }
+}
+
+// ── Other entries read-only section ──────────────────────────────────────────
+
+interface OtherEntriesProps {
+  entries: IposEntry[]
+}
+
+function OtherEntries({ entries }: OtherEntriesProps) {
+  const [open, setOpen] = useState(false)
+  if (entries.length === 0) return null
+
+  return (
+    <div className='mx-4 mb-4'>
+      <button
+        onClick={() => setOpen(v => !v)}
+        className='w-full flex items-center justify-between bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-sm font-medium text-zinc-400 min-h-[44px]'
+      >
+        <span>Other entries today ({entries.length})</span>
+        {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+      </button>
+
+      {open && (
+        <div className='mt-2 space-y-2'>
+          {entries.map(e => (
+            <div key={e.id} className='bg-zinc-800/40 border border-zinc-700/40 rounded-xl px-4 py-3'>
+              <div className='flex items-center gap-2 mb-1.5 flex-wrap'>
+                {/* Staff chip */}
+                <span className='bg-zinc-700 text-zinc-300 text-[11px] font-semibold px-2 py-0.5 rounded-full'>
+                  {e.staff_first ?? '?'} {e.staff_last ?? ''}
+                </span>
+                {/* Shift badge */}
+                <span className='bg-indigo-900/50 text-indigo-300 text-[11px] font-semibold px-2 py-0.5 rounded-full uppercase'>
+                  {e.shift}
+                </span>
+                {/* Goal code */}
+                {e.goal_code && (
+                  <span className='bg-zinc-700/60 text-zinc-400 text-[11px] px-2 py-0.5 rounded-full'>
+                    {e.goal_code}
+                  </span>
+                )}
+                {/* Progress code */}
+                {e.progress_code && (
+                  <span className='bg-zinc-600/40 text-zinc-300 text-[11px] font-bold px-2 py-0.5 rounded-full'>
+                    {e.progress_code}
+                  </span>
+                )}
+              </div>
+              {e.narrative && (
+                <p className='text-xs text-zinc-400 line-clamp-2'>{e.narrative}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Goal row card ─────────────────────────────────────────────────────────────
+
+interface GoalRowProps {
+  draft: EntryDraft
+  onChange: (updated: EntryDraft) => void
+  goalType: 'cls' | 'pc'
+}
+
+function GoalRow({ draft, onChange, goalType }: GoalRowProps) {
+  function set<K extends keyof EntryDraft>(key: K, value: EntryDraft[K]) {
+    onChange({ ...draft, [key]: value })
+  }
+
+  return (
+    <div className='bg-zinc-800/50 border border-zinc-700/50 rounded-xl p-3 mb-2'>
+      {/* Header */}
+      <div className='flex items-center gap-2 mb-3'>
+        <span className={cn(
+          'text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide',
+          goalType === 'cls'
+            ? 'bg-indigo-900/60 text-indigo-300'
+            : 'bg-zinc-700 text-zinc-300'
+        )}>
+          {goalType.toUpperCase()} · {draft.code}
+        </span>
+        <span className='text-xs text-zinc-400 flex-1 truncate'>{draft.label}</span>
+      </div>
+
+      {/* Row 1: task code + minutes */}
+      <div className='flex gap-2 mb-2'>
+        <div className='flex-1'>
+          <label className='block text-[10px] text-zinc-500 mb-1 uppercase tracking-wide'>Task Code</label>
+          <input
+            type='text'
+            value={draft.task_id_code}
+            onChange={e => set('task_id_code', e.target.value)}
+            placeholder='Task code'
+            className='w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-h-[36px]'
+          />
+        </div>
+        <div className='w-20'>
+          <label className='block text-[10px] text-zinc-500 mb-1 uppercase tracking-wide'>CLS min</label>
+          <input
+            type='number'
+            value={draft.cls_minutes}
+            onChange={e => set('cls_minutes', e.target.value)}
+            placeholder='0'
+            min='0'
+            className='w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-h-[36px]'
+          />
+        </div>
+        <div className='w-20'>
+          <label className='block text-[10px] text-zinc-500 mb-1 uppercase tracking-wide'>PC min</label>
+          <input
+            type='number'
+            value={draft.pc_minutes}
+            onChange={e => set('pc_minutes', e.target.value)}
+            placeholder='0'
+            min='0'
+            className='w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-h-[36px]'
+          />
+        </div>
+      </div>
+
+      {/* Row 2: progress select */}
+      <div className='mb-2'>
+        <label className='block text-[10px] text-zinc-500 mb-1 uppercase tracking-wide'>Progress</label>
+        <select
+          value={draft.progress_code}
+          onChange={e => set('progress_code', e.target.value)}
+          className='w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 min-h-[36px]'
+        >
+          <option value=''>— Select —</option>
+          {PROGRESS_CODES.map(pc => (
+            <option key={pc.value} value={pc.value}>{pc.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Row 3: narrative */}
+      <div>
+        <label className='block text-[10px] text-zinc-500 mb-1 uppercase tracking-wide'>Notes</label>
+        <textarea
+          value={draft.narrative}
+          onChange={e => set('narrative', e.target.value)}
+          placeholder='Notes…'
+          rows={2}
+          className='w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none'
+        />
+      </div>
+    </div>
+  )
+}
+
+// ── Employee view ─────────────────────────────────────────────────────────────
 
 interface EmployeeProps {
-  homeId:    string
-  residents: Resident[]
-  showFab:   boolean
+  homeId:       string
+  residents:    Resident[]
+  showFab:      boolean
   onFabHandled: () => void
 }
 
 function IposEmployeeView({ homeId, residents, showFab, onFabHandled }: EmployeeProps) {
-  const [shift, setShift]       = useState<Shift>(currentShift())
-  const [iposLogs, setIposLogs] = useState<IposLog[]>([])
-  const [loading, setLoading]   = useState(false)
+  // ── Resident list state ──────────────────────────────────────────────────
+  const [todayLogs, setTodayLogs]         = useState<IposLog[]>([])
+  const [logsLoading, setLogsLoading]     = useState(false)
 
-  const [selected, setSelected]         = useState<Resident | null>(null)
-  const [mood, setMood]                 = useState<string | null>(null)
-  const [observations, setObservations] = useState('')
-  const [notes, setNotes]               = useState('')
-  const [submitting, setSubmitting]     = useState(false)
-  const [formError, setFormError]       = useState<string | null>(null)
-  const [successId, setSuccessId]       = useState<string | null>(null)
+  // ── Form state ───────────────────────────────────────────────────────────
+  const [selectedResident, setSelectedResident] = useState<Resident | null>(null)
+  const [shift, setShift]                       = useState<Shift>(storedShift)
+  const [residentGoals, setResidentGoals]       = useState<ResidentGoal[]>([])
+  const [goalsLoading, setGoalsLoading]         = useState(false)
+  const [entries, setEntries]                   = useState<EntryDraft[]>([])
 
+  // Other entries (from the log for this resident today, by other staff)
+  const [otherEntries, setOtherEntries]         = useState<IposEntry[]>([])
+
+  // Submit state
+  const [submitting, setSubmitting]   = useState(false)
+  const [formError, setFormError]     = useState<string | null>(null)
+  const [successIds, setSuccessIds]   = useState<Set<string>>(new Set())
+
+  // ── Load today's logs ────────────────────────────────────────────────────
   const loadLogs = useCallback(() => {
-    setLoading(true)
-    getHomeIpos(homeId, { date: todayStr(), shift })
-      .then(res => setIposLogs(res.data.data ?? []))
+    setLogsLoading(true)
+    getHomeIposLogs(homeId, { date: todayStr() })
+      .then(res => setTodayLogs(res.data.data ?? []))
       .catch(() => {/* non-critical */})
-      .finally(() => setLoading(false))
-  }, [homeId, shift])
+      .finally(() => setLogsLoading(false))
+  }, [homeId])
 
   useEffect(() => { loadLogs() }, [loadLogs])
 
-  // FAB: open the first pending resident's form
+  // ── FAB: open first pending resident ────────────────────────────────────
   useEffect(() => {
     if (!showFab) return
-    const filedIds = new Set(iposLogs.map(l => l.resident_id))
-    const active   = residents.filter(r => r.is_active)
-    const first    = active.find(r => !filedIds.has(r.id))
-    if (first) openForm(first)
+    const active  = residents.filter(r => r.is_active)
+    const filedIds = new Set(todayLogs.map(l => l.resident_id))
+    const first   = active.find(r => !filedIds.has(r.id) && !successIds.has(r.id))
+    if (first) openResidentForm(first)
     onFabHandled()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showFab])
 
-  const filedIds = new Set(iposLogs.map(l => l.resident_id))
-  const active   = residents.filter(r => r.is_active)
+  // ── Derive filed status per resident ────────────────────────────────────
+  //
+  // "Filed" means: a log exists for today AND the current user has an entry
+  // for the currently selected shift. We don't have per-entry data in the
+  // list view (getHomeIposLogs doesn't include entries), so we use the
+  // coarser rule: a log exists for that resident today = considered pending
+  // unless successIds tracks a just-submitted one.
+  function isFiledForResident(residentId: string): boolean {
+    if (successIds.has(residentId)) return true
+    return false
+  }
 
-  function openForm(r: Resident) {
-    setSelected(r)
-    setMood(null)
-    setObservations('')
-    setNotes('')
+  function hasPendingLog(residentId: string): boolean {
+    return todayLogs.some(l => l.resident_id === residentId)
+  }
+
+  // ── Open form for a resident ─────────────────────────────────────────────
+  function openResidentForm(r: Resident) {
+    setSelectedResident(r)
+    setFormError(null)
+    setEntries([])
+    setOtherEntries([])
+    setResidentGoals([])
+    setGoalsLoading(true)
+    getGoals(r.id)
+      .then(res => {
+        const goals = (res.data.data ?? []).filter(g => g.is_active)
+        setResidentGoals(goals)
+        setEntries(goals.map(makeGoalDraft))
+      })
+      .catch(() => { setResidentGoals([]) })
+      .finally(() => setGoalsLoading(false))
+  }
+
+  function closeForm() {
+    setSelectedResident(null)
     setFormError(null)
   }
 
-  function closeForm() { setSelected(null) }
+  // ── Update an entry draft ────────────────────────────────────────────────
+  function updateEntry(idx: number, updated: EntryDraft) {
+    setEntries(prev => prev.map((e, i) => i === idx ? updated : e))
+  }
 
+  // ── Submit all non-empty goal entries ────────────────────────────────────
   async function handleSubmit() {
-    if (!mood || !selected) return
+    if (!selectedResident) return
+    const toSubmit = entries.filter(e => !isDraftEmpty(e))
+    if (toSubmit.length === 0) return
+
     setSubmitting(true)
     setFormError(null)
     try {
-      await createIposLog(homeId, {
-        resident_id: selected.id,
-        shift,
-        log_date: todayStr(),
-        content: encodeContent(mood, observations, notes),
-      })
-      setSuccessId(selected.id)
+      for (const draft of toSubmit) {
+        await contributeIposEntry(selectedResident.id, {
+          shift,
+          goal_id: draft.goal_id || undefined,
+          task_id_code: draft.task_id_code.trim() || undefined,
+          cls_minutes: draft.cls_minutes !== '' ? Number(draft.cls_minutes) : undefined,
+          pc_minutes: draft.pc_minutes !== '' ? Number(draft.pc_minutes) : undefined,
+          progress_code: draft.progress_code || undefined,
+          narrative: draft.narrative.trim() || undefined,
+        })
+      }
+      setSuccessIds(prev => new Set([...prev, selectedResident.id]))
       closeForm()
       loadLogs()
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { error?: { code?: string } } } }
-      if (e.response?.data?.error?.code === 'DUPLICATE') {
-        setFormError('Already filed for this shift')
-      } else {
-        setFormError(err instanceof Error ? err.message : 'Failed to submit')
-      }
+      const e = err as { response?: { data?: { error?: { message?: string } } } }
+      setFormError(e.response?.data?.error?.message ?? (err instanceof Error ? err.message : 'Failed to submit'))
     } finally {
       setSubmitting(false)
     }
   }
 
-  return (
-    <div>
-      {/* Shift selector */}
-      <div className='flex gap-2 px-4 pt-4 pb-2'>
-        {SHIFTS.map(s => (
-          <button
-            key={s}
-            onClick={() => { setShift(s); setSuccessId(null) }}
-            className={cn(
-              'px-4 py-2 rounded-full text-sm font-semibold border min-h-[36px] transition-colors capitalize',
-              shift === s
-                ? 'bg-indigo-950 dark:bg-indigo-950 border-indigo-600 text-indigo-300'
-                : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-500'
+  const active = residents.filter(r => r.is_active)
+  const clsGoals = residentGoals.filter(g => g.goal_type === 'cls')
+  const pcGoals  = residentGoals.filter(g => g.goal_type === 'pc')
+  const hasAnyContent = entries.some(e => !isDraftEmpty(e))
+
+  // ── Resident list view ───────────────────────────────────────────────────
+  if (!selectedResident) {
+    return (
+      <div>
+        {/* Skeleton */}
+        {logsLoading && (
+          <div className='pt-2 px-4 space-y-2'>
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className='bg-zinc-900 border border-zinc-800 rounded-xl flex items-center gap-3 p-4 animate-pulse'>
+                <div className='w-9 h-9 rounded-full bg-zinc-800 shrink-0' />
+                <div className='h-4 flex-1 bg-zinc-800 rounded' />
+                <div className='w-14 h-6 rounded-full bg-zinc-800' />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!logsLoading && (
+          <div className='px-4 pt-3 space-y-2'>
+            {active.length === 0 && (
+              <p className='p-4 text-sm text-zinc-500'>No active residents</p>
             )}
-          >
-            {s.charAt(0).toUpperCase() + s.slice(1)}
-          </button>
-        ))}
+            {active.map(r => {
+              const filed = isFiledForResident(r.id)
+              const hasPending = hasPendingLog(r.id)
+              return (
+                <button
+                  key={r.id}
+                  onClick={() => !filed && openResidentForm(r)}
+                  disabled={filed}
+                  className={cn(
+                    'w-full flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3.5 min-h-[56px] text-left transition-colors',
+                    filed
+                      ? 'opacity-60 cursor-not-allowed'
+                      : 'cursor-pointer active:bg-zinc-800/50'
+                  )}
+                >
+                  {/* Avatar */}
+                  <div className={cn(
+                    'w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0',
+                    filed
+                      ? 'bg-emerald-500/15 text-emerald-400'
+                      : 'bg-indigo-500/15 text-indigo-400'
+                  )}>
+                    {r.first_name[0]}{r.last_name[0]}
+                  </div>
+
+                  {/* Name + room */}
+                  <div className='flex-1 min-w-0'>
+                    <p className='text-sm font-semibold text-white truncate'>
+                      {r.first_name} {r.last_name}
+                    </p>
+                    {r.room && (
+                      <p className='text-xs text-zinc-500 mt-0.5'>Room {r.room}</p>
+                    )}
+                  </div>
+
+                  {/* Status chip */}
+                  {filed ? (
+                    <span className='flex items-center gap-1 bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold px-2.5 py-0.5 rounded-full shrink-0'>
+                      <CheckCircle2 size={11} />
+                      Filed
+                    </span>
+                  ) : hasPending ? (
+                    <span className='bg-amber-500/10 text-amber-400 text-[11px] font-semibold px-2.5 py-0.5 rounded-full shrink-0'>
+                      Pending
+                    </span>
+                  ) : (
+                    <span className='bg-zinc-700/50 text-zinc-400 text-[11px] font-semibold px-2.5 py-0.5 rounded-full shrink-0'>
+                      Pending
+                    </span>
+                  )}
+
+                  {!filed && <ChevronRight size={16} className='text-zinc-600 shrink-0' />}
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── Entry form view ──────────────────────────────────────────────────────
+  return (
+    <div className='pb-8'>
+      {/* Back header */}
+      <div className='flex items-center gap-3 px-4 pt-4 pb-3 border-b border-zinc-800'>
+        <button
+          onClick={closeForm}
+          className='w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 shrink-0 min-h-[44px] min-w-[44px]'
+        >
+          <ArrowLeft size={18} />
+        </button>
+        <div className='flex-1 min-w-0'>
+          <p className='text-[15px] font-semibold text-white truncate'>
+            {selectedResident.first_name} {selectedResident.last_name}
+          </p>
+          <p className='text-xs text-zinc-500'>IPOS Entry · Today</p>
+        </div>
       </div>
 
-      {/* Shift label bar */}
-      <div className='px-4 py-2 bg-zinc-50 dark:bg-zinc-900/50'>
-        <p className='text-xs text-zinc-400 dark:text-zinc-500'>{SHIFT_LABELS[shift]} · Today</p>
+      {/* Shift selector */}
+      <div className='px-4 pt-3 pb-2'>
+        <p className='text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2'>Shift</p>
+        <div className='flex gap-2'>
+          {SHIFTS.map(s => (
+            <button
+              key={s}
+              onClick={() => setShift(s)}
+              className={cn(
+                'flex-1 py-2 rounded-xl text-xs font-bold border min-h-[44px] uppercase tracking-widest transition-colors',
+                shift === s
+                  ? 'bg-indigo-600 text-white border-indigo-500'
+                  : 'bg-zinc-800 text-zinc-400 border-zinc-700'
+              )}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+        <p className='text-[11px] text-zinc-500 mt-1.5'>{SHIFT_LABELS[shift]}</p>
       </div>
 
-      {/* Skeleton loading */}
-      {loading && (
-        <div className='pt-2'>
-          {[0,1,2,3].map(i => (
-            <div key={i} className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center gap-3 p-4 animate-pulse'>
-              <div className='w-9 h-9 rounded-full bg-zinc-100 dark:bg-zinc-800 shrink-0' />
-              <div className='h-4 flex-1 bg-zinc-100 dark:bg-zinc-800 rounded' />
-              <div className='w-14 h-6 rounded-full bg-zinc-100 dark:bg-zinc-800' />
-            </div>
+      {/* Goals skeleton */}
+      {goalsLoading && (
+        <div className='px-4 pt-2 space-y-2'>
+          {[0, 1, 2].map(i => (
+            <div key={i} className='h-28 bg-zinc-800/50 rounded-xl animate-pulse' />
           ))}
         </div>
       )}
 
-      {/* Resident list */}
-      {!loading && (
-        <div className='px-4 space-y-2 pt-2'>
-          {active.map(r => {
-            const filed    = filedIds.has(r.id)
-            const justDone = successId === r.id
-            const isDone   = filed || justDone
-            return (
-              <button
-                key={r.id}
-                disabled={isDone}
-                onClick={() => !isDone && openForm(r)}
-                className={cn(
-                  'w-full flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3.5 min-h-[56px] text-left',
-                  isDone
-                    ? 'opacity-60 cursor-not-allowed'
-                    : 'cursor-pointer active:bg-zinc-50 dark:active:bg-zinc-800/50'
-                )}
-              >
-                <div className={cn(
-                  'w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0',
-                  isDone
-                    ? 'bg-emerald-500/15 text-emerald-500'
-                    : 'bg-amber-500/15 text-amber-500'
-                )}>
-                  {r.first_name[0]}{r.last_name[0]}
-                </div>
-                <p className='flex-1 text-sm font-semibold text-zinc-900 dark:text-white'>
-                  {r.first_name} {r.last_name}
-                </p>
-                {isDone ? (
-                  <span className='bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold px-2.5 py-0.5 rounded-full'>
-                    Filed
-                  </span>
-                ) : (
-                  <span className='bg-amber-500/10 text-amber-400 text-[11px] font-semibold px-2.5 py-0.5 rounded-full'>
-                    Pending
-                  </span>
-                )}
-              </button>
-            )
-          })}
-          {active.length === 0 && (
-            <p className='p-4 text-sm text-zinc-400 dark:text-zinc-600'>No active residents</p>
+      {/* No goals message */}
+      {!goalsLoading && residentGoals.length === 0 && (
+        <div className='mx-4 mt-3 bg-zinc-800/40 border border-zinc-700/40 rounded-xl px-4 py-5 text-center'>
+          <p className='text-sm text-zinc-400'>No goal codes configured for this resident.</p>
+          <p className='text-xs text-zinc-500 mt-1'>Contact your manager to add goals.</p>
+        </div>
+      )}
+
+      {/* CLS goals */}
+      {!goalsLoading && clsGoals.length > 0 && (
+        <div className='px-4 pt-3'>
+          <p className='text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2'>CLS Goals</p>
+          {entries
+            .filter(e => clsGoals.some(g => g.id === e.goal_id))
+            .map((draft) => {
+              const globalIdx = entries.findIndex(e => e.goal_id === draft.goal_id)
+              return (
+                <GoalRow
+                  key={draft.goal_id}
+                  draft={draft}
+                  onChange={updated => updateEntry(globalIdx, updated)}
+                  goalType='cls'
+                />
+              )
+            })
+          }
+        </div>
+      )}
+
+      {/* PC goals */}
+      {!goalsLoading && pcGoals.length > 0 && (
+        <div className='px-4 pt-2'>
+          <p className='text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2'>PC Goals</p>
+          {entries
+            .filter(e => pcGoals.some(g => g.id === e.goal_id))
+            .map((draft) => {
+              const globalIdx = entries.findIndex(e => e.goal_id === draft.goal_id)
+              return (
+                <GoalRow
+                  key={draft.goal_id}
+                  draft={draft}
+                  onChange={updated => updateEntry(globalIdx, updated)}
+                  goalType='pc'
+                />
+              )
+            })
+          }
+        </div>
+      )}
+
+      {/* Error */}
+      {formError && (
+        <div className='mx-4 mt-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-3 py-2 rounded-xl'>
+          {formError}
+        </div>
+      )}
+
+      {/* Submit */}
+      {!goalsLoading && residentGoals.length > 0 && (
+        <div className='px-4 mt-4'>
+          <button
+            onClick={() => { void handleSubmit() }}
+            disabled={!hasAnyContent || submitting}
+            className='w-full bg-indigo-600 text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-40 transition-opacity'
+          >
+            {submitting ? 'Submitting…' : 'Submit Entry'}
+          </button>
+          {!hasAnyContent && (
+            <p className='text-center text-xs text-zinc-500 mt-2'>Fill in at least one goal to submit</p>
           )}
         </div>
       )}
 
-      {/* IPOS Form bottom sheet */}
-      {selected && (
-        <>
-          <div className='fixed inset-0 bg-black/60 z-40' onClick={closeForm} />
-          <div className='fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 rounded-t-3xl z-50 max-h-[90vh] overflow-y-auto'>
-            <div className='w-9 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-5' />
-
-            <div className='px-4 mb-4 relative'>
-              <p className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>IPOS Log</p>
-              <p className='text-[17px] font-semibold text-zinc-900 dark:text-white mt-0.5'>
-                {selected.first_name} {selected.last_name}
-              </p>
-              <p className='text-xs text-zinc-500 capitalize mt-0.5'>{shift} shift · Today</p>
-              <button
-                onClick={closeForm}
-                className='absolute top-0 right-4 w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 dark:text-zinc-400'
-              >
-                <X size={14} />
-              </button>
-            </div>
-
-            <p className='px-4 text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
-              Mood <span className='text-red-500'>*</span>
-            </p>
-            <div className='grid grid-cols-2 gap-2 px-4 mb-4'>
-              {MOODS.map(m => (
-                <button
-                  key={m.value}
-                  onClick={() => setMood(m.value)}
-                  className={cn(
-                    'py-3 rounded-xl text-sm font-semibold border min-h-[44px] transition-all',
-                    mood === m.value
-                      ? m.selectedClasses + ' ring-2 ring-offset-1 ring-indigo-400'
-                      : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700'
-                  )}
-                >
-                  {m.value}
-                </button>
-              ))}
-            </div>
-
-            <div className='px-4 mb-4'>
-              <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1'>Observations</label>
-              <textarea
-                value={observations}
-                onChange={e => setObservations(e.target.value)}
-                placeholder='How is the resident today?'
-                rows={3}
-                className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-zinc-400'
-              />
-            </div>
-
-            <div className='px-4 mb-4'>
-              <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1'>Notes</label>
-              <textarea
-                value={notes}
-                onChange={e => setNotes(e.target.value)}
-                placeholder='Any additional notes…'
-                rows={2}
-                className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-zinc-400'
-              />
-            </div>
-
-            {formError && (
-              <div className='mx-4 mb-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-3 py-2 rounded-xl'>
-                {formError}
-              </div>
-            )}
-
-            <div className='px-4 pb-8'>
-              <button
-                onClick={() => { void handleSubmit() }}
-                disabled={!mood || submitting}
-                className='w-full bg-indigo-600 text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
-              >
-                {submitting ? 'Submitting…' : 'Submit log'}
-              </button>
-            </div>
-          </div>
-        </>
+      {/* Other entries today */}
+      {otherEntries.length > 0 && (
+        <div className='mt-4'>
+          <OtherEntries entries={otherEntries} />
+        </div>
       )}
     </div>
   )
@@ -280,19 +571,26 @@ function IposEmployeeView({ homeId, residents, showFab, onFabHandled }: Employee
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
-interface Props {
+interface EmployeePropsExport {
   homeId:       string
   residents:    Resident[]
   showFab:      boolean
   onFabHandled: () => void
 }
 
-export default function IposTab({ homeId, residents, showFab, onFabHandled }: Props) {
+export default function IposTab({ homeId, residents, showFab, onFabHandled }: EmployeePropsExport) {
   const { isManagerOrAbove } = useRole()
 
   if (isManagerOrAbove) {
     return <IposCompliancePanel homeId={homeId} />
   }
 
-  return <IposEmployeeView homeId={homeId} residents={residents} showFab={showFab} onFabHandled={onFabHandled} />
+  return (
+    <IposEmployeeView
+      homeId={homeId}
+      residents={residents}
+      showFab={showFab}
+      onFabHandled={onFabHandled}
+    />
+  )
 }

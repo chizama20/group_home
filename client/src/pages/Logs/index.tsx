@@ -10,14 +10,9 @@ import IposTab       from './IposTab'
 import BehavioralTab from './BehavioralTab'
 import IncidentTab   from './IncidentTab'
 import ExportSheet   from './ExportSheet'
+import ReviewQueueTab from './ReviewQueueTab'
 
-type LogTab = 'ipos' | 'behavioral' | 'incident'
-
-const TABS: { id: LogTab; label: string }[] = [
-  { id: 'ipos',       label: 'IPOS' },
-  { id: 'behavioral', label: 'Behavioral' },
-  { id: 'incident',   label: 'Incidents' },
-]
+type LogTab = 'ipos' | 'behavioral' | 'incident' | 'review'
 
 export default function LogsPage() {
   const [searchParams]        = useSearchParams()
@@ -26,6 +21,13 @@ export default function LogsPage() {
   const { isManagerOrAbove }  = useRole()
   const [showExport, setShowExport] = useState(false)
   const [showFab, setShowFab] = useState(false)
+
+  const TABS: { id: LogTab; label: string }[] = [
+    { id: 'ipos',       label: 'IPOS' },
+    { id: 'behavioral', label: 'Behavioral' },
+    { id: 'incident',   label: 'Incidents' },
+    ...(isManagerOrAbove ? [{ id: 'review' as LogTab, label: 'Review Queue' }] : []),
+  ]
 
   const initialTab = (searchParams.get('tab') as LogTab | null) ?? 'ipos'
   const [tab, setTab] = useState<LogTab>(
@@ -91,6 +93,7 @@ export default function LogsPage() {
           {tab === 'ipos'       && <IposTab       homeId={homeId} residents={residents} showFab={showFab} onFabHandled={() => setShowFab(false)} />}
           {tab === 'behavioral' && <BehavioralTab homeId={homeId} residents={residents} />}
           {tab === 'incident'   && <IncidentTab   homeId={homeId} residents={residents} showFab={showFab} onFabHandled={() => setShowFab(false)} />}
+          {tab === 'review'     && <ReviewQueueTab homeId={homeId} />}
         </div>
       )}
 

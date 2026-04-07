@@ -27,6 +27,10 @@ import appointmentsRoutes  from './routes/appointments';
 import tasksRoutes         from './routes/tasks';
 import exportsRoutes       from './routes/exports';
 import auditRoutes         from './routes/audit';
+import iposLogsRoutes      from './routes/iposLogs';
+import iposEntriesRoutes   from './routes/iposEntries';
+import dayProgramLogsRoutes from './routes/dayProgramLogs';
+import vitalsLogsRoutes    from './routes/vitalsLogs';
 
 import adminAuthRoutes     from './routes/admin/auth';
 import adminOrgReqRoutes   from './routes/admin/orgRequests';
@@ -83,6 +87,10 @@ fastify.register(appointmentsRoutes,  { prefix: '/appointments' });
 fastify.register(tasksRoutes,         { prefix: '/tasks' });
 fastify.register(exportsRoutes,       { prefix: '/exports' });
 fastify.register(auditRoutes,         { prefix: '/audit-logs' });
+fastify.register(iposLogsRoutes,       { prefix: '/ipos-logs' });
+fastify.register(iposEntriesRoutes,    { prefix: '/ipos-entries' });
+fastify.register(dayProgramLogsRoutes, { prefix: '/day-program-logs' });
+fastify.register(vitalsLogsRoutes,     { prefix: '/vitals-logs' });
 
 // Admin routes — env-based auth, no DB lookup
 fastify.register(adminAuthRoutes,   { prefix: '/admin/auth' });

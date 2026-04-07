@@ -13,8 +13,9 @@ import MedicationsTab  from './tabs/MedicationsTab'
 import LogsTab         from './tabs/LogsTab'
 import AppointmentsTab from './tabs/AppointmentsTab'
 import IncidentsTab    from './tabs/IncidentsTab'
+import VitalsTab       from './tabs/VitalsTab'
 
-const TABS = ['info', 'meds', 'logs', 'appointments', 'incidents', 'mar'] as const
+const TABS = ['info', 'meds', 'logs', 'appointments', 'incidents', 'mar', 'vitals'] as const
 type Tab = typeof TABS[number]
 
 const TAB_LABELS: Record<Tab, string> = {
@@ -24,6 +25,7 @@ const TAB_LABELS: Record<Tab, string> = {
   appointments: 'Appointments',
   incidents:    'Incidents',
   mar:          'MAR',
+  vitals:       'Vitals',
 }
 
 function MARTab() {
@@ -193,7 +195,8 @@ export default function ResidentProfile() {
       {tab === 'incidents' && (
         <IncidentsTab residentId={resident.id} homeId={resident.home_id} />
       )}
-      {tab === 'mar' && <MARTab />}
+      {tab === 'mar'    && <MARTab />}
+      {tab === 'vitals' && <VitalsTab residentId={resident.id} />}
 
       {/* Edit resident form */}
       {showEdit && (
