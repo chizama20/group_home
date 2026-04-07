@@ -33,3 +33,6 @@ export const getInvite = (token: string) =>
 
 export const acceptInvite = (token: string, body: { first_name: string; last_name: string; password: string }) =>
   api.post<ApiResponse<LoginResponse>>(`/auth/invite/${token}`, body)
+
+export const selectShift = (homeId: string, shifts: string[]) =>
+  api.post<ApiResponse<{ message: string }>>('/auth/shift-select', { home_id: homeId, shifts })

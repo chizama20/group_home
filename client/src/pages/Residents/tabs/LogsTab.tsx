@@ -1,76 +1,79 @@
 import { useState, useEffect } from 'react'
-import { getResidentIpos, getResidentBehavioralLogs } from '../../../api/logs'
-import type { IposLog, BehavioralLog } from '../../../types/log'
-import { formatDate, formatTime } from '../../../utils/date'
+import { ChevronRight } from 'lucide-react'
+import { getResidentIpos } from '../../../api/logs'
+import type { IposLog } from '../../../types/log'
+import { formatDate } from '../../../utils/date'
 
-type LogEntry =
-  | { kind: 'ipos';       data: IposLog;       sortKey: string }
-  | { kind: 'behavioral'; data: BehavioralLog; sortKey: string }
+const STATUS_STYLES: Record<IposLog['status'], string> = {
+  draft:          'bg-zinc-100 dark:bg-zinc-800 text-zinc-500',
+  submitted:      'bg-amber-500/10 text-amber-500',
+  approved:       'bg-emerald-500/10 text-emerald-400',
+  needs_revision: 'bg-red-500/10 text-red-400',
+}
+
+const STATUS_LABELS: Record<IposLog['status'], string> = {
+  draft:          'Draft',
+  submitted:      'Pending Review',
+  approved:       'Approved',
+  needs_revision: 'Needs Revision',
+}
 
 export default function LogsTab({ residentId }: { residentId: string }) {
-  const [entries, setEntries] = useState<LogEntry[]>([])
+  const [logs, setLogs]       = useState<IposLog[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.allSettled([
-      getResidentIpos(residentId),
-      getResidentBehavioralLogs(residentId),
-    ]).then(([iposRes, behavRes]) => {
-      const combined: LogEntry[] = []
-      if (iposRes.status === 'fulfilled' && iposRes.value.data.success)
-        for (const d of iposRes.value.data.data ?? [])
-          combined.push({ kind: 'ipos', data: d, sortKey: d.created_at })
-      if (behavRes.status === 'fulfilled' && behavRes.value.data.success)
-        for (const d of behavRes.value.data.data ?? [])
-          combined.push({ kind: 'behavioral', data: d, sortKey: d.created_at })
-      combined.sort((a, b) => b.sortKey.localeCompare(a.sortKey))
-      setEntries(combined)
-    }).catch(() => setError('Failed to load logs'))
+    getResidentIpos(residentId)
+      .then(res => {
+        const data = res.data.data ?? []
+        setLogs([...data].sort((a, b) => b.created_at.localeCompare(a.created_at)))
+      })
+      .catch(() => setLogs([]))
       .finally(() => setLoading(false))
   }, [residentId])
 
   if (loading) return (
-    <div className='flex items-center justify-center min-h-[200px]'>
-      <div className='w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin' />
-    </div>
-  )
-  if (error)   return <p className='px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400'>{error}</p>
-  if (!entries.length) return <p className='text-center py-8 text-sm text-zinc-400 dark:text-zinc-600'>No logs yet</p>
-
-  return (
-    <div className='p-4 space-y-3'>
-      {entries.map((entry, i) => (
+    <div className='p-4 space-y-2'>
+      {[0, 1, 2, 3].map(i => (
         <div
           key={i}
-          className={`bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden border-l-4 ${
-            entry.kind === 'ipos' ? 'border-l-indigo-400' : 'border-l-amber-400'
-          }`}
+          className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl h-14 animate-pulse'
+        />
+      ))}
+    </div>
+  )
+
+  if (!logs.length) return (
+    <div className='p-4'>
+      <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 text-center'>
+        <p className='text-sm text-zinc-500 dark:text-zinc-400'>No IPOS logs yet.</p>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className='p-4'>
+      {logs.map(log => (
+        <div
+          key={log.id}
+          className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden mb-2'
         >
-          <div className='px-4 py-3'>
-            <div className='flex items-center justify-between mb-1'>
-              <span className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${
-                entry.kind === 'ipos'
-                  ? 'bg-indigo-500/10 text-indigo-400'
-                  : 'bg-amber-500/10 text-amber-400'
-              }`}>
-                {entry.kind === 'ipos' ? `IPOS · ${entry.data.shift}` : 'Behavioral'}
-              </span>
-              <span className='text-xs text-zinc-400 dark:text-zinc-500'>{formatDate(entry.data.created_at)}</span>
+          <div className='flex items-center gap-3 px-4 min-h-[56px]'>
+            {/* Date + label */}
+            <div className='flex-1 min-w-0'>
+              <p className='text-sm font-semibold text-zinc-900 dark:text-white leading-tight'>
+                {formatDate(log.log_date)}
+              </p>
+              <p className='text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5'>Log</p>
             </div>
-            {entry.kind === 'ipos' && (
-              <p className='text-sm text-zinc-700 dark:text-zinc-300 mt-1'>{entry.data.content}</p>
-            )}
-            {entry.kind === 'behavioral' && (
-              <>
-                {entry.data.notes && (
-                  <p className='text-sm text-zinc-700 dark:text-zinc-300 mt-1'>{entry.data.notes}</p>
-                )}
-                <p className='text-xs text-zinc-400 dark:text-zinc-500 mt-1'>
-                  Occurred: {formatTime(entry.data.occurred_at)}
-                </p>
-              </>
-            )}
+
+            {/* Status badge */}
+            <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${STATUS_STYLES[log.status]}`}>
+              {STATUS_LABELS[log.status]}
+            </span>
+
+            {/* Chevron */}
+            <ChevronRight className='h-4 w-4 text-zinc-400 flex-shrink-0' />
           </div>
         </div>
       ))}

@@ -2,12 +2,14 @@ import { useState, useCallback } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth }    from './context/AuthContext'
 import { HomeProvider }             from './context/HomeContext'
+import { useHome }                  from './context/HomeContext'
 import ProtectedRoute               from './components/ProtectedRoute'
 import ManagerRoute                 from './components/ManagerRoute'
 import AppLayout                    from './components/AppLayout'
 import SessionWarningModal          from './components/SessionWarningModal'
 import { useInactivityTimer }       from './hooks/useInactivityTimer'
 import ErrorBoundary                from './components/ErrorBoundary'
+import ShiftSelect                  from './pages/ShiftSelect/index'
 
 import LoginPage          from './pages/Login/index'
 import ForgotPasswordPage from './pages/ForgotPassword/index'
@@ -35,6 +37,17 @@ import HomesPage          from './pages/Homes/index'
 import CreateHomeWizard   from './pages/Homes/CreateHomeWizard'
 import HomeDetail         from './pages/Homes/HomeDetail'
 import OrgLogsPage        from './pages/OrgLogs/index'
+
+function ShiftGuard({ children }: { children: React.ReactNode }) {
+  const { user }   = useAuth()
+  const { homeId } = useHome()
+  const today = new Date().toISOString().split('T')[0]
+  const [done, setDone] = useState(() => !!localStorage.getItem(`shift_selected_${today}`))
+
+  if (!user || !homeId) return <>{children}</>
+  if (!done) return <ShiftSelect onComplete={() => setDone(true)} />
+  return <>{children}</>
+}
 
 function AppRoutes() {
   const { user, logout }              = useAuth()
@@ -85,32 +98,44 @@ function AppRoutes() {
         {/* ── App (inside AppLayout) ───────────────────────────────────────── */}
         <Route path='/' element={
           <ProtectedRoute>
-            <AppLayout><DashboardPage /></AppLayout>
+            <ShiftGuard>
+              <AppLayout><DashboardPage /></AppLayout>
+            </ShiftGuard>
           </ProtectedRoute>
         } />
         <Route path='/residents' element={
           <ProtectedRoute>
-            <AppLayout><ResidentsPage /></AppLayout>
+            <ShiftGuard>
+              <AppLayout><ResidentsPage /></AppLayout>
+            </ShiftGuard>
           </ProtectedRoute>
         } />
         <Route path='/residents/:id' element={
           <ProtectedRoute>
-            <AppLayout><ResidentProfile /></AppLayout>
+            <ShiftGuard>
+              <AppLayout><ResidentProfile /></AppLayout>
+            </ShiftGuard>
           </ProtectedRoute>
         } />
         <Route path='/logs' element={
           <ProtectedRoute>
-            <AppLayout><LogsPage /></AppLayout>
+            <ShiftGuard>
+              <AppLayout><LogsPage /></AppLayout>
+            </ShiftGuard>
           </ProtectedRoute>
         } />
         <Route path='/calendar' element={
           <ProtectedRoute>
-            <AppLayout><CalendarPage /></AppLayout>
+            <ShiftGuard>
+              <AppLayout><CalendarPage /></AppLayout>
+            </ShiftGuard>
           </ProtectedRoute>
         } />
         <Route path='/settings' element={
           <ProtectedRoute>
-            <AppLayout><SettingsPage /></AppLayout>
+            <ShiftGuard>
+              <AppLayout><SettingsPage /></AppLayout>
+            </ShiftGuard>
           </ProtectedRoute>
         } />
 
