@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getHomeIncidents } from '../../../api/incidents'
+import { getResidentIncidents } from '../../../api/incidents'
 import type { Incident } from '../../../types/incident'
 import StatusBadge from '../../../components/StatusBadge'
 import { formatDate } from '../../../utils/date'
@@ -9,20 +9,17 @@ interface Props {
   homeId:     string
 }
 
-export default function IncidentsTab({ residentId, homeId }: Props) {
+export default function IncidentsTab({ residentId }: Props) {
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState<string | null>(null)
 
   useEffect(() => {
-    getHomeIncidents(homeId)
-      .then(res => {
-        const all = res.data.data ?? []
-        setIncidents(all.filter(i => i.resident_id === residentId))
-      })
+    getResidentIncidents(residentId)
+      .then(res => setIncidents(res.data.data ?? []))
       .catch(() => setError('Failed to load incidents'))
       .finally(() => setLoading(false))
-  }, [homeId, residentId])
+  }, [residentId])
 
   if (loading) return (
     <div className='flex items-center justify-center min-h-[200px]'>

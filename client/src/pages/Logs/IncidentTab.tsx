@@ -105,9 +105,16 @@ function ManagerIncidentView({ homeId }: { homeId: string }) {
       {filtered.map(incident => (
         <div key={incident.id} className='mx-4 mb-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3.5'>
           <div className='flex items-start justify-between gap-2 mb-1'>
-            <p className='text-sm font-semibold text-zinc-900 dark:text-white flex-1 min-w-0'>
-              {incident.incident_type ?? incident.title}
-            </p>
+            <div className='flex-1 min-w-0'>
+              <p className='text-sm font-semibold text-zinc-900 dark:text-white'>
+                {incident.incident_type ?? incident.title}
+              </p>
+              {incident.resident_first && (
+                <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-0.5'>
+                  {incident.resident_first} {incident.resident_last}
+                </p>
+              )}
+            </div>
             <StatusBadge status={incident.status} />
           </div>
           {incident.severity && (

@@ -317,6 +317,34 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
+  // ── GET /residents/:id/incidents — incident history for resident (all roles) ─
+  fastify.get<{ Params: IdParam }>(
+    '/:id/incidents',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const [resident] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
+      );
+      if (!resident[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      if (!await canAccessHome(fastify, request.user, resident[0].home_id))
+        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT i.*,
+                r.first_name AS resident_first, r.last_name AS resident_last,
+                u.first_name AS reporter_first, u.last_name AS reporter_last
+         FROM incidents i
+         JOIN residents r ON i.resident_id = r.id
+         JOIN users u ON i.reported_by = u.id
+         WHERE i.resident_id = ?
+         ORDER BY i.created_at DESC`,
+        [request.params.id]
+      );
+      return reply.send(success(rows));
+    }
+  );
+
   // ── GET /residents/:id/ipos — IPOS history (all roles) ────────────────────
   fastify.get<{ Params: IdParam }>(
     '/:id/ipos',

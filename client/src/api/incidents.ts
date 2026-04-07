@@ -5,6 +5,9 @@ import type { Incident } from '../types/incident'
 export const getHomeIncidents = (homeId: string, params?: { status?: string }) =>
   api.get<ApiResponse<Incident[]>>(`/homes/${homeId}/incidents`, { params })
 
+export const getResidentIncidents = (residentId: string) =>
+  api.get<ApiResponse<Incident[]>>(`/residents/${residentId}/incidents`)
+
 export const getIncident = (id: string) =>
   api.get<ApiResponse<Incident>>(`/incidents/${id}`)
 
@@ -19,5 +22,5 @@ export const createIncident = (homeId: string, data: {
 export const signOffIncident = (id: string) =>
   api.patch<ApiResponse<{ message: string }>>(`/incidents/${id}/sign-off`)
 
-export const escalateIncident = (id: string, escalatedTo: string) =>
-  api.patch<ApiResponse<{ message: string }>>(`/incidents/${id}/escalate`, { escalated_to: escalatedTo })
+export const escalateIncident = (id: string) =>
+  api.patch<ApiResponse<{ message: string }>>(`/incidents/${id}/escalate`, {})

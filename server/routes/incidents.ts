@@ -70,8 +70,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       const { org_id } = request.user;
       const { escalated_to } = request.body;
 
-      if (!escalated_to)
-        return reply.code(400).send(failure('MISSING_FIELDS', 'escalated_to (user id) is required'));
+      // escalated_to is optional — if omitted the incident is flagged but not assigned
 
       const [check] = await fastify.db.execute<RowDataPacket[]>(
         `SELECT i.id, i.home_id FROM incidents i
@@ -93,7 +92,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
       await fastify.db.execute(
         `UPDATE incidents SET status = 'escalated', escalated_to = ? WHERE id = ?`,
-        [escalated_to, request.params.id]
+        [escalated_to ?? null, request.params.id]
       );
       return reply.send(success({ message: 'Incident escalated' }));
     }

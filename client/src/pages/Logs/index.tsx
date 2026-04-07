@@ -12,8 +12,9 @@ import IncidentTab   from './IncidentTab'
 import ExportSheet   from './ExportSheet'
 import ReviewQueueTab from './ReviewQueueTab'
 import MedsTab        from './MedsTab'
+import ShiftNotesTab  from './ShiftNotesTab'
 
-type LogTab = 'ipos' | 'behavioral' | 'incident' | 'review' | 'meds'
+type LogTab = 'ipos' | 'behavioral' | 'incident' | 'review' | 'meds' | 'shift-notes'
 
 export default function LogsPage() {
   const [searchParams]        = useSearchParams()
@@ -27,7 +28,8 @@ export default function LogsPage() {
     { id: 'ipos',       label: 'IPOS' },
     { id: 'behavioral', label: 'Behavioral' },
     { id: 'incident',   label: 'Incidents' },
-    { id: 'meds',       label: 'Meds' },
+    { id: 'meds',        label: 'Meds' },
+    { id: 'shift-notes', label: 'Shift Notes' },
     ...(isManagerOrAbove ? [{ id: 'review' as LogTab, label: 'Review Queue' }] : []),
   ]
 
@@ -95,7 +97,8 @@ export default function LogsPage() {
           {tab === 'ipos'       && <IposTab       homeId={homeId} residents={residents} showFab={showFab} onFabHandled={() => setShowFab(false)} />}
           {tab === 'behavioral' && <BehavioralTab homeId={homeId} residents={residents} />}
           {tab === 'incident'   && <IncidentTab   homeId={homeId} residents={residents} showFab={showFab} onFabHandled={() => setShowFab(false)} />}
-          {tab === 'meds'       && <MedsTab homeId={homeId} />}
+          {tab === 'meds'        && <MedsTab homeId={homeId} />}
+          {tab === 'shift-notes' && <ShiftNotesTab homeId={homeId} residents={residents} />}
           {tab === 'review'     && <ReviewQueueTab homeId={homeId} />}
         </div>
       )}
