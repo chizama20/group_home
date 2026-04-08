@@ -11,6 +11,8 @@ interface InviteBody        { email: string; role: InviteRole; home_id?: string;
 interface IdParam           { id: string; }
 interface OrgIdParam        { orgId: string; }
 interface AnnouncementBody  { title: string; body: string; home_id?: string; is_pinned?: boolean; }
+interface OrgIncidentQuery  { home_id?: string; status?: string; severity?: string; }
+interface IposComplianceQ   { date?: string; }
 
 const VALID_INVITE_ROLES: InviteRole[] = ['employee', 'manager'];
 
@@ -270,6 +272,80 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       await fastify.db.execute('DELETE FROM invitations WHERE id = ?', [inviteId]);
 
       return reply.send(success({ message: 'Invitation cancelled' }));
+    }
+  );
+
+  // ── GET /orgs/incidents — all incidents across org (org_admin only) ─────────
+  fastify.get<{ Querystring: OrgIncidentQuery }>(
+    '/incidents',
+    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const { home_id, status, severity } = request.query;
+
+      const filters: string[] = ['h.org_id = ?'];
+      const values: string[] = [org_id];
+
+      if (home_id) { filters.push('i.home_id = ?');   values.push(home_id); }
+      if (status)  { filters.push('i.status = ?');    values.push(status); }
+      if (severity){ filters.push('i.severity = ?');  values.push(severity); }
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT i.*,
+                h.name          AS home_name,
+                r.first_name    AS resident_first,
+                r.last_name     AS resident_last,
+                u.first_name    AS reporter_first,
+                u.last_name     AS reporter_last
+         FROM incidents i
+         JOIN homes h    ON i.home_id    = h.id
+         JOIN residents r ON i.resident_id = r.id
+         JOIN users u    ON i.reported_by = u.id
+         WHERE ${filters.join(' AND ')}
+         ORDER BY i.created_at DESC`,
+        values
+      );
+      return reply.send(success(rows));
+    }
+  );
+
+  // ── GET /orgs/ipos-compliance — per-home IPOS compliance (org_admin only) ──
+  fastify.get<{ Querystring: IposComplianceQ }>(
+    '/ipos-compliance',
+    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    async (request, reply) => {
+      const { org_id } = request.user;
+      const date = request.query.date ?? new Date().toISOString().split('T')[0];
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT
+           h.id                                                         AS home_id,
+           h.name                                                       AS home_name,
+           COUNT(DISTINCT r.id)                                         AS total_residents,
+           COUNT(DISTINCT il.resident_id)                               AS filed_count
+         FROM homes h
+         LEFT JOIN residents r ON r.home_id = h.id AND r.is_active = 1
+         LEFT JOIN ipos_logs  il
+           ON il.home_id = h.id
+           AND il.log_date = ?
+           AND il.status IN ('submitted','approved')
+         WHERE h.org_id = ? AND h.is_active = 1
+         GROUP BY h.id, h.name
+         ORDER BY h.name`,
+        [date, org_id]
+      );
+
+      const result = (rows as RowDataPacket[]).map(r => ({
+        home_id:        r.home_id,
+        home_name:      r.home_name,
+        total_residents: Number(r.total_residents),
+        filed_count:    Number(r.filed_count),
+        percentage:     r.total_residents > 0
+          ? Math.round((Number(r.filed_count) / Number(r.total_residents)) * 100)
+          : 0,
+      }));
+
+      return reply.send(success(result));
     }
   );
 

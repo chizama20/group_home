@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getAnnouncements, getHomeIpos } from '../api/logs'
+import { getAnnouncements, getHomeIposLogs } from '../api/logs'
 import { getHomeAppointments } from '../api/appointments'
 import { getHomeTasks } from '../api/tasks'
 import { getResidents } from '../api/residents'
@@ -83,7 +83,7 @@ export function useDashboard(homeId: string | null): DashboardData {
       getHomeTasks(homeId),
       getResidents(homeId),
       getHomeMedications(homeId),
-      getHomeIpos(homeId, { date, shift }),
+      getHomeIposLogs(homeId, { date }),
       getHomeRoster(homeId, { shift, date }),
       getHomeIncidents(homeId, { status: 'open' }),
     ]).then(([ann, appt, tsks, res, meds, ipos, roster, incidents]) => {

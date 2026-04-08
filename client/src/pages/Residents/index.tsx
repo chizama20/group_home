@@ -5,8 +5,7 @@ import HomeSwitcherStrip from '../../components/HomeSwitcherStrip'
 import { useHome } from '../../context/HomeContext'
 import { useResidents } from '../../hooks/useResidents'
 import { useRole } from '../../utils/role'
-import { getHomeIpos } from '../../api/logs'
-import { currentShift } from '../../types/log'
+import { getHomeIposLogs } from '../../api/logs'
 import { todayStr } from '../../utils/date'
 import type { Resident } from '../../types/resident'
 import ResidentForm from './ResidentForm'
@@ -170,7 +169,7 @@ export default function ResidentsPage() {
   // Fetch today's IPOS to compute "attention" group
   useEffect(() => {
     if (!homeId) return
-    getHomeIpos(homeId, { date: todayStr(), shift: currentShift() })
+    getHomeIposLogs(homeId, { date: todayStr() })
       .then(res => {
         if (res.data.success && res.data.data)
           setFiledIds(new Set(res.data.data.map(l => l.resident_id)))

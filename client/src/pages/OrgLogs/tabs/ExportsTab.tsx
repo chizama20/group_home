@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Download, FileSpreadsheet, Calendar, Building2, Check } from 'lucide-react'
 import type { Home } from '../../../api/homes'
+import { exportCsv } from '../../../api/orgs'
 import { cn } from '../../../lib/cn'
 import { todayStr } from '../../../utils/date'
 
@@ -23,6 +24,7 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
   const [dateFrom, setDateFrom] = useState(todayStr())
   const [dateTo, setDateTo] = useState(todayStr())
   const [exporting, setExporting] = useState(false)
+  const [exportSuccess, setExportSuccess] = useState(false)
 
   // Sync home filter when parent changes
   if (selectedHomeId !== 'all' && homeFilter === 'all') {
@@ -44,12 +46,30 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
   async function handleDownload() {
     if (selectedTypes.size === 0) return
     setExporting(true)
-    // Placeholder - would call API to generate CSV
-    setTimeout(() => {
+    setExportSuccess(false)
+    try {
+      for (const type of selectedTypes) {
+        const res = await exportCsv({
+          type,
+          home_id:   homeFilter !== 'all' ? homeFilter : undefined,
+          date_from: dateFrom || undefined,
+          date_to:   dateTo   || undefined,
+        })
+        const csv      = typeof res.data === 'string' ? res.data : ''
+        const blob     = new Blob([csv], { type: 'text/csv' })
+        const url      = URL.createObjectURL(blob)
+        const a        = document.createElement('a')
+        a.href         = url
+        a.download     = `${type}_export_${dateFrom}_${dateTo}.csv`
+        a.click()
+        URL.revokeObjectURL(url)
+      }
+      setExportSuccess(true)
+    } catch {
+      /* non-critical — browser will show no download */
+    } finally {
       setExporting(false)
-      // For now, show alert since there's no real data
-      alert('Download CSV feature will be connected to the API')
-    }, 1500)
+    }
   }
 
   const canExport = selectedTypes.size > 0 && dateFrom && dateTo
@@ -200,6 +220,14 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
           {exporting ? 'Generating CSV...' : 'Download CSV'}
         </button>
       </div>
+
+      {/* Success */}
+      {exportSuccess && (
+        <div className='mx-4 mt-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3'>
+          <p className='text-sm font-medium text-emerald-400'>Download started.</p>
+          <p className='text-xs text-emerald-400/70 mt-0.5'>Check your downloads folder.</p>
+        </div>
+      )}
 
       {/* Help text */}
       <div className='px-4 pt-4'>

@@ -73,3 +73,40 @@ export const deactivateUser = (userId: string) =>
 
 export const getOrgDashboard = () =>
   api.get<ApiResponse<OrgDashboardData>>('/orgs/dashboard')
+
+export interface OrgIncident {
+  id: string
+  home_id: string
+  home_name: string
+  resident_id: string
+  resident_first: string
+  resident_last: string
+  reporter_first: string
+  reporter_last: string
+  incident_type: string | null
+  title: string
+  description: string
+  severity: 'low' | 'medium' | 'high' | null
+  status: string
+  occurred_at: string | null
+  signed_off_by: string | null
+  signed_off_at: string | null
+  created_at: string
+}
+
+export interface IposCompliance {
+  home_id: string
+  home_name: string
+  total_residents: number
+  filed_count: number
+  percentage: number
+}
+
+export const getOrgIncidents = (params?: { home_id?: string; status?: string; severity?: string }) =>
+  api.get<ApiResponse<OrgIncident[]>>('/orgs/incidents', { params })
+
+export const getOrgIposCompliance = (date?: string) =>
+  api.get<ApiResponse<IposCompliance[]>>('/orgs/ipos-compliance', { params: date ? { date } : {} })
+
+export const exportCsv = (data: { type: 'incidents' | 'ipos' | 'medications'; home_id?: string; date_from?: string; date_to?: string }) =>
+  api.post<string>('/exports/csv', data, { responseType: 'text' })
