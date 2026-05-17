@@ -172,7 +172,9 @@ export default async (fastify: FastifyInstance): Promise<void> => {
   });
 
   // ── Forgot Password ──────────────────────────────────────────────────────
-  fastify.post<{ Body: ForgotPasswordBody }>('/forgot-password', async (request, reply) => {
+  fastify.post<{ Body: ForgotPasswordBody }>('/forgot-password', {
+    config: { rateLimit: { max: 3, timeWindow: '15 minutes' } },
+  }, async (request, reply) => {
     const { email } = request.body;
 
     // Always return 200 — prevents account enumeration
