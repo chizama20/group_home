@@ -59,6 +59,60 @@ fastify.register(rateLimit, {
   }),
 });
 
+// Global error handler
+fastify.setErrorHandler((error: Error & { validation?: unknown; statusCode?: number }, request, reply) => {
+  fastify.log.error({
+    error: error.message,
+    stack: error.stack,
+    url: request.url,
+    method: request.method,
+  });
+
+  // Validation errors (Fastify schema or Zod)
+  if (error.validation || error.name === 'ZodError') {
+    return reply.code(400).send({
+      success: false,
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: error.message || 'Invalid request data',
+      },
+    });
+  }
+
+  // Authentication errors
+  if (error.statusCode === 401 || error.message.includes('unauthorized')) {
+    return reply.code(401).send({
+      success: false,
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Authentication required',
+      },
+    });
+  }
+
+  // Forbidden errors
+  if (error.statusCode === 403) {
+    return reply.code(403).send({
+      success: false,
+      error: {
+        code: 'FORBIDDEN',
+        message: 'Access denied',
+      },
+    });
+  }
+
+  // Default to 500 for all other errors
+  return reply.code(500).send({
+    success: false,
+    error: {
+      code: 'SERVER_ERROR',
+      message: process.env.NODE_ENV === 'production'
+        ? 'Internal server error'
+        : error.message,
+    },
+  });
+});
+
 // Health check — no auth required
 fastify.get('/health', async (_request, reply) => {
   try {
