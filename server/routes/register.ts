@@ -18,7 +18,9 @@ interface RegisterBody {
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
-  fastify.post<{ Body: RegisterBody }>('/', async (request, reply) => {
+  fastify.post<{ Body: RegisterBody }>('/', {
+    config: { rateLimit: { max: 3, timeWindow: '1 hour' } },
+  }, async (request, reply) => {
     const parsed = validate(registerOrgSchema, request.body);
     if (!parsed.success) return reply.code(400).send(failure('VALIDATION_ERROR', parsed.message));
 
