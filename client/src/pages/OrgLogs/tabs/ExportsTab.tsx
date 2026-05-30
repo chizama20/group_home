@@ -25,6 +25,7 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
   const [dateTo, setDateTo] = useState(todayStr())
   const [exporting, setExporting] = useState(false)
   const [exportSuccess, setExportSuccess] = useState(false)
+  const [exportError, setExportError] = useState(false)
 
   // Sync home filter when parent changes
   if (selectedHomeId !== 'all' && homeFilter === 'all') {
@@ -47,26 +48,30 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
     if (selectedTypes.size === 0) return
     setExporting(true)
     setExportSuccess(false)
+    setExportError(false)
     try {
-      for (const type of selectedTypes) {
-        const res = await exportCsv({
+      const types = Array.from(selectedTypes)
+      const results = await Promise.all(
+        types.map(type => exportCsv({
           type,
           home_id:   homeFilter !== 'all' ? homeFilter : undefined,
           date_from: dateFrom || undefined,
           date_to:   dateTo   || undefined,
-        })
-        const csv      = typeof res.data === 'string' ? res.data : ''
-        const blob     = new Blob([csv], { type: 'text/csv' })
-        const url      = URL.createObjectURL(blob)
-        const a        = document.createElement('a')
-        a.href         = url
-        a.download     = `${type}_export_${dateFrom}_${dateTo}.csv`
+        }))
+      )
+      results.forEach((res, i) => {
+        const csv  = typeof res.data === 'string' ? res.data : ''
+        const blob = new Blob([csv], { type: 'text/csv' })
+        const url  = URL.createObjectURL(blob)
+        const a    = document.createElement('a')
+        a.href     = url
+        a.download = `${types[i]}_export_${dateFrom}_${dateTo}.csv`
         a.click()
         URL.revokeObjectURL(url)
-      }
+      })
       setExportSuccess(true)
     } catch {
-      /* non-critical — browser will show no download */
+      setExportError(true)
     } finally {
       setExporting(false)
     }
@@ -226,6 +231,14 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
         <div className='mx-4 mt-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3'>
           <p className='text-sm font-medium text-emerald-400'>Download started.</p>
           <p className='text-xs text-emerald-400/70 mt-0.5'>Check your downloads folder.</p>
+        </div>
+      )}
+
+      {/* Error */}
+      {exportError && (
+        <div className='mx-4 mt-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3'>
+          <p className='text-sm font-medium text-red-400'>Export failed.</p>
+          <p className='text-xs text-red-400/70 mt-0.5'>Please try again or contact support.</p>
         </div>
       )}
 
