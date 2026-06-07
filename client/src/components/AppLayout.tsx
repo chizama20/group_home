@@ -122,6 +122,7 @@ export default function AppLayout({ children }: Props) {
               to={to}
               end={exact}
               title={collapsed ? label : undefined}
+              aria-label={collapsed ? label : undefined}
               className={({ isActive }) => cn(
                 'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors min-h-[44px]',
                 isActive
@@ -191,11 +192,15 @@ export default function AppLayout({ children }: Props) {
           <div className='flex items-center gap-2'>
             <button
               onClick={handleThemeToggle}
-              className='w-9 h-9 flex items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              className='w-11 h-11 flex items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
             >
               {theme === 'dark' ? <Sun className='h-4 w-4' /> : <Moon className='h-4 w-4' />}
             </button>
-            <div className={cn('w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold', avatarColor)}>
+            <div
+              aria-label={`${user?.first_name ?? ''} ${user?.last_name ?? ''}, ${user?.role?.replace('_', ' ') ?? ''}`}
+              className={cn('w-11 h-11 rounded-full flex items-center justify-center text-xs font-bold', avatarColor)}
+            >
               {initials}
             </div>
           </div>
@@ -218,7 +223,7 @@ export default function AppLayout({ children }: Props) {
             end={exact}
             className={({ isActive }) => cn(
               'flex-1 flex flex-col items-center justify-center gap-1 pt-2 pb-1 min-h-[56px]',
-              'text-[10px] font-medium transition-colors',
+              'text-[11px] font-medium transition-colors',
               isActive
                 ? 'text-indigo-600 dark:text-indigo-500'
                 : 'text-zinc-500'

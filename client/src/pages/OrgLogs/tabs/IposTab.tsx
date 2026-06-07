@@ -109,7 +109,7 @@ export default function IposTab({ selectedHomeId }: Props) {
 
       {!loading && filtered.length > 0 && (
         <div className='px-4 pt-3 space-y-2'>
-          {filtered
+          {[...filtered]
             .sort((a, b) => a.percentage - b.percentage)
             .map(row => (
               <div key={row.home_id} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3.5'>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AlertTriangle, CheckCircle, Clock } from 'lucide-react'
 import type { Home } from '../../../api/homes'
 import { getOrgIncidents, type OrgIncident } from '../../../api/orgs'
@@ -38,7 +38,7 @@ export default function IncidentsTab({ selectedHomeId }: Props) {
   const [severity,   setSeverity]   = useState('all')
   const [signingOff, setSigningOff] = useState<string | null>(null)
 
-  function load() {
+  const load = useCallback(() => {
     setLoading(true)
     const params: { home_id?: string; severity?: string } = {}
     if (selectedHomeId !== 'all') params.home_id = selectedHomeId
@@ -47,9 +47,9 @@ export default function IncidentsTab({ selectedHomeId }: Props) {
       .then(res => setIncidents(res.data.data ?? []))
       .catch(() => setIncidents([]))
       .finally(() => setLoading(false))
-  }
+  }, [selectedHomeId, severity])
 
-  useEffect(() => { load() }, [selectedHomeId, severity])
+  useEffect(() => { load() }, [load])
 
   async function handleSignOff(id: string) {
     setSigningOff(id)
