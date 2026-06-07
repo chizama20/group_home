@@ -54,11 +54,14 @@
       "Bash(./node_modules/.bin/tsc --noEmit)",
       "Bash(node_modules/.bin/tsc --noEmit)",
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       "Bash(gh pr *)",
       "Skill(ui-ux-pro-max)",
       "Bash(python3 scripts/search.py \"dark mode professional healthcare admin\" --domain ux)",
       "Bash(python3 scripts/search.py \"navigation loading accessibility\" --domain ux)"
 =======
+=======
+>>>>>>> Stashed changes
       "Bash(du:*)",
       "Bash(claude plugin install:*)",
       "Bash(npx get-shit-done-cc:*)",
@@ -67,6 +70,9 @@
       "Skill(gsd-audit-fix)",
       "Skill(gsd-ui-review)",
       "Skill(gsd-code-review)"
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     ]
   }
