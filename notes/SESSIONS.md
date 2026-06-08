@@ -4,17 +4,48 @@ Newest session at the top. One entry per working session.
 
 ---
 
+## 2026-06-08 — UI Direction Locked + Proto 4 Queued
+
+**Branch:** `proto4` (created, clean, off dev)
+
+**What we decided:**
+- Current UI is too "kidish" — heavy indigo/violet, over-rounded corners, consumer-app feel
+- Agreed direction: **Linear layout + Stripe color discipline + GitHub functionality + IBM Carbon structure**
+- Chose **Option A** — set design tokens NOW before building Proto 4, so new pages come out right
+
+**Design language locked in:**
+| Element | Current | Target |
+|---|---|---|
+| Radius | `rounded-2xl` everywhere (16px) | `rounded-md` default (6px), `rounded-lg` for cards (8px) max |
+| Primary color | Indigo/violet overused | One muted professional blue, CTAs and active state only |
+| Dark mode bg | zinc-900 | zinc-950 — true near-black |
+| Nav active state | Big indigo block | Subtle tint, compact Linear-style |
+| Status colors | Decorative | Semantic only — green/amber/red earn their color |
+| Typography | Arbitrary sizes everywhere | 3 weights max, Geist Variable (already installed) |
+
+**Files read, ready to edit next session:**
+- `client/src/index.css` — `--radius` is 0.75rem (12px) → needs 0.375rem (6px). Token change propagates to ALL shadcn components automatically.
+- `client/tailwind.config.ts` — border radius tied to CSS var, clean.
+- `client/src/components/AppLayout.tsx` — sidebar nav needs Linear-style redesign (compact, subtle active, no indigo blocks)
+
+**Next session — do this first, then Proto 4:**
+1. Update `client/src/index.css` — new color tokens (muted blue primary, darker dark mode surfaces), tighten `--radius`
+2. Update `client/src/components/AppLayout.tsx` — redesign sidebar nav
+3. Those two changes propagate everywhere. Old pages still have hardcoded arbitrary values — clean those in a dedicated design sprint later.
+4. Then kick off Proto 4 Batch A: bug fixes (A1) + backend routes (A2) in parallel worktrees
+
+**Proto 4 full plan:** memory file `project_proto4_plan.md`
+**Scheduling module:** deferred — migrations 046–052 were deleted (never run against DB). Come back after Proto 4.
+
+---
+
 ## 2026-06-08 — Session Notes Setup
 
 **What we did:**
 - Created this `notes/` folder
-- Built `SNAPSHOT.md` — a full inventory of every route, migration, page, context, and hook in the codebase as of migrations 001–052
-- Purpose: so future sessions don't require a full codebase scan to get oriented
-
-**Current state of the app:**
-- 52 migrations applied, full scheduling module complete (shift_slots, shift_clock, shift_requests)
-- Latest fix: mobile bottom nav bar, password toggles, collapsible sidebar (2026-05-30)
-- Branch: dev, clean working tree
+- Built `SNAPSHOT.md` — a full inventory of every route, migration, page, context, and hook in the codebase as of migrations 001–045
+- Deleted orphaned migration files 046–052 (never run, never committed)
+- Decided: Proto 4 first, scheduling later
 
 ---
 
