@@ -1,7 +1,7 @@
 # Codebase Snapshot — Group Home Management Platform
 
 > Last updated: 2026-06-08
-> Branch: dev | Migrations: 001–052
+> Branch: dev | Migrations: 001–045
 
 ---
 
@@ -74,8 +74,7 @@ Multi-tenant care home management platform. A single Fastify REST API serves a R
 | 034–038 | residents clinical fields, homes capacity/staffing, resident_contacts, resident_goals, resident_vitals_config |
 | 039–041 | ipos_logs restructured (multi-staff model), ipos_entries, ipos_review_comments |
 | 042–045 | vitals_logs, day_program_logs, shift_selections, med_logs.scheduled_date |
-| 046–049 | homes scheduling fields, schedule_templates, schedule_template_slots, template_applications |
-| 050–052 | shift_slots, shift_clock (clock in/out), shift_requests |
+| 046–052 | *(orphaned scheduling files — never run, deleted)* |
 
 ---
 
