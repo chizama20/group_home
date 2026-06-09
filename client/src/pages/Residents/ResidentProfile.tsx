@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, Pencil, Archive } from 'lucide-react'
 import type { Resident } from '../../types/resident'
-import { getResident, dischargeResident } from '../../api/residents'
+import { getResident, archiveResident } from '../../api/residents'
 import { useRole } from '../../utils/role'
 import { cn } from '../../lib/cn'
 import AddAppointmentForm from '../../components/AddAppointmentForm'
@@ -52,7 +52,7 @@ export default function ResidentProfile() {
   async function handleArchive() {
     if (!resident) return
     setArchiving(true)
-    try { await dischargeResident(resident.id); navigate(-1) }
+    try { await archiveResident(resident.id); navigate(-1) }
     catch { setArchiving(false); setShowArchiveConfirm(false) }
   }
 
@@ -146,7 +146,7 @@ export default function ResidentProfile() {
             className='flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-red-200 dark:border-red-900/40 text-red-500 text-sm font-medium px-4 py-2 rounded-xl min-h-[40px] disabled:opacity-50'
           >
             <Archive className='h-4 w-4' />
-            {archiving ? 'Discharging…' : 'Discharge'}
+            {archiving ? 'Archiving…' : 'Archive'}
           </button>
         </div>
       )}
@@ -212,12 +212,12 @@ export default function ResidentProfile() {
         />
       )}
 
-      {/* Discharge confirmation dialog */}
+      {/* Archive confirmation dialog */}
       <ConfirmDialog
         open={showArchiveConfirm}
-        title={`Discharge ${resident.first_name} ${resident.last_name}?`}
-        description="This will mark them as discharged and remove them from the active residents list."
-        confirmLabel="Discharge"
+        title="Archive resident?"
+        description={`This will hide ${resident.first_name} ${resident.last_name} from active lists. You can restore them later.`}
+        confirmLabel="Archive"
         confirmVariant="destructive"
         onConfirm={() => { void handleArchive() }}
         onCancel={() => setShowArchiveConfirm(false)}

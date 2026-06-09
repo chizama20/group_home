@@ -557,7 +557,7 @@ export default function CalendarPage() {
               return (
                 <button key={cell} onClick={() => selectDate(cell)}
                   className={cn(
-                    'flex flex-col items-center justify-center h-14 rounded-xl text-sm transition-colors',
+                    'flex flex-col items-center justify-center min-h-[112px] rounded-xl text-sm transition-colors',
                     isSelected
                       ? 'bg-indigo-600 text-white'
                       : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'

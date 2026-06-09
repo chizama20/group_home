@@ -203,8 +203,8 @@ export default function SettingsPage() {
             <SettingsRow
               icon={<Fingerprint className='h-4 w-4' />}
               chipColor='bg-indigo-500/20 text-indigo-400'
-              label='Signing PIN'
-              value='Set'
+              label={user?.pin_set_at ? 'Change PIN' : 'Signing PIN'}
+              value={user?.pin_set_at ? 'Set' : undefined}
               valueColor='text-emerald-400'
               onClick={() => navigate('/setup-pin')}
             />
@@ -319,8 +319,8 @@ export default function SettingsPage() {
             <SettingsRow
               icon={<Fingerprint className='h-4 w-4' />}
               chipColor='bg-indigo-500/20 text-indigo-400'
-              label='Signing PIN'
-              value='Set'
+              label={user?.pin_set_at ? 'Change PIN' : 'Signing PIN'}
+              value={user?.pin_set_at ? 'Set' : undefined}
               valueColor='text-emerald-400'
               onClick={() => navigate('/setup-pin')}
             />
@@ -365,8 +365,8 @@ export default function SettingsPage() {
             <SettingsRow
               icon={<Fingerprint className='h-4 w-4' />}
               chipColor='bg-indigo-500/20 text-indigo-400'
-              label='Signing PIN'
-              value='Set'
+              label={user?.pin_set_at ? 'Change PIN' : 'Signing PIN'}
+              value={user?.pin_set_at ? 'Set' : undefined}
               valueColor='text-emerald-400'
               onClick={() => navigate('/setup-pin')}
             />
