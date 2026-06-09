@@ -7,9 +7,15 @@ interface AuditLogQuery {
   action?: string;
   entity_type?: string;
   user_id?: string;
+  // primary param names per spec
+  date_from?: string;
+  date_to?: string;
+  // legacy aliases (kept for back-compat)
   from?: string;
   to?: string;
   page?: string;
+  per_page?: string;
+  // legacy alias
   limit?: string;
 }
 
@@ -21,11 +27,20 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     { preHandler: [fastify.authenticate, orgAdminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
-      const { action, entity_type, user_id, from, to, page: pageStr, limit: limitStr } = request.query;
+      const {
+        action, entity_type, user_id,
+        date_from, date_to,
+        from, to,
+        page: pageStr, per_page: perPageStr, limit: limitStr,
+      } = request.query;
 
-      const page = Math.max(1, parseInt(pageStr ?? '1', 10) || 1);
-      const limit = Math.min(100, Math.max(1, parseInt(limitStr ?? '50', 10) || 50));
-      const offset = (page - 1) * limit;
+      const page    = Math.max(1, parseInt(pageStr ?? '1', 10) || 1);
+      const perPage = Math.min(200, Math.max(1, parseInt(perPageStr ?? limitStr ?? '50', 10) || 50));
+      const offset  = (page - 1) * perPage;
+
+      // Support both date_from/date_to (spec) and from/to (legacy)
+      const effectiveFrom = date_from ?? from;
+      const effectiveTo   = date_to   ?? to;
 
       const filters: string[] = ['al.org_id = ?'];
       const values: (string | number)[] = [org_id];
@@ -42,13 +57,13 @@ export default async (fastify: FastifyInstance): Promise<void> => {
         filters.push('al.user_id = ?');
         values.push(user_id);
       }
-      if (from) {
+      if (effectiveFrom) {
         filters.push('al.created_at >= ?');
-        values.push(from);
+        values.push(effectiveFrom);
       }
-      if (to) {
+      if (effectiveTo) {
         filters.push('al.created_at <= ?');
-        values.push(to);
+        values.push(effectiveTo);
       }
 
       const whereClause = filters.join(' AND ');
@@ -60,7 +75,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       );
       const total = countResult?.total ?? 0;
 
-      // Get paginated results
+      // Get paginated results with actor name
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
         `SELECT al.id, al.action, al.entity_type, al.entity_id, al.description,
                 al.ip_address, al.user_agent, al.created_at,
@@ -70,14 +85,14 @@ export default async (fastify: FastifyInstance): Promise<void> => {
          WHERE ${whereClause}
          ORDER BY al.created_at DESC
          LIMIT ? OFFSET ?`,
-        [...values, limit, offset]
+        [...values, perPage, offset]
       );
 
       return reply.send(success(rows, {
         total: Number(total),
         page,
-        limit,
-        pages: Math.ceil(Number(total) / limit)
+        per_page: perPage,
+        pages: Math.ceil(Number(total) / perPage),
       }));
     }
   );

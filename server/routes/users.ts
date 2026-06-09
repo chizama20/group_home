@@ -3,6 +3,7 @@ import { RowDataPacket } from 'mysql2';
 import jwt from 'jsonwebtoken';
 import { success, failure } from '../utils/response';
 import { orgAdminOnly } from '../middleware/rbac';
+import { logAudit } from '../utils/audit';
 import { hashPassword, comparePassword } from '../utils/password';
 import { Role } from '../types';
 
@@ -14,6 +15,8 @@ interface VerifyPinBody      { pin: string; }
 interface ChangePasswordBody { current_password: string; new_password: string; }
 
 const VALID_ROLES: Role[] = ['employee', 'manager', 'org_admin'];
+// Roles that can be assigned via PATCH /users/:id/role (cannot elevate to org_admin)
+const ASSIGNABLE_ROLES: Role[] = ['employee', 'manager'];
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
@@ -193,23 +196,36 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       if (!role)
         return reply.code(400).send(failure('MISSING_FIELDS', 'role is required'));
 
-      if (!VALID_ROLES.includes(role))
-        return reply.code(400).send(failure('INVALID_ROLE', 'Role must be employee, manager, or org_admin'));
+      // Cannot promote to org_admin via this route
+      if (!ASSIGNABLE_ROLES.includes(role))
+        return reply.code(400).send(failure('INVALID_ROLE', 'Role must be employee or manager'));
 
       if (targetId === requesterId)
         return reply.code(400).send(failure('INVALID', 'You cannot change your own role'));
 
       const [check] = await fastify.db.execute<RowDataPacket[]>(
-        'SELECT id FROM users WHERE id = ? AND org_id = ?', [targetId, org_id]
+        'SELECT id, role, first_name, last_name FROM users WHERE id = ? AND org_id = ?', [targetId, org_id]
       );
       if (!check[0])
         return reply.code(404).send(failure('NOT_FOUND', 'User not found'));
+
+      const previousRole = check[0].role as string;
 
       await fastify.db.execute(
         'UPDATE users SET role = ? WHERE id = ?', [role, targetId]
       );
 
-      return reply.send(success({ message: 'Role updated' }));
+      const [[updatedUser]] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, first_name, last_name, email, role, is_active FROM users WHERE id = ?', [targetId]
+      );
+
+      void logAudit(fastify, {
+        org_id, user_id: requesterId,
+        action: 'UPDATE', entity_type: 'user', entity_id: targetId,
+        description: `Role changed from ${previousRole} to ${role} for ${check[0].first_name} ${check[0].last_name}`,
+      });
+
+      return reply.send(success({ user: updatedUser }));
     }
   );
 };
