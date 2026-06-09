@@ -82,7 +82,7 @@ function AnnouncementCard({
 
   if (!announcements.length) {
     return (
-      <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 text-sm text-zinc-400 dark:text-zinc-500'>
+      <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 text-sm text-zinc-400 dark:text-zinc-500'>
         No announcements yet.
       </div>
     )
@@ -105,7 +105,7 @@ function AnnouncementCard({
         return (
           <div
             key={a.id}
-            className='rounded-2xl p-4 border border-violet-800/40'
+            className='rounded-lg p-4 border border-violet-800/40'
             style={{ background: 'linear-gradient(135deg, #1a1040, #0f0a2a)' }}
           >
             <div className='flex items-start justify-between gap-2'>
@@ -168,7 +168,7 @@ function NeedsAttentionSection({
       </p>
 
       {overdueMedCount > 0 && (
-        <div className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center gap-3 p-3.5'>
+        <div className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md flex items-center gap-3 p-3.5'>
           <div className='w-2 h-2 rounded-full bg-red-500 shrink-0' />
           <div className='flex-1'>
             <p className='text-sm font-medium text-zinc-900 dark:text-white'>Overdue medications</p>
@@ -181,7 +181,7 @@ function NeedsAttentionSection({
       )}
 
       {unfiledIposCount > 0 && (
-        <div className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center gap-3 p-3.5'>
+        <div className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md flex items-center gap-3 p-3.5'>
           <div className='w-2 h-2 rounded-full bg-amber-500 shrink-0' />
           <div className='flex-1'>
             <p className='text-sm font-medium text-zinc-900 dark:text-white'>IPOS logs pending</p>
@@ -194,7 +194,7 @@ function NeedsAttentionSection({
       )}
 
       {openIncidentCount > 0 && (
-        <div className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center gap-3 p-3.5'>
+        <div className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md flex items-center gap-3 p-3.5'>
           <div className='w-2 h-2 rounded-full bg-red-500 shrink-0' />
           <div className='flex-1'>
             <p className='text-sm font-medium text-zinc-900 dark:text-white'>Open incidents</p>
@@ -228,7 +228,7 @@ function UpcomingAppointmentsSection({
         </p>
         <button
           onClick={onAdd}
-          className='text-indigo-600 dark:text-indigo-400 text-sm font-medium min-h-[44px] flex items-center'
+          className='text-primary text-sm font-medium min-h-[44px] flex items-center'
         >
           + Add
         </button>
@@ -240,9 +240,9 @@ function UpcomingAppointmentsSection({
         return (
           <div
             key={appt.id}
-            className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center gap-3 p-3'
+            className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md flex items-center gap-3 p-3'
           >
-            <div className='bg-zinc-100 dark:bg-zinc-800 rounded-xl px-2.5 py-2 text-center min-w-[44px] shrink-0'>
+            <div className='bg-zinc-100 dark:bg-zinc-800 rounded-md px-2.5 py-2 text-center min-w-[44px] shrink-0'>
               <p className='text-sm font-semibold text-zinc-900 dark:text-white'>{time}</p>
               <p className='text-[10px] text-zinc-400'>{period}</p>
             </div>
@@ -252,7 +252,7 @@ function UpcomingAppointmentsSection({
                 {residentName}{appt.location ? ` · ${appt.location}` : ''}
               </p>
             </div>
-            <span className='text-[11px] font-semibold px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 shrink-0'>
+            <span className='text-[11px] font-semibold px-2 py-0.5 rounded-md bg-primary/10 text-primary shrink-0'>
               Today
             </span>
           </div>
@@ -270,20 +270,20 @@ function QuickActionsSection() {
         Quick Actions
       </p>
       <div className='grid grid-cols-3 gap-2.5 px-4'>
-        <button onClick={() => navigate('/logs?tab=ipos')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col items-center gap-2 min-h-[80px] cursor-pointer'>
-          <div className='w-9 h-9 rounded-xl flex items-center justify-center bg-indigo-500/20 text-indigo-400'>
+        <button onClick={() => navigate('/logs?tab=ipos')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-3.5 flex flex-col items-center gap-2 min-h-[80px] cursor-pointer'>
+          <div className='w-9 h-9 rounded-md flex items-center justify-center bg-primary/10 text-primary'>
             <FileText className='w-5 h-5' />
           </div>
           <span className='text-xs font-medium text-zinc-700 dark:text-zinc-300 text-center'>New Log</span>
         </button>
-        <button onClick={() => navigate('/logs?tab=incident')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col items-center gap-2 min-h-[80px] cursor-pointer'>
-          <div className='w-9 h-9 rounded-xl flex items-center justify-center bg-red-500/20 text-red-400'>
+        <button onClick={() => navigate('/logs?tab=incident')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-3.5 flex flex-col items-center gap-2 min-h-[80px] cursor-pointer'>
+          <div className='w-9 h-9 rounded-md flex items-center justify-center bg-red-500/20 text-red-400'>
             <AlertTriangle className='w-5 h-5' />
           </div>
           <span className='text-xs font-medium text-zinc-700 dark:text-zinc-300 text-center'>Incident</span>
         </button>
-        <button onClick={() => navigate('/logs?tab=shift-notes')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col items-center gap-2 min-h-[80px] cursor-pointer'>
-          <div className='w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/20 text-emerald-400'>
+        <button onClick={() => navigate('/logs?tab=shift-notes')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-3.5 flex flex-col items-center gap-2 min-h-[80px] cursor-pointer'>
+          <div className='w-9 h-9 rounded-md flex items-center justify-center bg-emerald-500/20 text-emerald-400'>
             <MessageSquare className='w-5 h-5' />
           </div>
           <span className='text-xs font-medium text-zinc-700 dark:text-zinc-300 text-center'>Shift Note</span>
@@ -322,7 +322,7 @@ function ShiftTasksSection({
       </p>
 
       {allDone ? (
-        <div className='mx-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2.5 px-4 py-3'>
+        <div className='mx-4 bg-emerald-500/10 border border-emerald-500/20 rounded-md flex items-center gap-2.5 px-4 py-3'>
           <div className='w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0'>
             <Check className='w-3.5 h-3.5 text-emerald-500' />
           </div>
@@ -335,7 +335,7 @@ function ShiftTasksSection({
           return (
             <div
               key={task.id}
-              className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center gap-3 px-4 py-3 min-h-[52px]'
+              className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md flex items-center gap-3 px-4 py-3 min-h-[52px]'
             >
               <div className='w-5 h-5 rounded-full border-2 border-zinc-300 dark:border-zinc-600 shrink-0' />
               <p className='text-sm text-zinc-900 dark:text-white flex-1 truncate'>{task.title}</p>
@@ -420,7 +420,7 @@ export default function DashboardPage() {
   })
 
   return (
-    <div className='bg-zinc-50 dark:bg-black min-h-screen pb-8'>
+    <div className='bg-zinc-50 dark:bg-zinc-950 min-h-screen pb-8'>
       <div className='max-w-4xl mx-auto'>
 
       {/* Section 1 — Page Header */}
@@ -433,7 +433,7 @@ export default function DashboardPage() {
 
       {/* Section 2 — Shift Strip */}
       <div className='mx-4 mt-0 mb-0'>
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center justify-between'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 flex items-center justify-between'>
           <div>
             <p className='text-xs text-zinc-400 dark:text-zinc-500 mb-1'>Current shift</p>
             <p className='text-base font-semibold text-zinc-900 dark:text-white'>
@@ -454,7 +454,7 @@ export default function DashboardPage() {
               </>
             ) : (
               <button disabled={clocking} onClick={() => { void handleClockIn() }}
-                className='bg-indigo-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg min-h-[32px] disabled:opacity-50'>
+                className='bg-primary text-white text-xs font-semibold px-3 py-1.5 rounded-lg min-h-[32px] disabled:opacity-50'>
                 {clocking ? '…' : 'Clock In'}
               </button>
             )}
@@ -467,9 +467,9 @@ export default function DashboardPage() {
         <div className='px-4 mt-4'>
           <div className='grid grid-cols-2 lg:grid-cols-4 gap-2.5'>
             {/* Meds overdue */}
-            <div onClick={() => navigate('/calendar')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 cursor-pointer'>
+            <div onClick={() => navigate('/calendar')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3.5 cursor-pointer'>
               <div className='flex items-center justify-between'>
-                <div className='w-8 h-8 rounded-xl flex items-center justify-center bg-red-500/15 text-red-400'>
+                <div className='w-8 h-8 rounded-md flex items-center justify-center bg-red-500/15 text-red-400'>
                   <Pill className='w-4 h-4' />
                 </div>
                 <ChevronRight className='text-zinc-400 dark:text-zinc-600 h-4 w-4' />
@@ -481,9 +481,9 @@ export default function DashboardPage() {
             </div>
 
             {/* IPOS pending */}
-            <div onClick={() => navigate('/logs?tab=ipos')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 cursor-pointer'>
+            <div onClick={() => navigate('/logs?tab=ipos')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3.5 cursor-pointer'>
               <div className='flex items-center justify-between'>
-                <div className='w-8 h-8 rounded-xl flex items-center justify-center bg-amber-500/15 text-amber-400'>
+                <div className='w-8 h-8 rounded-md flex items-center justify-center bg-amber-500/15 text-amber-400'>
                   <ClipboardList className='w-4 h-4' />
                 </div>
                 <ChevronRight className='text-zinc-400 dark:text-zinc-600 h-4 w-4' />
@@ -495,9 +495,9 @@ export default function DashboardPage() {
             </div>
 
             {/* Open incidents */}
-            <div onClick={() => navigate('/logs?tab=incident')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 cursor-pointer'>
+            <div onClick={() => navigate('/logs?tab=incident')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3.5 cursor-pointer'>
               <div className='flex items-center justify-between'>
-                <div className='w-8 h-8 rounded-xl flex items-center justify-center bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'>
+                <div className='w-8 h-8 rounded-md flex items-center justify-center bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'>
                   <AlertTriangle className='w-4 h-4' />
                 </div>
                 <ChevronRight className='text-zinc-400 dark:text-zinc-600 h-4 w-4' />
@@ -509,9 +509,9 @@ export default function DashboardPage() {
             </div>
 
             {/* Staff on shift */}
-            <div onClick={() => navigate('/calendar')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 cursor-pointer'>
+            <div onClick={() => navigate('/calendar')} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3.5 cursor-pointer'>
               <div className='flex items-center justify-between'>
-                <div className='w-8 h-8 rounded-xl flex items-center justify-center bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'>
+                <div className='w-8 h-8 rounded-md flex items-center justify-center bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'>
                   <Users className='w-4 h-4' />
                 </div>
                 <ChevronRight className='text-zinc-400 dark:text-zinc-600 h-4 w-4' />
@@ -569,7 +569,7 @@ export default function DashboardPage() {
       {/* Loading spinner (initial load only) */}
       {isLoading && !announcements.length && (
         <div className='flex justify-center mt-10'>
-          <div className='w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin' />
+          <div className='w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin' />
         </div>
       )}
 

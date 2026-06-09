@@ -25,7 +25,7 @@ function actionColor(action: string): string {
   if (action.includes('create') || action.includes('insert')) return 'bg-emerald-500/15 text-emerald-400'
   if (action.includes('delete') || action.includes('remove')) return 'bg-red-500/15 text-red-400'
   if (action.includes('update') || action.includes('patch'))  return 'bg-amber-500/15 text-amber-400'
-  if (action.includes('login') || action.includes('auth'))    return 'bg-indigo-500/15 text-indigo-400'
+  if (action.includes('login') || action.includes('auth'))    return 'bg-primary/10 text-primary'
   return 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
 }
 
@@ -66,7 +66,7 @@ export default function AuditTab({ selectedHomeId: _selectedHomeId }: Props) {
             type='date'
             value={dateFrom}
             onChange={e => setDateFrom(e.target.value)}
-            className='bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+            className='bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-ring'
           />
         </div>
         <div>
@@ -75,7 +75,7 @@ export default function AuditTab({ selectedHomeId: _selectedHomeId }: Props) {
             type='date'
             value={dateTo}
             onChange={e => setDateTo(e.target.value)}
-            className='bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+            className='bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-ring'
           />
         </div>
       </div>
@@ -84,8 +84,8 @@ export default function AuditTab({ selectedHomeId: _selectedHomeId }: Props) {
       {loading && page === 1 && (
         <div className='px-4 pt-2 space-y-2'>
           {[0, 1, 2, 3, 4].map(i => (
-            <div key={i} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 flex gap-3 animate-pulse'>
-              <div className='w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 shrink-0' />
+            <div key={i} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md px-4 py-3 flex gap-3 animate-pulse'>
+              <div className='w-8 h-8 rounded-md bg-zinc-100 dark:bg-zinc-800 shrink-0' />
               <div className='flex-1 space-y-2'>
                 <div className='h-3 bg-zinc-100 dark:bg-zinc-800 rounded w-1/3' />
                 <div className='h-3 bg-zinc-100 dark:bg-zinc-800 rounded w-2/3' />
@@ -97,7 +97,7 @@ export default function AuditTab({ selectedHomeId: _selectedHomeId }: Props) {
 
       {/* Empty */}
       {!loading && logs.length === 0 && (
-        <div className='mx-4 mt-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 text-center'>
+        <div className='mx-4 mt-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-6 text-center'>
           <p className='text-sm text-zinc-500 dark:text-zinc-400'>No audit events found.</p>
         </div>
       )}
@@ -106,8 +106,8 @@ export default function AuditTab({ selectedHomeId: _selectedHomeId }: Props) {
       {logs.length > 0 && (
         <div className='px-4 pt-2 space-y-2'>
           {logs.map(log => (
-            <div key={log.id} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 flex gap-3'>
-              <div className={cn('w-8 h-8 rounded-xl flex items-center justify-center shrink-0', actionColor(log.action))}>
+            <div key={log.id} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md px-4 py-3 flex gap-3'>
+              <div className={cn('w-8 h-8 rounded-md flex items-center justify-center shrink-0', actionColor(log.action))}>
                 {actionIcon(log.action)}
               </div>
               <div className='flex-1 min-w-0'>
@@ -140,7 +140,7 @@ export default function AuditTab({ selectedHomeId: _selectedHomeId }: Props) {
             <button
               onClick={() => load(page + 1, false)}
               disabled={loading}
-              className='w-full py-3 text-sm font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50 rounded-xl min-h-[44px] disabled:opacity-50 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors'
+              className='w-full py-3 text-sm font-semibold text-primary border border-primary/20 dark:border-primary/30 rounded-md min-h-[44px] disabled:opacity-50 hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors'
             >
               {loading ? 'Loading…' : 'Load more'}
             </button>

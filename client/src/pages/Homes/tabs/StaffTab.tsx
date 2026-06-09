@@ -146,7 +146,7 @@ export default function StaffTab({ homeId }: Props) {
   if (loading) {
     return (
       <div className='p-4'>
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden'>
           {Array.from({ length: 3 }).map((_, i) => (
             <SkeletonRow key={i} />
           ))}
@@ -158,7 +158,7 @@ export default function StaffTab({ homeId }: Props) {
   if (error) {
     return (
       <div className='p-4'>
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4'>
           <p className='text-sm text-red-500'>{error}</p>
         </div>
       </div>
@@ -174,7 +174,7 @@ export default function StaffTab({ homeId }: Props) {
         </span>
         <button
           onClick={() => setShowAssign(true)}
-          className='flex items-center gap-1.5 bg-indigo-600 text-white text-sm font-medium px-3 py-2 rounded-xl min-h-[40px]'
+          className='flex items-center gap-1.5 bg-primary text-white text-sm font-medium px-3 py-2 rounded-md min-h-[40px]'
         >
           <UserPlus className='h-4 w-4' />
           Assign Staff
@@ -183,7 +183,7 @@ export default function StaffTab({ homeId }: Props) {
 
       {/* Staff list */}
       {staff.length === 0 ? (
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 text-center'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 text-center'>
           <div className='w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-3'>
             <Users className='h-6 w-6 text-zinc-400' />
           </div>
@@ -192,7 +192,7 @@ export default function StaffTab({ homeId }: Props) {
           </p>
         </div>
       ) : (
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden'>
           {staff.map((s, idx) => (
             <StaffRow
               key={s.id}
@@ -211,7 +211,7 @@ export default function StaffTab({ homeId }: Props) {
             className='absolute inset-0 bg-black/50'
             onClick={() => setShowAssign(false)}
           />
-          <div className='relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-2xl p-4 max-h-[80vh] overflow-y-auto'>
+          <div className='relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-t-lg sm:rounded-lg p-4 max-h-[80vh] overflow-y-auto'>
             <div className='flex items-center justify-between mb-4'>
               <h3 className='text-lg font-semibold text-zinc-900 dark:text-white'>
                 Assign Staff

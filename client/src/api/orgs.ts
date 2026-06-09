@@ -110,3 +110,10 @@ export const getOrgIposCompliance = (date?: string) =>
 
 export const exportCsv = (data: { type: 'incidents' | 'ipos' | 'medications'; home_id?: string; date_from?: string; date_to?: string }) =>
   api.post<string>('/exports/csv', data, { responseType: 'text' })
+
+export const exportOrgCsv = (data: {
+  type: 'residents' | 'incidents' | 'medications' | 'audit_logs'
+  home_id?: string
+  date_from?: string
+  date_to?: string
+}) => api.post<string>('/exports/', data, { responseType: 'blob' })

@@ -35,7 +35,7 @@ function ResidentRow({ resident, isFirst }: { resident: Resident; isFirst: boole
       }`}
     >
       {/* Avatar */}
-      <div className='w-10 h-10 rounded-full bg-indigo-500/15 text-indigo-400 text-sm font-bold flex items-center justify-center shrink-0'>
+      <div className='w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center shrink-0'>
         {getInitials(resident)}
       </div>
 
@@ -96,7 +96,7 @@ export default function ResidentsTab({ homeId }: Props) {
   if (loading) {
     return (
       <div className='p-4'>
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden'>
           {Array.from({ length: 4 }).map((_, i) => (
             <SkeletonRow key={i} />
           ))}
@@ -108,7 +108,7 @@ export default function ResidentsTab({ homeId }: Props) {
   if (error) {
     return (
       <div className='p-4'>
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4'>
           <p className='text-sm text-red-500'>{error}</p>
         </div>
       </div>
@@ -118,7 +118,7 @@ export default function ResidentsTab({ homeId }: Props) {
   if (residents.length === 0) {
     return (
       <div className='p-4'>
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 text-center'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 text-center'>
           <div className='w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-3'>
             <User className='h-6 w-6 text-zinc-400' />
           </div>
@@ -148,7 +148,7 @@ export default function ResidentsTab({ homeId }: Props) {
       </div>
 
       {/* List */}
-      <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden'>
+      <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden'>
         {residents.map((resident, idx) => (
           <ResidentRow key={resident.id} resident={resident} isFirst={idx === 0} />
         ))}

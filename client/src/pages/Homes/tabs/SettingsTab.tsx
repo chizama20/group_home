@@ -58,7 +58,7 @@ export default function SettingsTab({ home, onUpdate }: Props) {
   return (
     <div className='p-4 space-y-4'>
       {/* Form */}
-      <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 space-y-4'>
+      <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-4'>
         <h2 className='text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
           Home Details
         </h2>
@@ -73,7 +73,7 @@ export default function SettingsTab({ home, onUpdate }: Props) {
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder='Enter home name'
-            className='w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[44px]'
+            className='w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]'
           />
         </div>
 
@@ -87,7 +87,7 @@ export default function SettingsTab({ home, onUpdate }: Props) {
             value={address}
             onChange={e => setAddress(e.target.value)}
             placeholder='Enter address'
-            className='w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[44px]'
+            className='w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]'
           />
         </div>
 
@@ -105,7 +105,7 @@ export default function SettingsTab({ home, onUpdate }: Props) {
         <button
           onClick={handleSave}
           disabled={saving || !hasChanges}
-          className='w-full flex items-center justify-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-3 rounded-xl min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed'
+          className='w-full flex items-center justify-center gap-2 bg-primary text-white text-sm font-semibold px-4 py-3 rounded-md min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed'
         >
           <Save className='h-4 w-4' />
           {saving ? 'Saving...' : 'Save Changes'}
@@ -113,7 +113,7 @@ export default function SettingsTab({ home, onUpdate }: Props) {
       </div>
 
       {/* Danger zone */}
-      <div className='bg-white dark:bg-zinc-900 border border-red-200 dark:border-red-900/40 rounded-2xl p-4 space-y-3'>
+      <div className='bg-white dark:bg-zinc-900 border border-red-200 dark:border-red-900/40 rounded-lg p-4 space-y-3'>
         <div className='flex items-center gap-2'>
           <AlertTriangle className='h-4 w-4 text-red-500' />
           <h2 className='text-xs font-semibold uppercase tracking-wide text-red-500'>
@@ -128,7 +128,7 @@ export default function SettingsTab({ home, onUpdate }: Props) {
         <button
           onClick={() => setShowArchiveConfirm(true)}
           disabled={archiving}
-          className='w-full flex items-center justify-center gap-2 border border-red-200 dark:border-red-900/40 text-red-500 text-sm font-semibold px-4 py-3 rounded-xl min-h-[44px] disabled:opacity-50'
+          className='w-full flex items-center justify-center gap-2 border border-red-200 dark:border-red-900/40 text-red-500 text-sm font-semibold px-4 py-3 rounded-md min-h-[44px] disabled:opacity-50'
         >
           <Archive className='h-4 w-4' />
           {archiving ? 'Archiving...' : 'Archive Home'}
