@@ -21,8 +21,8 @@
     --popover:             oklch(1 0 0);
     --popover-foreground:  oklch(0.145 0 0);
 
-    /* Primary = indigo-600 */
-    --primary:             oklch(0.488 0.243 264.376);
+    /* Primary = muted steel blue */
+    --primary:             oklch(0.54 0.16 254);
     --primary-foreground:  oklch(1 0 0);
 
     /* Secondary */
@@ -43,33 +43,33 @@
     /* Borders & inputs */
     --border:              oklch(0.856 0 0);   /* zinc-200 */
     --input:               oklch(0.856 0 0);
-    --ring:                oklch(0.488 0.243 264.376); /* indigo-600 */
+    --ring:                oklch(0.54 0.16 254);
 
-    /* Radius */
-    --radius: 0.75rem; /* 12px — rounded-xl baseline */
+    /* Radius — lg=8px cards, md=6px default, sm=4px */
+    --radius: 0.5rem;
 
     /* Sidebar (used by shadcn sidebar component) */
     --sidebar:                oklch(1 0 0);
     --sidebar-foreground:     oklch(0.145 0 0);
-    --sidebar-primary:        oklch(0.488 0.243 264.376);
+    --sidebar-primary:        oklch(0.54 0.16 254);
     --sidebar-primary-foreground: oklch(1 0 0);
     --sidebar-accent:         oklch(0.961 0 0);
     --sidebar-accent-foreground: oklch(0.145 0 0);
     --sidebar-border:         oklch(0.856 0 0);
-    --sidebar-ring:           oklch(0.488 0.243 264.376);
+    --sidebar-ring:           oklch(0.54 0.16 254);
   }
 
   .dark {
     /* Page & surface */
-    --background:          oklch(0 0 0);        /* black */
+    --background:          oklch(0.09 0 0);     /* zinc-950 #09090b */
     --foreground:          oklch(1 0 0);        /* white */
     --card:                oklch(0.159 0 0);    /* zinc-900 #111 */
     --card-foreground:     oklch(1 0 0);
     --popover:             oklch(0.159 0 0);
     --popover-foreground:  oklch(1 0 0);
 
-    /* Primary = indigo-600 (same in dark) */
-    --primary:             oklch(0.488 0.243 264.376);
+    /* Primary = muted steel blue */
+    --primary:             oklch(0.54 0.16 254);
     --primary-foreground:  oklch(1 0 0);
 
     /* Secondary */
@@ -90,17 +90,17 @@
     /* Borders & inputs */
     --border:              oklch(0.216 0 0);   /* zinc-800 */
     --input:               oklch(0.216 0 0);
-    --ring:                oklch(0.541 0.243 264.376); /* indigo-500 */
+    --ring:                oklch(0.60 0.16 254);
 
-    /* Sidebar */
-    --sidebar:                oklch(0.09 0 0);   /* zinc-950 */
+    /* Sidebar — slightly darker than background for depth */
+    --sidebar:                oklch(0.06 0 0);
     --sidebar-foreground:     oklch(1 0 0);
-    --sidebar-primary:        oklch(0.488 0.243 264.376);
+    --sidebar-primary:        oklch(0.54 0.16 254);
     --sidebar-primary-foreground: oklch(1 0 0);
-    --sidebar-accent:         oklch(0.216 0 0);
+    --sidebar-accent:         oklch(0.14 0 0);
     --sidebar-accent-foreground: oklch(1 0 0);
-    --sidebar-border:         oklch(0.216 0 0);
-    --sidebar-ring:           oklch(0.488 0.243 264.376);
+    --sidebar-border:         oklch(0.14 0 0);
+    --sidebar-ring:           oklch(0.54 0.16 254);
   }
 
   * {
@@ -112,7 +112,7 @@
   }
 
   body {
-    @apply bg-zinc-50 text-zinc-900 dark:bg-black dark:text-white antialiased;
+    @apply bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-white antialiased;
     font-family: 'Geist Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     line-height: 1.5;
   }

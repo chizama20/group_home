@@ -60,7 +60,7 @@ export default function AppLayout({ children }: Props) {
   const avatarColor = roleColors[user?.role ?? 'employee'] ?? roleColors.employee
 
   return (
-    <div className='flex h-screen overflow-hidden bg-zinc-50 dark:bg-black'>
+    <div className='flex h-screen overflow-hidden bg-zinc-50 dark:bg-zinc-950'>
       <OfflineBanner />
 
       {/* ── Desktop sidebar ≥ 768px ──────────────────────────────────────────── */}
@@ -104,7 +104,7 @@ export default function AppLayout({ children }: Props) {
                   'w-full text-left px-4 py-2.5 text-sm transition-colors',
                   'hover:bg-zinc-100 dark:hover:bg-zinc-800',
                   h.id === selectedHome?.id
-                    ? 'font-semibold text-indigo-600 dark:text-indigo-400'
+                    ? 'font-semibold text-primary'
                     : 'text-zinc-700 dark:text-zinc-300'
                 )}
               >
@@ -124,9 +124,9 @@ export default function AppLayout({ children }: Props) {
               title={collapsed ? label : undefined}
               aria-label={collapsed ? label : undefined}
               className={({ isActive }) => cn(
-                'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors min-h-[44px]',
+                'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors min-h-[44px]',
                 isActive
-                  ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                  ? 'bg-primary/10 text-primary'
                   : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-white'
               )}
             >
@@ -143,7 +143,7 @@ export default function AppLayout({ children }: Props) {
             onClick={handleThemeToggle}
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             className={cn(
-              'flex items-center gap-3 w-full rounded-xl px-3 py-2.5 text-sm transition-colors min-h-[44px]',
+              'flex items-center gap-3 w-full rounded-md px-3 py-2.5 text-sm transition-colors min-h-[44px]',
               'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-white'
             )}
           >
@@ -174,7 +174,7 @@ export default function AppLayout({ children }: Props) {
           {/* Collapse toggle */}
           <button
             onClick={() => setCollapsed(v => !v)}
-            className='flex items-center justify-center w-full rounded-xl p-2.5 text-zinc-400 dark:text-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors'
+            className='flex items-center justify-center w-full rounded-md p-2.5 text-zinc-400 dark:text-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors'
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {collapsed ? <ChevronRight className='h-4 w-4' /> : <ChevronLeft className='h-4 w-4' />}
@@ -193,7 +193,7 @@ export default function AppLayout({ children }: Props) {
             <button
               onClick={handleThemeToggle}
               aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              className='w-11 h-11 flex items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
+              className='w-11 h-11 flex items-center justify-center rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
             >
               {theme === 'dark' ? <Sun className='h-4 w-4' /> : <Moon className='h-4 w-4' />}
             </button>
@@ -213,7 +213,7 @@ export default function AppLayout({ children }: Props) {
 
       {/* ── Mobile bottom tab bar < 768px ──────────────────────────────────────── */}
       <nav
-        className='md:hidden fixed bottom-0 inset-x-0 z-40 flex items-stretch bg-white/95 dark:bg-black/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800'
+        className='md:hidden fixed bottom-0 inset-x-0 z-40 flex items-stretch bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800'
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         {NAV_ITEMS.map(({ to, label, icon: Icon, exact }) => (
@@ -225,7 +225,7 @@ export default function AppLayout({ children }: Props) {
               'flex-1 flex flex-col items-center justify-center gap-1 pt-2 pb-1 min-h-[56px]',
               'text-[11px] font-medium transition-colors',
               isActive
-                ? 'text-indigo-600 dark:text-indigo-500'
+                ? 'text-primary'
                 : 'text-zinc-500'
             )}
           >
