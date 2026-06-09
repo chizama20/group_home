@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { UserPlus, Users, X } from 'lucide-react'
-import { getHomeStaff, addStaff, removeStaff, type HomeStaffMember } from '../../../api/homes'
+import { getHomeStaff, addStaff, type HomeStaffMember } from '../../../api/homes'
 import { getOrgStaff, type OrgStaffMember } from '../../../api/orgs'
 import { useAuth } from '../../../context/AuthContext'
+import StaffProfileSheet from '../../../components/StaffProfileSheet'
 
 interface Props {
   homeId: string
@@ -50,17 +51,17 @@ function SkeletonRow() {
 function StaffRow({
   staff,
   isFirst,
-  onRemove,
-  removing,
+  onClick,
 }: {
   staff: HomeStaffMember
   isFirst: boolean
-  onRemove: () => void
-  removing: boolean
+  onClick: () => void
 }) {
   return (
-    <div
-      className={`flex items-center gap-3 px-4 py-3.5 min-h-[56px]${
+    <button
+      type='button'
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-4 py-3.5 min-h-[56px] cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors text-left${
         isFirst ? '' : ' border-t border-zinc-100 dark:border-zinc-800'
       }`}
     >
@@ -81,17 +82,7 @@ function StaffRow({
 
       {/* Role badge */}
       {getRoleBadge(staff.role)}
-
-      {/* Remove button */}
-      <button
-        onClick={onRemove}
-        disabled={removing}
-        className='p-2 text-zinc-400 hover:text-red-500 disabled:opacity-50'
-        aria-label='Remove staff'
-      >
-        <X className='h-4 w-4' />
-      </button>
-    </div>
+    </button>
   )
 }
 
@@ -103,7 +94,7 @@ export default function StaffTab({ homeId }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [showAssign, setShowAssign] = useState(false)
   const [assigning, setAssigning] = useState(false)
-  const [removing, setRemoving] = useState<string | null>(null)
+  const [selectedStaff, setSelectedStaff] = useState<HomeStaffMember | null>(null)
 
   async function fetchStaff() {
     try {
@@ -145,18 +136,6 @@ export default function StaffTab({ homeId }: Props) {
       // Handle error silently
     } finally {
       setAssigning(false)
-    }
-  }
-
-  async function handleRemove(userId: string) {
-    setRemoving(userId)
-    try {
-      await removeStaff(homeId, userId)
-      setStaff(prev => prev.filter(s => s.id !== userId))
-    } catch {
-      // Handle error silently
-    } finally {
-      setRemoving(null)
     }
   }
 
@@ -219,8 +198,7 @@ export default function StaffTab({ homeId }: Props) {
               key={s.id}
               staff={s}
               isFirst={idx === 0}
-              onRemove={() => handleRemove(s.id)}
-              removing={removing === s.id}
+              onClick={() => setSelectedStaff(s)}
             />
           ))}
         </div>
@@ -277,6 +255,17 @@ export default function StaffTab({ homeId }: Props) {
             )}
           </div>
         </div>
+      )}
+
+      {/* Staff profile sheet */}
+      {selectedStaff && (
+        <StaffProfileSheet
+          open={!!selectedStaff}
+          homeId={homeId}
+          staff={selectedStaff}
+          onClose={() => setSelectedStaff(null)}
+          onChanged={() => { setSelectedStaff(null); void fetchStaff() }}
+        />
       )}
     </div>
   )
