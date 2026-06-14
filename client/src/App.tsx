@@ -37,6 +37,7 @@ import HomesPage          from './pages/Homes/index'
 import CreateHomeWizard   from './pages/Homes/CreateHomeWizard'
 import HomeDetail         from './pages/Homes/HomeDetail'
 import OrgLogsPage        from './pages/OrgLogs/index'
+import MySchedulePage      from './pages/Settings/subpages/MySchedule'
 
 function ShiftGuard({ children }: { children: React.ReactNode }) {
   const { user }   = useAuth()
@@ -136,6 +137,11 @@ function AppRoutes() {
             <ShiftGuard>
               <AppLayout><SettingsPage /></AppLayout>
             </ShiftGuard>
+          </ProtectedRoute>
+        } />
+        <Route path='/my-schedule' element={
+          <ProtectedRoute>
+            <AppLayout><MySchedulePage /></AppLayout>
           </ProtectedRoute>
         } />
 
