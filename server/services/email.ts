@@ -130,3 +130,42 @@ export async function sendOrgRequestConfirmationEmail(
     `,
   });
 }
+
+export async function sendShiftRequestSubmittedEmail(
+  to: string,
+  requesterName: string,
+  date: string,
+  shiftType: string,
+  homeName: string
+): Promise<void> {
+  await send({
+    from:    FROM,
+    to,
+    subject: `New time-off request from ${requesterName}`,
+    html: `
+      <p>Hi,</p>
+      <p><strong>${requesterName}</strong> has submitted a time-off request for <strong>${date}</strong> (${shiftType} shift) at <strong>${homeName}</strong>.</p>
+      <p>Please log in to review and approve or deny the request.</p>
+    `,
+  });
+}
+
+export async function sendShiftRequestReviewedEmail(
+  to: string,
+  requesterName: string,
+  status: 'approved' | 'denied',
+  date: string,
+  shiftType: string
+): Promise<void> {
+  const statusLabel = status === 'approved' ? 'approved' : 'denied';
+  await send({
+    from:    FROM,
+    to,
+    subject: `Your time-off request has been ${statusLabel}`,
+    html: `
+      <p>Hi ${requesterName},</p>
+      <p>Your time-off request for <strong>${date}</strong> (${shiftType} shift) has been <strong>${statusLabel}</strong>.</p>
+      <p>If you have questions, please contact your manager.</p>
+    `,
+  });
+}

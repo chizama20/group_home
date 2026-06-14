@@ -33,6 +33,7 @@ import iposLogsRoutes      from './routes/iposLogs';
 import iposEntriesRoutes   from './routes/iposEntries';
 import dayProgramLogsRoutes from './routes/dayProgramLogs';
 import vitalsLogsRoutes    from './routes/vitalsLogs';
+import scheduleRoutes      from './routes/schedule';
 
 import adminAuthRoutes     from './routes/admin/auth';
 import adminOrgReqRoutes   from './routes/admin/orgRequests';
@@ -149,6 +150,7 @@ fastify.register(iposLogsRoutes,       { prefix: '/ipos-logs' });
 fastify.register(iposEntriesRoutes,    { prefix: '/ipos-entries' });
 fastify.register(dayProgramLogsRoutes, { prefix: '/day-program-logs' });
 fastify.register(vitalsLogsRoutes,     { prefix: '/vitals-logs' });
+fastify.register(scheduleRoutes,       { prefix: '/' });
 
 // Admin routes — env-based auth, no DB lookup
 fastify.register(adminAuthRoutes,   { prefix: '/admin/auth' });
