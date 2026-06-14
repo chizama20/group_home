@@ -43,9 +43,9 @@ function StatBar({
     <div className='px-4 mt-4'>
       <div className='grid grid-cols-2 lg:grid-cols-4 gap-2.5'>
         {/* Total Homes */}
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3.5'>
           <div className='flex items-center justify-between'>
-            <div className='w-8 h-8 rounded-xl flex items-center justify-center bg-indigo-500/15 text-indigo-400'>
+            <div className='w-8 h-8 rounded-md flex items-center justify-center bg-primary/10 text-primary'>
               <Building2 className='w-4 h-4' />
             </div>
           </div>
@@ -56,9 +56,9 @@ function StatBar({
         </div>
 
         {/* Total Residents */}
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3.5'>
           <div className='flex items-center justify-between'>
-            <div className='w-8 h-8 rounded-xl flex items-center justify-center bg-emerald-500/15 text-emerald-400'>
+            <div className='w-8 h-8 rounded-md flex items-center justify-center bg-emerald-500/15 text-emerald-400'>
               <Users className='w-4 h-4' />
             </div>
           </div>
@@ -69,9 +69,9 @@ function StatBar({
         </div>
 
         {/* Total Staff */}
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3.5'>
           <div className='flex items-center justify-between'>
-            <div className='w-8 h-8 rounded-xl flex items-center justify-center bg-violet-500/15 text-violet-400'>
+            <div className='w-8 h-8 rounded-md flex items-center justify-center bg-violet-500/15 text-violet-400'>
               <Users className='w-4 h-4' />
             </div>
           </div>
@@ -82,9 +82,9 @@ function StatBar({
         </div>
 
         {/* Open Incidents */}
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3.5'>
           <div className='flex items-center justify-between'>
-            <div className='w-8 h-8 rounded-xl flex items-center justify-center bg-red-500/15 text-red-400'>
+            <div className='w-8 h-8 rounded-md flex items-center justify-center bg-red-500/15 text-red-400'>
               <AlertTriangle className='w-4 h-4' />
             </div>
           </div>
@@ -112,7 +112,7 @@ function NeedsAttentionSection({ items }: { items: NeedsAttentionItem[] }) {
         return (
           <div
             key={`${item.type}-${index}`}
-            className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center gap-3 p-3.5'
+            className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md flex items-center gap-3 p-3.5'
           >
             <div className={`w-2 h-2 rounded-full ${colors.dot} shrink-0`} />
             <div className='flex-1'>
@@ -138,7 +138,7 @@ function HomeCardsSection({ homes }: { homes: OrgDashboardHome[] }) {
         <p className='text-[17px] font-semibold text-zinc-900 dark:text-white px-4 mb-3'>
           Homes
         </p>
-        <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 text-sm text-zinc-400 dark:text-zinc-500'>
+        <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 text-sm text-zinc-400 dark:text-zinc-500'>
           No homes found.
         </div>
       </div>
@@ -155,9 +155,9 @@ function HomeCardsSection({ homes }: { homes: OrgDashboardHome[] }) {
         <div
           key={home.id}
           onClick={() => navigate(`/homes/${home.id}`)}
-          className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center gap-3 p-4 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors'
+          className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md flex items-center gap-3 p-4 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors'
         >
-          <div className='w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-500/15 text-indigo-400 shrink-0'>
+          <div className='w-10 h-10 rounded-md flex items-center justify-center bg-primary/10 text-primary shrink-0'>
             <Building2 className='w-5 h-5' />
           </div>
           <div className='flex-1 min-w-0'>
@@ -221,7 +221,7 @@ export default function OrgDashboardPage() {
   })
 
   return (
-    <div className='bg-zinc-50 dark:bg-black min-h-screen pb-8'>
+    <div className='bg-zinc-50 dark:bg-zinc-950 min-h-screen pb-8'>
       <div className='max-w-4xl mx-auto'>
         {/* Page Header */}
         <div className='px-4 pt-5 pb-3'>
@@ -233,7 +233,7 @@ export default function OrgDashboardPage() {
 
         {/* Error State */}
         {error && (
-          <div className='mx-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3'>
+          <div className='mx-4 bg-red-500/10 border border-red-500/20 rounded-md px-4 py-3'>
             <p className='text-sm text-red-400'>{error}</p>
           </div>
         )}
@@ -241,7 +241,7 @@ export default function OrgDashboardPage() {
         {/* Loading State */}
         {isLoading && (
           <div className='flex justify-center mt-10'>
-            <div className='w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin' />
+            <div className='w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin' />
           </div>
         )}
 

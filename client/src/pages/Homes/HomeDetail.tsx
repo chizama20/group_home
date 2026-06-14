@@ -69,15 +69,15 @@ export default function HomeDetail() {
 
   if (loading) {
     return (
-      <div className='min-h-screen bg-zinc-50 dark:bg-black flex items-center justify-center'>
-        <div className='w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin' />
+      <div className='min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center'>
+        <div className='w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin' />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className='min-h-screen bg-zinc-50 dark:bg-black px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400'>
+      <div className='min-h-screen bg-zinc-50 dark:bg-zinc-950 px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400'>
         {error}
       </div>
     )
@@ -85,14 +85,14 @@ export default function HomeDetail() {
 
   if (!home) {
     return (
-      <div className='min-h-screen bg-zinc-50 dark:bg-black px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400'>
+      <div className='min-h-screen bg-zinc-50 dark:bg-zinc-950 px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400'>
         Home not found
       </div>
     )
   }
 
   return (
-    <div className='min-h-screen bg-zinc-50 dark:bg-black pb-8'>
+    <div className='min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-8'>
       <div className='max-w-4xl mx-auto'>
         {/* Back button */}
         <div className='flex items-center gap-2 px-4 pt-5 pb-3'>
@@ -108,7 +108,7 @@ export default function HomeDetail() {
 
         {/* Home header */}
         <div className='px-4 flex items-start gap-3'>
-          <div className='w-12 h-12 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center shrink-0'>
+          <div className='w-12 h-12 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0'>
             <Home className='h-6 w-6' />
           </div>
           <div className='flex-1 min-w-0'>
@@ -135,7 +135,7 @@ export default function HomeDetail() {
               className={cn(
                 'flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors min-h-[44px]',
                 tab === t
-                  ? 'border-indigo-500 text-zinc-900 dark:text-white'
+                  ? 'border-primary text-zinc-900 dark:text-white'
                   : 'border-transparent text-zinc-500'
               )}
             >

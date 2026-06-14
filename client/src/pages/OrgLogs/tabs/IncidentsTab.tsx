@@ -138,7 +138,7 @@ export default function IncidentsTab({ selectedHomeId }: Props) {
                       <button
                         onClick={() => { void handleSignOff(incident.id) }}
                         disabled={signingOff === incident.id}
-                        className='text-xs font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50 rounded-lg px-3 py-1.5 min-h-[32px] disabled:opacity-50 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors'
+                        className='text-xs font-semibold text-primary border border-primary/20 dark:border-primary/30 rounded-md px-3 py-1.5 min-h-[32px] disabled:opacity-50 hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors'
                       >
                         {signingOff === incident.id ? 'Signing…' : 'Sign off'}
                       </button>

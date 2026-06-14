@@ -4,9 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { success, failure } from '../utils/response';
 import { orgAdminOnly, managerOrAbove } from '../middleware/rbac';
 import { canAccessHome } from '../utils/homeAccess';
+import { logAudit } from '../utils/audit';
 import { validate, createHomeSchema, createResidentSchema, patchResidentSchema, createMedicationSchema, administerMedSchema, createShiftNoteSchema, createIncidentSchema, createAnnouncementSchema, createTaskSchema, createAppointmentSchema, paginationSchema } from '../schemas';
 
-interface HomeBody   { name: string; address?: string; }
+interface HomeBody   { name: string; address?: string; phone?: string; capacity?: number; facility_type?: string; }
 interface HomeParam  { id: string; }
 interface StaffParam { id: string; userId: string; }
 interface AssignBody { userId: string; }
@@ -84,16 +85,33 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     '/',
     { preHandler: [fastify.authenticate, orgAdminOnly] },
     async (request, reply) => {
-      const parsed = validate(createHomeSchema, request.body);
-      if (!parsed.success) return reply.code(400).send(failure('VALIDATION_ERROR', parsed.message));
-      const { org_id } = request.user;
-      const { name, address } = parsed.data;
+      const { org_id, id: userId } = request.user;
+      const { name, address, phone, capacity, facility_type } = request.body;
+
+      if (!name || typeof name !== 'string' || !name.trim())
+        return reply.code(400).send(failure('MISSING_FIELDS', 'name is required'));
+
+      const VALID_FACILITY_TYPES = ['group_home','assisted_living','foster_care','supported_living','day_program','other'];
+      if (facility_type && !VALID_FACILITY_TYPES.includes(facility_type))
+        return reply.code(400).send(failure('INVALID_VALUE', 'Invalid facility_type'));
+
       const id = uuidv4();
       await fastify.db.execute(
-        'INSERT INTO homes (id, org_id, name, address) VALUES (?, ?, ?, ?)',
-        [id, org_id, name, address ?? null]
+        'INSERT INTO homes (id, org_id, name, address, phone, capacity, facility_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [id, org_id, name.trim(), address ?? null, phone ?? null, capacity ?? null, facility_type ?? null]
       );
-      return reply.code(201).send(success({ id, name }));
+
+      const [[home]] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT * FROM homes WHERE id = ?', [id]
+      );
+
+      void logAudit(fastify, {
+        org_id, user_id: userId,
+        action: 'CREATE', entity_type: 'home', entity_id: id,
+        description: `Created home: ${name.trim()}`,
+      });
+
+      return reply.code(201).send(success({ home }));
     }
   );
 

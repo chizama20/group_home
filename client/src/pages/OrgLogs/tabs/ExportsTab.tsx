@@ -1,16 +1,17 @@
 import { useState } from 'react'
 import { Download, FileSpreadsheet, Calendar, Building2, Check } from 'lucide-react'
 import type { Home } from '../../../api/homes'
-import { exportCsv } from '../../../api/orgs'
+import { exportOrgCsv } from '../../../api/orgs'
 import { cn } from '../../../lib/cn'
 import { todayStr } from '../../../utils/date'
 
-type DataType = 'incidents' | 'ipos' | 'medications'
+type DataType = 'residents' | 'incidents' | 'medications' | 'audit_logs'
 
 const DATA_TYPES: { id: DataType; label: string; description: string }[] = [
-  { id: 'incidents', label: 'Incidents', description: 'Incident reports and sign-offs' },
-  { id: 'ipos', label: 'IPOS Logs', description: 'Individual plan of services logs' },
+  { id: 'residents',   label: 'Residents',   description: 'Resident records' },
+  { id: 'incidents',   label: 'Incidents',   description: 'Incident reports and sign-offs' },
   { id: 'medications', label: 'Medications', description: 'Medication administration records' },
+  { id: 'audit_logs',  label: 'Audit Logs',  description: 'Organization audit trail' },
 ]
 
 interface Props {
@@ -50,25 +51,21 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
     setExportSuccess(false)
     setExportError(false)
     try {
-      const types = Array.from(selectedTypes)
-      const results = await Promise.all(
-        types.map(type => exportCsv({
+      for (const type of Array.from(selectedTypes)) {
+        const res = await exportOrgCsv({
           type,
           home_id:   homeFilter !== 'all' ? homeFilter : undefined,
           date_from: dateFrom || undefined,
           date_to:   dateTo   || undefined,
-        }))
-      )
-      results.forEach((res, i) => {
-        const csv  = typeof res.data === 'string' ? res.data : ''
-        const blob = new Blob([csv], { type: 'text/csv' })
+        })
+        const blob = new Blob([res.data], { type: 'text/csv' })
         const url  = URL.createObjectURL(blob)
         const a    = document.createElement('a')
         a.href     = url
-        a.download = `${types[i]}_export_${dateFrom}_${dateTo}.csv`
+        a.download = `export-${type}-${dateFrom}.csv`
         a.click()
         URL.revokeObjectURL(url)
-      })
+      }
       setExportSuccess(true)
     } catch {
       setExportError(true)
@@ -105,14 +102,14 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
               key={type.id}
               onClick={() => toggleDataType(type.id)}
               className={cn(
-                'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border min-h-[40px] transition-all',
+                'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium border min-h-[40px] transition-all',
                 selectedTypes.has(type.id)
-                  ? 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-500 text-indigo-700 dark:text-indigo-300'
+                  ? 'bg-primary/5 dark:bg-primary/10 border-primary text-primary'
                   : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400'
               )}
             >
               {selectedTypes.has(type.id) && (
-                <Check size={14} className='text-indigo-500' />
+                <Check size={14} className='text-primary' />
               )}
               {type.label}
             </button>
@@ -136,7 +133,7 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
         <select
           value={homeFilter}
           onChange={e => setHomeFilter(e.target.value)}
-          className='w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+          className='w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-ring'
         >
           <option value='all'>All Homes</option>
           {homes.map(home => (
@@ -160,7 +157,7 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
               type='date'
               value={dateFrom}
               onChange={e => setDateFrom(e.target.value)}
-              className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+              className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-ring'
             />
           </div>
           <div>
@@ -169,7 +166,7 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
               type='date'
               value={dateTo}
               onChange={e => setDateTo(e.target.value)}
-              className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+              className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-ring'
             />
           </div>
         </div>
@@ -177,13 +174,13 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
 
       {/* Export summary */}
       <div className='px-4 pt-6'>
-        <div className='bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4'>
+        <div className='bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-4'>
           <p className='text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-2'>
             Export Summary
           </p>
           <ul className='space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400'>
             <li className='flex items-center gap-2'>
-              <span className='w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0' />
+              <span className='w-1.5 h-1.5 rounded-full bg-primary shrink-0' />
               <span>
                 <strong className='text-zinc-900 dark:text-white'>
                   {selectedTypes.size}
@@ -191,7 +188,7 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
               </span>
             </li>
             <li className='flex items-center gap-2'>
-              <span className='w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0' />
+              <span className='w-1.5 h-1.5 rounded-full bg-primary shrink-0' />
               <span>
                 Home: <strong className='text-zinc-900 dark:text-white'>
                   {homeFilter === 'all' ? 'All homes' : homes.find(h => h.id === homeFilter)?.name ?? 'Selected home'}
@@ -199,7 +196,7 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
               </span>
             </li>
             <li className='flex items-center gap-2'>
-              <span className='w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0' />
+              <span className='w-1.5 h-1.5 rounded-full bg-primary shrink-0' />
               <span>
                 Date range: <strong className='text-zinc-900 dark:text-white'>
                   {dateFrom} to {dateTo}
@@ -216,8 +213,8 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
           onClick={() => { void handleDownload() }}
           disabled={!canExport || exporting}
           className={cn(
-            'w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold min-h-[44px] transition-colors',
-            'bg-indigo-600 text-white hover:bg-indigo-700',
+            'w-full flex items-center justify-center gap-2 py-3.5 rounded-md text-sm font-semibold min-h-[44px] transition-colors',
+            'bg-primary text-white hover:bg-primary/90',
             'disabled:opacity-50 disabled:cursor-not-allowed'
           )}
         >
@@ -228,7 +225,7 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
 
       {/* Success */}
       {exportSuccess && (
-        <div className='mx-4 mt-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3'>
+        <div className='mx-4 mt-4 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-4 py-3'>
           <p className='text-sm font-medium text-emerald-400'>Download started.</p>
           <p className='text-xs text-emerald-400/70 mt-0.5'>Check your downloads folder.</p>
         </div>
@@ -236,7 +233,7 @@ export default function ExportsTab({ selectedHomeId, homes }: Props) {
 
       {/* Error */}
       {exportError && (
-        <div className='mx-4 mt-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3'>
+        <div className='mx-4 mt-4 bg-red-500/10 border border-red-500/20 rounded-md px-4 py-3'>
           <p className='text-sm font-medium text-red-400'>Export failed.</p>
           <p className='text-xs text-red-400/70 mt-0.5'>Please try again or contact support.</p>
         </div>

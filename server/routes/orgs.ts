@@ -1,13 +1,15 @@
 import { FastifyInstance } from 'fastify';
 import { RowDataPacket } from 'mysql2';
+import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { success, failure } from '../utils/response';
 import { orgAdminOnly, managerOrAbove } from '../middleware/rbac';
+import { logAudit } from '../utils/audit';
 import { sendInviteEmail } from '../services/email';
 
 type InviteRole = 'employee' | 'manager';
 
-interface InviteBody        { email: string; role: InviteRole; home_id?: string; }
+interface InviteBody        { email: string; first_name?: string; last_name?: string; role: InviteRole; home_ids?: number[]; }
 interface IdParam           { id: string; }
 interface OrgIdParam        { orgId: string; }
 interface AnnouncementBody  { title: string; body: string; home_id?: string; is_pinned?: boolean; }
@@ -122,7 +124,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     '/invite',
     { preHandler: [fastify.authenticate, orgAdminOnly] },
     async (request, reply) => {
-      const { email, role, home_id } = request.body;
+      const { email, first_name, last_name, role, home_ids } = request.body;
       const { org_id, id: invited_by } = request.user;
 
       if (!email || !role)
@@ -131,6 +133,14 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       if (!VALID_INVITE_ROLES.includes(role))
         return reply.code(400).send(failure('INVALID_ROLE', 'Role must be employee or manager'));
 
+      // Check for existing pending invite for this email+org
+      const [pendingInvite] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM invitations WHERE email = ? AND org_id = ? AND accepted_at IS NULL AND expires_at > NOW()',
+        [email, org_id]
+      );
+      if (pendingInvite[0])
+        return reply.code(409).send(failure('INVITE_ALREADY_PENDING', 'A pending invitation already exists for this email'));
+
       // Check for existing active user with this email in the org
       const [existing] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id FROM users WHERE email = ? AND org_id = ?', [email, org_id]
@@ -138,13 +148,15 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       if (existing[0])
         return reply.code(409).send(failure('EMAIL_TAKEN', 'A user with this email already exists in your organisation'));
 
-      // Validate home_id if provided
-      if (home_id) {
-        const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
-          'SELECT id FROM homes WHERE id = ? AND org_id = ?', [home_id, org_id]
-        );
-        if (!homeCheck[0])
-          return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      // Validate home_ids if provided
+      if (home_ids && home_ids.length > 0) {
+        for (const homeId of home_ids) {
+          const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+            'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+          );
+          if (!homeCheck[0])
+            return reply.code(404).send(failure('NOT_FOUND', `Home ${homeId} not found`));
+        }
       }
 
       // Get inviter name + org name for the email
@@ -156,20 +168,37 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       );
       const inviter = inviterRows[0];
 
-      const token     = uuidv4();
-      const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
+      const token     = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
       const inviteId  = uuidv4();
 
       await fastify.db.execute(
-        'INSERT INTO invitations (id, org_id, home_id, email, role, token, invited_by, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [inviteId, org_id, home_id ?? null, email, role, token, invited_by, expiresAt]
+        `INSERT INTO invitations (id, org_id, email, first_name, last_name, role, token, invited_by, home_ids, expires_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          inviteId, org_id, email,
+          first_name ?? null, last_name ?? null,
+          role, token, invited_by,
+          home_ids ? JSON.stringify(home_ids) : null,
+          expiresAt,
+        ]
       );
 
-      const inviteUrl    = `${process.env.APP_URL}/invite/${token}`;
-      const inviterName  = `${inviter.first_name} ${inviter.last_name}`;
+      const inviteUrl   = `${process.env.APP_URL}/invite/${token}`;
+      const inviterName = `${inviter.first_name} ${inviter.last_name}`;
       await sendInviteEmail(email, inviteUrl, inviterName, inviter.org_name, role);
 
-      return reply.code(201).send(success({ message: 'Invitation sent' }));
+      void logAudit(fastify, {
+        org_id, user_id: invited_by,
+        action: 'INVITE', entity_type: 'invitation', entity_id: inviteId,
+        description: `Invited ${email} as ${role}`,
+      });
+
+      const [[invitation]] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id, email, first_name, last_name, role, home_ids, expires_at, created_at FROM invitations WHERE id = ?',
+        [inviteId]
+      );
+      return reply.code(201).send(success({ invitation }));
     }
   );
 

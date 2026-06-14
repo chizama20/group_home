@@ -47,16 +47,16 @@ function ShiftCard({
   const shiftColors = {
     day:     { bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-200 dark:border-amber-900/40' },
     evening: { bg: 'bg-violet-500/10', text: 'text-violet-500', border: 'border-violet-200 dark:border-violet-900/40' },
-    night:   { bg: 'bg-indigo-500/10', text: 'text-indigo-500', border: 'border-indigo-200 dark:border-indigo-900/40' },
+    night:   { bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20 dark:border-primary/30' },
   }
 
   const colors = shiftColors[shift.id]
 
   return (
-    <div className={`bg-white dark:bg-zinc-900 border ${colors.border} rounded-2xl p-4`}>
+    <div className={`bg-white dark:bg-zinc-900 border ${colors.border} rounded-lg p-4`}>
       {/* Header */}
       <div className='flex items-center gap-3 mb-3'>
-        <div className={`w-9 h-9 rounded-xl ${colors.bg} ${colors.text} flex items-center justify-center`}>
+        <div className={`w-9 h-9 rounded-md ${colors.bg} ${colors.text} flex items-center justify-center`}>
           {shift.icon}
         </div>
         <div>
@@ -100,9 +100,9 @@ function ShiftCard({
 
 function SkeletonCard() {
   return (
-    <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4'>
+    <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4'>
       <div className='flex items-center gap-3 mb-3'>
-        <div className='w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 animate-pulse' />
+        <div className='w-9 h-9 rounded-md bg-zinc-100 dark:bg-zinc-800 animate-pulse' />
         <div className='space-y-1'>
           <div className='h-4 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse w-20' />
           <div className='h-3 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse w-24' />
@@ -174,13 +174,13 @@ export default function ScheduleTab({ homeId }: Props) {
           type='date'
           value={selectedDate}
           onChange={e => setSelectedDate(e.target.value)}
-          className='bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white'
+          className='bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-900 dark:text-white'
         />
       </div>
 
       {/* Error */}
       {error && (
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4'>
           <p className='text-sm text-red-500'>{error}</p>
         </div>
       )}

@@ -35,7 +35,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
       <p className='px-4 pb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
         {label}
       </p>
-      <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden'>
+      <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden'>
         {children}
       </div>
     </div>
@@ -151,7 +151,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className='min-h-screen bg-zinc-50 dark:bg-black pb-8'>
+    <div className='min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-8'>
       <div className='max-w-4xl mx-auto'>
       {/* Page header */}
       <div className='px-4 pt-5 pb-2'>
@@ -159,7 +159,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Profile card */}
-      <div className='mx-4 mb-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl'>
+      <div className='mx-4 mb-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg'>
         <div className='flex items-center gap-3 p-4'>
           {/* Avatar */}
           <div
@@ -202,9 +202,9 @@ export default function SettingsPage() {
             />
             <SettingsRow
               icon={<Fingerprint className='h-4 w-4' />}
-              chipColor='bg-indigo-500/20 text-indigo-400'
-              label='Signing PIN'
-              value='Set'
+              chipColor='bg-primary/10 text-primary'
+              label={user?.pin_set_at ? 'Change PIN' : 'Signing PIN'}
+              value={user?.pin_set_at ? 'Set' : undefined}
               valueColor='text-emerald-400'
               onClick={() => navigate('/setup-pin')}
             />
@@ -220,7 +220,7 @@ export default function SettingsPage() {
             />
             <SettingsRow
               icon={<Home className='h-4 w-4' />}
-              chipColor='bg-indigo-500/20 text-indigo-400'
+              chipColor='bg-primary/10 text-primary'
               label='Manage Homes'
               value={`${homes.length} home${homes.length !== 1 ? 's' : ''}`}
               onClick={() => navigate('/homes')}
@@ -244,7 +244,7 @@ export default function SettingsPage() {
             <SettingsRow
               isFirst
               icon={<ClipboardList className='h-4 w-4' />}
-              chipColor='bg-indigo-500/20 text-indigo-400'
+              chipColor='bg-primary/10 text-primary'
               label='Audit Logs'
               onClick={() => navigate('/org-logs?tab=audit')}
             />
@@ -303,7 +303,7 @@ export default function SettingsPage() {
             <SettingsRow
               isFirst
               icon={<Users className='h-4 w-4' />}
-              chipColor='bg-indigo-500/20 text-indigo-400'
+              chipColor='bg-primary/10 text-primary'
               label='Home Staff Roster'
             />
           </Section>
@@ -318,9 +318,9 @@ export default function SettingsPage() {
             />
             <SettingsRow
               icon={<Fingerprint className='h-4 w-4' />}
-              chipColor='bg-indigo-500/20 text-indigo-400'
-              label='Signing PIN'
-              value='Set'
+              chipColor='bg-primary/10 text-primary'
+              label={user?.pin_set_at ? 'Change PIN' : 'Signing PIN'}
+              value={user?.pin_set_at ? 'Set' : undefined}
               valueColor='text-emerald-400'
               onClick={() => navigate('/setup-pin')}
             />
@@ -364,9 +364,9 @@ export default function SettingsPage() {
             />
             <SettingsRow
               icon={<Fingerprint className='h-4 w-4' />}
-              chipColor='bg-indigo-500/20 text-indigo-400'
-              label='Signing PIN'
-              value='Set'
+              chipColor='bg-primary/10 text-primary'
+              label={user?.pin_set_at ? 'Change PIN' : 'Signing PIN'}
+              value={user?.pin_set_at ? 'Set' : undefined}
               valueColor='text-emerald-400'
               onClick={() => navigate('/setup-pin')}
             />
@@ -392,7 +392,7 @@ export default function SettingsPage() {
       {/* ------------------------------------------------------------------ */}
       {/* Log Out                                                             */}
       {/* ------------------------------------------------------------------ */}
-      <div className='mx-4 mt-5 mb-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden'>
+      <div className='mx-4 mt-5 mb-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden'>
         <button
           type='button'
           className='w-full flex items-center justify-center px-4 py-4 min-h-[52px] cursor-pointer active:bg-red-50 dark:active:bg-red-500/5'

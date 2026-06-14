@@ -2,7 +2,9 @@ import { FastifyInstance, FastifyReply } from 'fastify';
 import { RowDataPacket } from 'mysql2';
 import PDFDocument from 'pdfkit';
 import { success, failure } from '../utils/response';
-import { managerOrAbove } from '../middleware/rbac';
+import { managerOrAbove, orgAdminOnly } from '../middleware/rbac';
+import { canAccessHome } from '../utils/homeAccess';
+import { logAudit } from '../utils/audit';
 
 interface CsvExportBody {
   type: 'incidents' | 'ipos' | 'medications';
@@ -22,6 +24,13 @@ function escapeCsv(value: unknown): string {
 
 function toCsvRow(values: unknown[]): string {
   return values.map(escapeCsv).join(',');
+}
+
+interface OrgExportBody {
+  type: 'residents' | 'incidents' | 'medications' | 'audit_logs';
+  home_id?: string;
+  date_from?: string;
+  date_to?: string;
 }
 
 interface MARQuery        { resident_id: string; date_from: string; date_to: string; }
@@ -362,6 +371,161 @@ export default async (fastify: FastifyInstance): Promise<void> => {
           ]) + '\n';
         }
       }
+
+      reply.header('Content-Type', 'text/csv');
+      reply.header('Content-Disposition', `attachment; filename="${filename}"`);
+      return reply.send(csvContent);
+    }
+  );
+
+  // ── POST /exports — org-admin CSV export: residents, incidents, medications, audit_logs ──
+  fastify.post<{ Body: OrgExportBody }>(
+    '/',
+    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    async (request, reply) => {
+      const { org_id, id: userId } = request.user;
+      const { type, home_id, date_from, date_to } = request.body;
+
+      const VALID_TYPES = ['residents', 'incidents', 'medications', 'audit_logs'];
+      if (!type || !VALID_TYPES.includes(type))
+        return reply.code(400).send(failure('INVALID_TYPE', `type must be one of: ${VALID_TYPES.join(', ')}`));
+
+      // Validate home_id access if provided
+      if (home_id) {
+        const accessible = await canAccessHome(fastify, request.user, home_id);
+        if (!accessible)
+          return reply.code(404).send(failure('NOT_FOUND', 'Home not found or not accessible'));
+      }
+
+      const today  = new Date().toISOString().slice(0, 10);
+      const filename = `export-${type}-${today}.csv`;
+      let csvContent = '';
+
+      if (type === 'residents') {
+        const filters: string[] = ['h.org_id = ?', 'r.is_active = 1'];
+        const values: string[] = [org_id];
+        if (home_id) { filters.push('r.home_id = ?'); values.push(home_id); }
+
+        const [rows] = await fastify.db.execute<RowDataPacket[]>(
+          `SELECT r.id, r.first_name, r.last_name, r.date_of_birth, r.gender, r.room,
+                  r.diagnosis, r.physician, r.medicaid_id, r.admit_date,
+                  r.primary_contact_name, r.primary_contact_phone, r.primary_contact_relation,
+                  h.name as home_name, r.created_at
+           FROM residents r
+           JOIN homes h ON r.home_id = h.id
+           WHERE ${filters.join(' AND ')}
+           ORDER BY r.last_name, r.first_name`,
+          values
+        );
+
+        csvContent = toCsvRow([
+          'ID', 'First Name', 'Last Name', 'DOB', 'Gender', 'Room',
+          'Diagnosis', 'Physician', 'Medicaid ID', 'Admit Date',
+          'Primary Contact', 'Contact Phone', 'Contact Relation',
+          'Home', 'Created At',
+        ]) + '\n';
+        for (const r of rows) {
+          csvContent += toCsvRow([
+            r.id, r.first_name, r.last_name, r.date_of_birth, r.gender, r.room,
+            r.diagnosis, r.physician, r.medicaid_id, r.admit_date,
+            r.primary_contact_name, r.primary_contact_phone, r.primary_contact_relation,
+            r.home_name, r.created_at,
+          ]) + '\n';
+        }
+
+      } else if (type === 'incidents') {
+        const filters: string[] = ['h.org_id = ?'];
+        const values: string[] = [org_id];
+        if (home_id)   { filters.push('i.home_id = ?');           values.push(home_id); }
+        if (date_from) { filters.push('DATE(i.created_at) >= ?'); values.push(date_from); }
+        if (date_to)   { filters.push('DATE(i.created_at) <= ?'); values.push(date_to); }
+
+        const [rows] = await fastify.db.execute<RowDataPacket[]>(
+          `SELECT i.id, i.title, i.description, i.incident_type, i.severity, i.status,
+                  i.occurred_at, i.created_at,
+                  h.name as home_name,
+                  r.first_name as resident_first, r.last_name as resident_last,
+                  u.first_name as reporter_first, u.last_name as reporter_last
+           FROM incidents i
+           JOIN homes h ON i.home_id = h.id
+           JOIN residents r ON i.resident_id = r.id
+           JOIN users u ON i.reported_by = u.id
+           WHERE ${filters.join(' AND ')}
+           ORDER BY i.created_at DESC`,
+          values
+        );
+
+        csvContent = toCsvRow(['ID', 'Title', 'Description', 'Type', 'Severity', 'Status', 'Occurred At', 'Created At', 'Home', 'Resident', 'Reporter']) + '\n';
+        for (const r of rows) {
+          csvContent += toCsvRow([
+            r.id, r.title, r.description, r.incident_type, r.severity, r.status,
+            r.occurred_at, r.created_at, r.home_name,
+            `${r.resident_first} ${r.resident_last}`,
+            `${r.reporter_first} ${r.reporter_last}`,
+          ]) + '\n';
+        }
+
+      } else if (type === 'medications') {
+        const filters: string[] = ['h.org_id = ?'];
+        const values: string[] = [org_id];
+        if (home_id) { filters.push('r.home_id = ?'); values.push(home_id); }
+        if (date_from) { filters.push('DATE(m.created_at) >= ?'); values.push(date_from); }
+        if (date_to)   { filters.push('DATE(m.created_at) <= ?'); values.push(date_to); }
+
+        const [rows] = await fastify.db.execute<RowDataPacket[]>(
+          `SELECT m.id, m.name, m.dosage, m.frequency, m.route, m.scheduled_time,
+                  m.instructions, m.is_active, m.created_at,
+                  h.name as home_name,
+                  r.first_name as resident_first, r.last_name as resident_last
+           FROM medications m
+           JOIN residents r ON m.resident_id = r.id
+           JOIN homes h ON r.home_id = h.id
+           WHERE ${filters.join(' AND ')}
+           ORDER BY r.last_name, r.first_name, m.name`,
+          values
+        );
+
+        csvContent = toCsvRow(['ID', 'Name', 'Dosage', 'Frequency', 'Route', 'Scheduled Time', 'Instructions', 'Active', 'Created At', 'Home', 'Resident']) + '\n';
+        for (const r of rows) {
+          csvContent += toCsvRow([
+            r.id, r.name, r.dosage, r.frequency, r.route, r.scheduled_time,
+            r.instructions, r.is_active ? 'Yes' : 'No', r.created_at, r.home_name,
+            `${r.resident_first} ${r.resident_last}`,
+          ]) + '\n';
+        }
+
+      } else if (type === 'audit_logs') {
+        const filters: string[] = ['al.org_id = ?'];
+        const values: string[] = [org_id];
+        if (date_from) { filters.push('DATE(al.created_at) >= ?'); values.push(date_from); }
+        if (date_to)   { filters.push('DATE(al.created_at) <= ?'); values.push(date_to); }
+
+        const [rows] = await fastify.db.execute<RowDataPacket[]>(
+          `SELECT al.id, al.action, al.entity_type, al.entity_id, al.description,
+                  al.ip_address, al.created_at,
+                  u.first_name as user_first, u.last_name as user_last, u.email as user_email
+           FROM audit_logs al
+           LEFT JOIN users u ON al.user_id = u.id
+           WHERE ${filters.join(' AND ')}
+           ORDER BY al.created_at DESC`,
+          values
+        );
+
+        csvContent = toCsvRow(['ID', 'Action', 'Entity Type', 'Entity ID', 'Description', 'IP Address', 'Created At', 'User First', 'User Last', 'User Email']) + '\n';
+        for (const r of rows) {
+          csvContent += toCsvRow([
+            r.id, r.action, r.entity_type, r.entity_id, r.description,
+            r.ip_address, r.created_at,
+            r.user_first, r.user_last, r.user_email,
+          ]) + '\n';
+        }
+      }
+
+      void logAudit(fastify, {
+        org_id, user_id: userId,
+        action: 'EXPORT', entity_type: type,
+        description: `Exported ${type} CSV${home_id ? ` for home ${home_id}` : ''}`,
+      });
 
       reply.header('Content-Type', 'text/csv');
       reply.header('Content-Disposition', `attachment; filename="${filename}"`);

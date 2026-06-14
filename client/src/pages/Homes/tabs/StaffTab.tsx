@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { UserPlus, Users, X } from 'lucide-react'
-import { getHomeStaff, addStaff, removeStaff, type HomeStaffMember } from '../../../api/homes'
+import { getHomeStaff, addStaff, type HomeStaffMember } from '../../../api/homes'
 import { getOrgStaff, type OrgStaffMember } from '../../../api/orgs'
 import { useAuth } from '../../../context/AuthContext'
+import StaffProfileSheet from '../../../components/StaffProfileSheet'
 
 interface Props {
   homeId: string
@@ -50,17 +51,17 @@ function SkeletonRow() {
 function StaffRow({
   staff,
   isFirst,
-  onRemove,
-  removing,
+  onClick,
 }: {
   staff: HomeStaffMember
   isFirst: boolean
-  onRemove: () => void
-  removing: boolean
+  onClick: () => void
 }) {
   return (
-    <div
-      className={`flex items-center gap-3 px-4 py-3.5 min-h-[56px]${
+    <button
+      type='button'
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-4 py-3.5 min-h-[56px] cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors text-left${
         isFirst ? '' : ' border-t border-zinc-100 dark:border-zinc-800'
       }`}
     >
@@ -81,17 +82,7 @@ function StaffRow({
 
       {/* Role badge */}
       {getRoleBadge(staff.role)}
-
-      {/* Remove button */}
-      <button
-        onClick={onRemove}
-        disabled={removing}
-        className='p-2 text-zinc-400 hover:text-red-500 disabled:opacity-50'
-        aria-label='Remove staff'
-      >
-        <X className='h-4 w-4' />
-      </button>
-    </div>
+    </button>
   )
 }
 
@@ -103,7 +94,7 @@ export default function StaffTab({ homeId }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [showAssign, setShowAssign] = useState(false)
   const [assigning, setAssigning] = useState(false)
-  const [removing, setRemoving] = useState<string | null>(null)
+  const [selectedStaff, setSelectedStaff] = useState<HomeStaffMember | null>(null)
 
   async function fetchStaff() {
     try {
@@ -148,18 +139,6 @@ export default function StaffTab({ homeId }: Props) {
     }
   }
 
-  async function handleRemove(userId: string) {
-    setRemoving(userId)
-    try {
-      await removeStaff(homeId, userId)
-      setStaff(prev => prev.filter(s => s.id !== userId))
-    } catch {
-      // Handle error silently
-    } finally {
-      setRemoving(null)
-    }
-  }
-
   // Get available staff (not already assigned)
   const assignedIds = new Set(staff.map(s => s.id))
   const availableStaff = orgStaff.filter(s => !assignedIds.has(s.id))
@@ -167,7 +146,7 @@ export default function StaffTab({ homeId }: Props) {
   if (loading) {
     return (
       <div className='p-4'>
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden'>
           {Array.from({ length: 3 }).map((_, i) => (
             <SkeletonRow key={i} />
           ))}
@@ -179,7 +158,7 @@ export default function StaffTab({ homeId }: Props) {
   if (error) {
     return (
       <div className='p-4'>
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4'>
           <p className='text-sm text-red-500'>{error}</p>
         </div>
       </div>
@@ -195,7 +174,7 @@ export default function StaffTab({ homeId }: Props) {
         </span>
         <button
           onClick={() => setShowAssign(true)}
-          className='flex items-center gap-1.5 bg-indigo-600 text-white text-sm font-medium px-3 py-2 rounded-xl min-h-[40px]'
+          className='flex items-center gap-1.5 bg-primary text-white text-sm font-medium px-3 py-2 rounded-md min-h-[40px]'
         >
           <UserPlus className='h-4 w-4' />
           Assign Staff
@@ -204,7 +183,7 @@ export default function StaffTab({ homeId }: Props) {
 
       {/* Staff list */}
       {staff.length === 0 ? (
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 text-center'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 text-center'>
           <div className='w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-3'>
             <Users className='h-6 w-6 text-zinc-400' />
           </div>
@@ -213,14 +192,13 @@ export default function StaffTab({ homeId }: Props) {
           </p>
         </div>
       ) : (
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden'>
           {staff.map((s, idx) => (
             <StaffRow
               key={s.id}
               staff={s}
               isFirst={idx === 0}
-              onRemove={() => handleRemove(s.id)}
-              removing={removing === s.id}
+              onClick={() => setSelectedStaff(s)}
             />
           ))}
         </div>
@@ -233,7 +211,7 @@ export default function StaffTab({ homeId }: Props) {
             className='absolute inset-0 bg-black/50'
             onClick={() => setShowAssign(false)}
           />
-          <div className='relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-2xl p-4 max-h-[80vh] overflow-y-auto'>
+          <div className='relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-t-lg sm:rounded-lg p-4 max-h-[80vh] overflow-y-auto'>
             <div className='flex items-center justify-between mb-4'>
               <h3 className='text-lg font-semibold text-zinc-900 dark:text-white'>
                 Assign Staff
@@ -277,6 +255,17 @@ export default function StaffTab({ homeId }: Props) {
             )}
           </div>
         </div>
+      )}
+
+      {/* Staff profile sheet */}
+      {selectedStaff && (
+        <StaffProfileSheet
+          open={!!selectedStaff}
+          homeId={homeId}
+          staff={selectedStaff}
+          onClose={() => setSelectedStaff(null)}
+          onChanged={() => { setSelectedStaff(null); void fetchStaff() }}
+        />
       )}
     </div>
   )

@@ -27,6 +27,7 @@ export interface HomeStaffMember {
   last_name: string
   email: string
   role: string
+  is_active: boolean
 }
 
 export interface IposComplianceShift {

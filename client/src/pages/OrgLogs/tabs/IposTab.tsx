@@ -60,16 +60,16 @@ export default function IposTab({ selectedHomeId }: Props) {
           type='date'
           value={date}
           onChange={e => setDate(e.target.value)}
-          className='bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+          className='bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-ring'
         />
       </div>
 
       {/* Overall summary */}
       {!loading && filtered.length > 0 && (
-        <div className='mx-4 mt-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-4 py-3.5'>
+        <div className='mx-4 mt-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-4 py-3.5'>
           <div className='flex items-center justify-between mb-2'>
             <div className='flex items-center gap-2'>
-              <ClipboardCheck size={16} className='text-indigo-400' />
+              <ClipboardCheck size={16} className='text-primary' />
               <p className='text-sm font-semibold text-zinc-900 dark:text-white'>
                 Overall Compliance
               </p>
@@ -92,7 +92,7 @@ export default function IposTab({ selectedHomeId }: Props) {
       {loading && (
         <div className='px-4 pt-3 space-y-3'>
           {[0, 1, 2].map(i => (
-            <div key={i} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 space-y-3 animate-pulse'>
+            <div key={i} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-4 space-y-3 animate-pulse'>
               <div className='h-4 bg-zinc-100 dark:bg-zinc-800 rounded w-1/2' />
               <div className='h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full' />
             </div>
@@ -102,7 +102,7 @@ export default function IposTab({ selectedHomeId }: Props) {
 
       {/* Per-home bars */}
       {!loading && filtered.length === 0 && (
-        <div className='mx-4 mt-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 text-center'>
+        <div className='mx-4 mt-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-6 text-center'>
           <p className='text-sm text-zinc-500 dark:text-zinc-400'>No data for this date.</p>
         </div>
       )}
@@ -112,7 +112,7 @@ export default function IposTab({ selectedHomeId }: Props) {
           {[...filtered]
             .sort((a, b) => a.percentage - b.percentage)
             .map(row => (
-              <div key={row.home_id} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3.5'>
+              <div key={row.home_id} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md px-4 py-3.5'>
                 <div className='flex items-center justify-between mb-2'>
                   <p className='text-sm font-semibold text-zinc-900 dark:text-white truncate flex-1 min-w-0 mr-3'>
                     {row.home_name}

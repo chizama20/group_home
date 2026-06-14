@@ -40,7 +40,7 @@ export default function OrgLogsPage() {
   }
 
   return (
-    <div className='min-h-screen bg-zinc-50 dark:bg-black pb-8'>
+    <div className='min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-8'>
       <div className='max-w-4xl mx-auto'>
         {/* Header */}
         <div className='px-4 pt-5 pb-3'>
@@ -57,7 +57,7 @@ export default function OrgLogsPage() {
             <select
               value={selectedHomeId}
               onChange={e => setSelectedHomeId(e.target.value)}
-              className='flex-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+              className='flex-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-ring'
             >
               <option value='all'>All Homes</option>
               {homes.map(home => (
@@ -76,7 +76,7 @@ export default function OrgLogsPage() {
               className={cn(
                 'flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-medium border-b-2 transition-colors min-h-[44px]',
                 tab === t.id
-                  ? 'border-indigo-500 text-zinc-900 dark:text-white'
+                  ? 'border-primary text-zinc-900 dark:text-white'
                   : 'border-transparent text-zinc-500'
               )}
             >
