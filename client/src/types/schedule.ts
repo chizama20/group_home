@@ -73,3 +73,5 @@ export interface ReviewRequestPayload {
   status: 'approved' | 'denied'
   replacement_user_id?: string
 }
+
+export type ScheduleRequest = ShiftRequest
