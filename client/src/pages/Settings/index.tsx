@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Home,
@@ -6,19 +7,20 @@ import {
   Building2,
   ClipboardList,
   Download,
-  FileCheck,
   User,
   Lock,
   Fingerprint,
   Bell,
   ChevronRight,
+  ChevronDown,
   Moon,
   Sun,
   FileText,
   Shield,
+  CalendarDays,
+  ShieldCheck,
 } from 'lucide-react'
 import { getTheme, toggleTheme } from '@/lib/theme'
-import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useHome } from '@/context/HomeContext'
 import { useRole } from '@/utils/role'
@@ -27,25 +29,10 @@ import EditProfileSheet from '@/components/EditProfileSheet'
 import ChangePasswordSheet from '@/components/ChangePasswordSheet'
 
 // ---------------------------------------------------------------------------
-// Section wrapper
+// Sub-item row inside a collapsible section
 // ---------------------------------------------------------------------------
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className='mt-5'>
-      <p className='px-4 pb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
-        {label}
-      </p>
-      <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden'>
-        {children}
-      </div>
-    </div>
-  )
-}
 
-// ---------------------------------------------------------------------------
-// Row
-// ---------------------------------------------------------------------------
-interface RowProps {
+interface SubItemProps {
   icon: React.ReactNode
   chipColor: string
   label: string
@@ -56,16 +43,7 @@ interface RowProps {
   onClick?: () => void
 }
 
-function SettingsRow({
-  icon,
-  chipColor,
-  label,
-  value,
-  valueColor,
-  badge,
-  isFirst,
-  onClick,
-}: RowProps) {
+function SubItem({ icon, chipColor, label, value, valueColor, badge, isFirst, onClick }: SubItemProps) {
   return (
     <div
       className={[
@@ -78,41 +56,86 @@ function SettingsRow({
       onClick={onClick}
     >
       {/* Icon chip */}
-      <span
-        className={`w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0 ${chipColor}`}
-      >
+      <span className={`w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0 ${chipColor}`}>
         <span className='h-4 w-4 flex items-center justify-center'>{icon}</span>
       </span>
 
       {/* Label */}
       <span className='text-sm text-zinc-900 dark:text-white flex-1'>{label}</span>
 
-      {/* Optional right-side elements */}
+      {/* Right side */}
       {badge}
       {value !== undefined && (
-        <span className={`text-sm ${valueColor ?? 'text-zinc-500 dark:text-zinc-400'}`}>
-          {value}
-        </span>
+        <span className={`text-sm ${valueColor ?? 'text-zinc-500 dark:text-zinc-400'}`}>{value}</span>
       )}
-      {onClick && (
-        <ChevronRight className='h-4 w-4 text-zinc-400 dark:text-zinc-600 ml-1' />
+      {onClick && <ChevronRight className='h-4 w-4 text-zinc-400 dark:text-zinc-600 ml-1' />}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Collapsible section
+// ---------------------------------------------------------------------------
+
+interface CollapsibleSectionProps {
+  title: string
+  defaultOpen?: boolean
+  children: React.ReactNode
+}
+
+function CollapsibleSection({ title, defaultOpen = false, children }: CollapsibleSectionProps) {
+  const [open, setOpen] = useState(defaultOpen)
+
+  return (
+    <div className='mt-5 mx-4'>
+      {/* Section header */}
+      <button
+        type='button'
+        className='w-full flex items-center justify-between px-4 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden cursor-pointer active:bg-zinc-50 dark:active:bg-zinc-800/60 transition-colors'
+        style={{ borderBottomLeftRadius: open ? 0 : undefined, borderBottomRightRadius: open ? 0 : undefined }}
+        onClick={() => setOpen(v => !v)}
+        aria-expanded={open}
+      >
+        <span className='text-sm font-semibold text-zinc-900 dark:text-white'>{title}</span>
+        <ChevronDown
+          className={`h-4 w-4 text-zinc-400 dark:text-zinc-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      {/* Expanded sub-items */}
+      {open && (
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-t-0 rounded-b-lg overflow-hidden'>
+          {children}
+        </div>
       )}
     </div>
   )
 }
 
 // ---------------------------------------------------------------------------
+// "Coming soon" — a no-op click handler for placeholder items
+// ---------------------------------------------------------------------------
+
+function usePlaceholder() {
+  // Returns a stable click handler that does nothing visible
+  // (placeholder items intentionally have no destination yet)
+  return useCallback(() => {}, [])
+}
+
+// ---------------------------------------------------------------------------
 // Main page
 // ---------------------------------------------------------------------------
+
 export default function SettingsPage() {
   const { user, org, logout } = useAuth()
   const { homes } = useHome()
-  const { isOrgAdmin, isManagerOrAbove } = useRole()
+  const { isOrgAdmin } = useRole()
   const navigate = useNavigate()
   const [theme, setThemeState] = useState(getTheme)
   const [showInviteWizard, setShowInviteWizard] = useState(false)
   const [showEditProfile, setShowEditProfile] = useState(false)
   const [showChangePassword, setShowChangePassword] = useState(false)
+  const noOp = usePlaceholder()
 
   function handleThemeToggle() {
     const next = toggleTheme()
@@ -153,254 +176,198 @@ export default function SettingsPage() {
   return (
     <div className='min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-8'>
       <div className='max-w-4xl mx-auto'>
-      {/* Page header */}
-      <div className='px-4 pt-5 pb-2'>
-        <h1 className='text-xl font-bold text-zinc-900 dark:text-white'>Settings</h1>
-      </div>
-
-      {/* Profile card */}
-      <div className='mx-4 mb-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg'>
-        <div className='flex items-center gap-3 p-4'>
-          {/* Avatar */}
-          <div
-            className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 text-sm font-semibold ${avatarColor}`}
-          >
-            {initials}
-          </div>
-
-          {/* Name + badge */}
-          <div className='flex-1 min-w-0'>
-            <p className='text-[15px] font-semibold text-zinc-900 dark:text-white leading-tight'>
-              {user?.first_name} {user?.last_name}
-            </p>
-            <div className='mt-1'>{roleBadge}</div>
-          </div>
-
-          {/* Chevron affordance */}
-          <ChevronRight className='h-5 w-5 text-zinc-400 dark:text-zinc-600 shrink-0' />
+        {/* Page header */}
+        <div className='px-4 pt-5 pb-2'>
+          <h1 className='text-xl font-bold text-zinc-900 dark:text-white'>Settings</h1>
         </div>
-      </div>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* ORG ADMIN sections                                                  */}
-      {/* ------------------------------------------------------------------ */}
-      {isOrgAdmin && (
-        <>
-          <Section label='PROFILE'>
-            <SettingsRow
-              isFirst
-              icon={<User className='h-4 w-4' />}
-              chipColor='bg-zinc-500/20 text-zinc-400'
-              label='Edit Profile'
-              onClick={() => setShowEditProfile(true)}
-            />
-            <SettingsRow
-              icon={<Lock className='h-4 w-4' />}
-              chipColor='bg-zinc-500/20 text-zinc-400'
-              label='Change Password'
-              onClick={() => setShowChangePassword(true)}
-            />
-            <SettingsRow
-              icon={<Fingerprint className='h-4 w-4' />}
-              chipColor='bg-primary/10 text-primary'
-              label={user?.pin_set_at ? 'Change PIN' : 'Signing PIN'}
-              value={user?.pin_set_at ? 'Set' : undefined}
-              valueColor='text-emerald-400'
-              onClick={() => navigate('/setup-pin')}
-            />
-          </Section>
+        {/* Profile card */}
+        <div className='mx-4 mb-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg'>
+          <div className='flex items-center gap-3 p-4'>
+            <div
+              className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 text-sm font-semibold ${avatarColor}`}
+            >
+              {initials}
+            </div>
+            <div className='flex-1 min-w-0'>
+              <p className='text-[15px] font-semibold text-zinc-900 dark:text-white leading-tight'>
+                {user?.first_name} {user?.last_name}
+              </p>
+              <div className='mt-1'>{roleBadge}</div>
+            </div>
+            <ChevronRight className='h-5 w-5 text-zinc-400 dark:text-zinc-600 shrink-0' />
+          </div>
+        </div>
 
-          <Section label='ORGANIZATION'>
-            <SettingsRow
+        {/* ---------------------------------------------------------------- */}
+        {/* My Account — all roles                                           */}
+        {/* ---------------------------------------------------------------- */}
+        <CollapsibleSection title='My Account' defaultOpen>
+          <SubItem
+            isFirst
+            icon={<User className='h-4 w-4' />}
+            chipColor='bg-zinc-500/20 text-zinc-400'
+            label='Edit Profile'
+            onClick={() => setShowEditProfile(true)}
+          />
+          <SubItem
+            icon={<Lock className='h-4 w-4' />}
+            chipColor='bg-zinc-500/20 text-zinc-400'
+            label='Change Password'
+            onClick={() => setShowChangePassword(true)}
+          />
+          <SubItem
+            icon={<Fingerprint className='h-4 w-4' />}
+            chipColor='bg-primary/10 text-primary'
+            label={user?.pin_set_at ? 'Change PIN' : 'Signing PIN'}
+            value={user?.pin_set_at ? 'Set' : undefined}
+            valueColor='text-emerald-400'
+            onClick={() => navigate('/setup-pin')}
+          />
+        </CollapsibleSection>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* My Schedule — all roles                                          */}
+        {/* ---------------------------------------------------------------- */}
+        <CollapsibleSection title='My Schedule'>
+          <SubItem
+            isFirst
+            icon={<CalendarDays className='h-4 w-4' />}
+            chipColor='bg-primary/10 text-primary'
+            label='View Schedule & Requests'
+            onClick={() => navigate('/my-schedule')}
+          />
+        </CollapsibleSection>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* Organization — org_admin only                                    */}
+        {/* ---------------------------------------------------------------- */}
+        {isOrgAdmin && (
+          <CollapsibleSection title='Organization'>
+            <SubItem
               isFirst
               icon={<Building2 className='h-4 w-4' />}
               chipColor='bg-amber-500/20 text-amber-400'
               label='Org Settings'
               value={org?.name ?? '—'}
             />
-            <SettingsRow
+            <SubItem
               icon={<Home className='h-4 w-4' />}
               chipColor='bg-primary/10 text-primary'
               label='Manage Homes'
               value={`${homes.length} home${homes.length !== 1 ? 's' : ''}`}
               onClick={() => navigate('/homes')}
             />
-            <SettingsRow
-              icon={<Users className='h-4 w-4' />}
-              chipColor='bg-emerald-500/20 text-emerald-400'
-              label='Staff Management'
-              value='View & manage'
-              onClick={() => navigate('/homes')}
-            />
-            <SettingsRow
-              icon={<UserPlus className='h-4 w-4' />}
-              chipColor='bg-violet-500/20 text-violet-400'
-              label='Invite New Staff'
-              onClick={() => setShowInviteWizard(true)}
-            />
-          </Section>
-
-          <Section label='DATA & COMPLIANCE'>
-            <SettingsRow
-              isFirst
+            <SubItem
               icon={<ClipboardList className='h-4 w-4' />}
               chipColor='bg-primary/10 text-primary'
               label='Audit Logs'
               onClick={() => navigate('/org-logs?tab=audit')}
             />
-            <SettingsRow
+            <SubItem
               icon={<Download className='h-4 w-4' />}
               chipColor='bg-emerald-500/20 text-emerald-400'
               label='Export Records'
               onClick={() => navigate('/org-logs?tab=exports')}
             />
-          </Section>
+          </CollapsibleSection>
+        )}
 
-          <Section label='PREFERENCES'>
-            <SettingsRow
+        {/* ---------------------------------------------------------------- */}
+        {/* Staff — org_admin only                                           */}
+        {/* ---------------------------------------------------------------- */}
+        {isOrgAdmin && (
+          <CollapsibleSection title='Staff'>
+            <SubItem
               isFirst
-              icon={theme === 'dark' ? <Sun className='h-4 w-4' /> : <Moon className='h-4 w-4' />}
-              chipColor='bg-zinc-500/20 text-zinc-400'
-              label={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-              onClick={handleThemeToggle}
+              icon={<UserPlus className='h-4 w-4' />}
+              chipColor='bg-violet-500/20 text-violet-400'
+              label='Invite Staff'
+              onClick={() => setShowInviteWizard(true)}
             />
-            <SettingsRow
-              icon={<Bell className='h-4 w-4' />}
-              chipColor='bg-zinc-500/20 text-zinc-400'
-              label='Notifications'
+            <SubItem
+              icon={<Users className='h-4 w-4' />}
+              chipColor='bg-emerald-500/20 text-emerald-400'
+              label='Manage Roles'
+              onClick={() => navigate('/homes')}
             />
-          </Section>
+          </CollapsibleSection>
+        )}
 
-          <Section label='LEGAL'>
-            <SettingsRow
-              isFirst
-              icon={<FileCheck className='h-4 w-4' />}
+        {/* ---------------------------------------------------------------- */}
+        {/* Preferences — all roles                                          */}
+        {/* ---------------------------------------------------------------- */}
+        <CollapsibleSection title='Preferences'>
+          <SubItem
+            isFirst
+            icon={theme === 'dark' ? <Sun className='h-4 w-4' /> : <Moon className='h-4 w-4' />}
+            chipColor='bg-zinc-500/20 text-zinc-400'
+            label={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            onClick={handleThemeToggle}
+          />
+          <SubItem
+            icon={<Bell className='h-4 w-4' />}
+            chipColor='bg-zinc-500/20 text-zinc-400'
+            label='Notifications'
+            badge={
+              <span className='text-xs text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full'>
+                Coming soon
+              </span>
+            }
+            onClick={noOp}
+          />
+        </CollapsibleSection>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* Legal — all roles                                                */}
+        {/* ---------------------------------------------------------------- */}
+        <CollapsibleSection title='Legal'>
+          <SubItem
+            isFirst
+            icon={<FileText className='h-4 w-4' />}
+            chipColor='bg-zinc-500/20 text-zinc-400'
+            label='Terms of Service'
+            badge={
+              <span className='text-xs text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full'>
+                Coming soon
+              </span>
+            }
+            onClick={noOp}
+          />
+          <SubItem
+            icon={<Shield className='h-4 w-4' />}
+            chipColor='bg-zinc-500/20 text-zinc-400'
+            label='Privacy Policy'
+            badge={
+              <span className='text-xs text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full'>
+                Coming soon
+              </span>
+            }
+            onClick={noOp}
+          />
+          {isOrgAdmin && (
+            <SubItem
+              icon={<ShieldCheck className='h-4 w-4' />}
               chipColor='bg-emerald-500/20 text-emerald-400'
               label='BAA Agreement'
               value='Signed'
               valueColor='text-emerald-400'
             />
-            <SettingsRow
-              icon={<FileText className='h-4 w-4' />}
-              chipColor='bg-zinc-500/20 text-zinc-400'
-              label='Terms of Service'
-            />
-            <SettingsRow
-              icon={<Shield className='h-4 w-4' />}
-              chipColor='bg-zinc-500/20 text-zinc-400'
-              label='Privacy Policy'
-            />
-          </Section>
-        </>
-      )}
+          )}
+        </CollapsibleSection>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* MANAGER sections                                                    */}
-      {/* ------------------------------------------------------------------ */}
-      {isManagerOrAbove && !isOrgAdmin && (
-        <>
-          <Section label='HOME'>
-            <SettingsRow
-              isFirst
-              icon={<Users className='h-4 w-4' />}
-              chipColor='bg-primary/10 text-primary'
-              label='Home Staff Roster'
-            />
-          </Section>
-
-          <Section label='ACCOUNT'>
-            <SettingsRow
-              isFirst
-              icon={<Lock className='h-4 w-4' />}
-              chipColor='bg-zinc-500/20 text-zinc-400'
-              label='Change Password'
-              onClick={() => setShowChangePassword(true)}
-            />
-            <SettingsRow
-              icon={<Fingerprint className='h-4 w-4' />}
-              chipColor='bg-primary/10 text-primary'
-              label={user?.pin_set_at ? 'Change PIN' : 'Signing PIN'}
-              value={user?.pin_set_at ? 'Set' : undefined}
-              valueColor='text-emerald-400'
-              onClick={() => navigate('/setup-pin')}
-            />
-          </Section>
-
-          <Section label='PREFERENCES'>
-            <SettingsRow
-              isFirst
-              icon={theme === 'dark' ? <Sun className='h-4 w-4' /> : <Moon className='h-4 w-4' />}
-              chipColor='bg-zinc-500/20 text-zinc-400'
-              label={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-              onClick={handleThemeToggle}
-            />
-            <SettingsRow
-              icon={<Bell className='h-4 w-4' />}
-              chipColor='bg-zinc-500/20 text-zinc-400'
-              label='Notifications'
-            />
-          </Section>
-        </>
-      )}
-
-      {/* ------------------------------------------------------------------ */}
-      {/* EMPLOYEE sections                                                   */}
-      {/* ------------------------------------------------------------------ */}
-      {!isManagerOrAbove && (
-        <>
-          <Section label='ACCOUNT'>
-            <SettingsRow
-              isFirst
-              icon={<User className='h-4 w-4' />}
-              chipColor='bg-zinc-500/20 text-zinc-400'
-              label='Edit Profile'
-              onClick={() => setShowEditProfile(true)}
-            />
-            <SettingsRow
-              icon={<Lock className='h-4 w-4' />}
-              chipColor='bg-zinc-500/20 text-zinc-400'
-              label='Change Password'
-              onClick={() => setShowChangePassword(true)}
-            />
-            <SettingsRow
-              icon={<Fingerprint className='h-4 w-4' />}
-              chipColor='bg-primary/10 text-primary'
-              label={user?.pin_set_at ? 'Change PIN' : 'Signing PIN'}
-              value={user?.pin_set_at ? 'Set' : undefined}
-              valueColor='text-emerald-400'
-              onClick={() => navigate('/setup-pin')}
-            />
-          </Section>
-
-          <Section label='PREFERENCES'>
-            <SettingsRow
-              isFirst
-              icon={theme === 'dark' ? <Sun className='h-4 w-4' /> : <Moon className='h-4 w-4' />}
-              chipColor='bg-zinc-500/20 text-zinc-400'
-              label={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-              onClick={handleThemeToggle}
-            />
-            <SettingsRow
-              icon={<Bell className='h-4 w-4' />}
-              chipColor='bg-zinc-500/20 text-zinc-400'
-              label='Notifications'
-            />
-          </Section>
-        </>
-      )}
-
-      {/* ------------------------------------------------------------------ */}
-      {/* Log Out                                                             */}
-      {/* ------------------------------------------------------------------ */}
-      <div className='mx-4 mt-5 mb-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden'>
-        <button
-          type='button'
-          className='w-full flex items-center justify-center px-4 py-4 min-h-[52px] cursor-pointer active:bg-red-50 dark:active:bg-red-500/5'
-          onClick={handleLogout}
-        >
-          <span className='text-base font-medium text-red-500'>Log Out</span>
-        </button>
-      </div>
+        {/* ---------------------------------------------------------------- */}
+        {/* Log Out                                                          */}
+        {/* ---------------------------------------------------------------- */}
+        <div className='mx-4 mt-5 mb-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden'>
+          <button
+            type='button'
+            className='w-full flex items-center justify-center px-4 py-4 min-h-[52px] cursor-pointer active:bg-red-50 dark:active:bg-red-500/5'
+            onClick={handleLogout}
+          >
+            <span className='text-base font-medium text-red-500'>Log Out</span>
+          </button>
+        </div>
       </div>
 
       {/* Invite Staff Wizard */}
