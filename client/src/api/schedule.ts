@@ -40,7 +40,7 @@ export const createScheduleRequest = (homeId: string, payload: CreateRequestPayl
 
 // Manager: approve or deny a request
 export const reviewScheduleRequest = (homeId: string, requestId: string, payload: ReviewRequestPayload) =>
-  api.patch<ApiResponse<ShiftRequest>>(`/homes/${homeId}/schedule/requests/${requestId}/review`, payload)
+  api.patch<ApiResponse<ShiftRequest>>(`/homes/${homeId}/schedule/requests/${requestId}`, payload)
 
 // ── My Slots ─────────────────────────────────────────────────────────────────
 
