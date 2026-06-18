@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyReply } from 'fastify';
 import { RowDataPacket } from 'mysql2';
 import PDFDocument from 'pdfkit';
-import { success, failure } from '../utils/response';
+import { failure } from '../utils/response';
 import { managerOrAbove, orgAdminOnly } from '../middleware/rbac';
 import { canAccessHome } from '../utils/homeAccess';
 import { logAudit } from '../utils/audit';

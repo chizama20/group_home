@@ -265,7 +265,7 @@ export default function MedsTab({ homeId }: { homeId: string }) {
                             ) : (
                               <button
                                 onClick={() => setAdminEntry(entry)}
-                                className='text-xs font-semibold text-primary dark:text-primary px-3 py-1.5 rounded-xl border border-primary dark:border-primary/50 min-h-[32px] hover:bg-primary dark:hover:bg-primary/10 transition-colors'
+                                className='text-xs font-semibold text-primary dark:text-primary px-3 py-1.5 rounded-xl border border-primary dark:border-primary/50 min-h-[32px] hover:bg-primary/10 dark:hover:bg-primary/10 transition-colors'
                               >
                                 Administer
                               </button>

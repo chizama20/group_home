@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { ArrowLeft, MessageSquare } from 'lucide-react'
 import { getReviewQueue, getIposLog, approveIposLog, addReviewComment } from '../../api/logs'
 import type { IposLog, IposEntry, IposReviewComment, Shift } from '../../types/log'
-import { SHIFT_LABELS } from '../../types/log'
 import { cn } from '../../lib/cn'
 
 // ── Types ─────────────────────────────────────────────────────────────────────

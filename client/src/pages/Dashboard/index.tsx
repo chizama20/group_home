@@ -367,7 +367,7 @@ function ShiftTasksSection({
 export default function DashboardPage() {
   const { user }   = useAuth()
   const navigate           = useNavigate()
-  const { homeId, selectedHome: _selectedHome, homes, isLoading: homeIsLoading } = useHome()
+  const { homeId, homes, isLoading: homeIsLoading } = useHome()
   const { isManagerOrAbove } = useRole()
   const {
     announcements,

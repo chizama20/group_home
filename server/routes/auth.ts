@@ -3,8 +3,8 @@ import { RowDataPacket } from 'mysql2';
 import { v4 as uuidv4 } from 'uuid';
 import { hashPassword, comparePassword } from '../utils/password';
 import { success, failure } from '../utils/response';
-import { sendPasswordResetEmail, sendWelcomeEmail } from '../services/email';
-import { validate, loginSchema, forgotPasswordSchema, resetPasswordSchema, acceptInviteSchema } from '../schemas';
+import { sendPasswordResetEmail } from '../services/email';
+import { validate, loginSchema, resetPasswordSchema, acceptInviteSchema } from '../schemas';
 import { logAudit } from '../utils/audit';
 import { canAccessHome } from '../utils/homeAccess';
 

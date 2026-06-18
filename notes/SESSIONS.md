@@ -4,6 +4,46 @@ Newest session at the top. One entry per working session.
 
 ---
 
+## 2026-06-18 — UI Refactor + Code Cleanup
+
+**Branch/PR:** `ui-refactor` → dev (PR open), `code-cleanup` (in progress)
+
+**What we did:**
+- Full UI token cleanup: replaced all hardcoded `indigo-*` with `primary` token across 57 files
+- Radius cleanup: `rounded-2xl`/`rounded-3xl` → `rounded-lg` everywhere
+- Typography: snapped arbitrary `text-[15px]`/`[17px]`/`[18px]`/`[20px]` to Tailwind scale
+- Role badges: converted from solid fill → subtle outline-only style (Org Admin/Manager/Employee)
+- AppLayout sidebar active state: removed `bg-primary/10` block, now `text-primary` only (Linear-style)
+- StatusBadge: `signed_off` changed from primary → emerald (semantic: completed = green)
+- Hover states fixed: `hover:bg-indigo-700` had become `hover:bg-primary` (no darkening) → `hover:bg-primary/90`
+- Code cleanup: removed unused imports across server (index.ts, 5 route files, email.ts) and client (Dashboard, ReviewQueueTab, CreateHomeWizard, useMedicationAdmin)
+- CLAUDE.md updated: added design token notes, org admin nav, scheduling module, seed credentials
+
+**Design system now fully applied. Next session starts clean.**
+
+---
+
+## 2026-06-14 — Proto 4 Merged + Scheduling Module
+
+**Branch/PR:** `scheduling` → dev (PR #13 merged), `proto4` → dev (PR #12 merged)
+
+**What we built:**
+- Org Admin Dashboard (`/dashboard`): stat bar (homes/residents/staff/open incidents), needs-attention alerts, home cards
+- Homes management (`/homes`, `/homes/:id`): list + Create Home wizard (5-step) + Home Detail with 4 tabs (Residents, Staff, Schedule, Settings)
+- Org Logs (`/org-logs`): 4 tabs — Incidents, IPOS, Audit, Exports
+- Staff Invite Wizard, Staff Profile Sheet (change role, remove from home, deactivate)
+- Settings revamp: collapsible grouped sections, role-aware (My Account · My Schedule · Organization · Staff · Preferences · Legal)
+- Employee Scheduling: `shift_slots` + `shift_requests` DB tables (migrations 047–048), 8 server routes, ScheduleTab weekly grid (Mon–Sun, Day/Evening/Night rows), My Schedule page
+- Separate nav per role in AppLayout (org_admin vs staff)
+- Edit Profile Sheet, Change Password Sheet
+
+**Known gaps:**
+- Org Settings row in Settings → no edit functionality wired (no PATCH /orgs route)
+- Home filter in OrgLogs Audit/IPOS tabs doesn't actually filter (prop unused)
+- Live clock-in dot on ScheduleTab is a commented-out placeholder
+
+---
+
 ## 2026-06-08 — UI Direction Locked + Proto 4 Queued
 
 **Branch:** `proto4` (created, clean, off dev)

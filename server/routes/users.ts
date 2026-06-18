@@ -14,7 +14,6 @@ interface SetPinBody         { current_password: string; pin: string; }
 interface VerifyPinBody      { pin: string; }
 interface ChangePasswordBody { current_password: string; new_password: string; }
 
-const VALID_ROLES: Role[] = ['employee', 'manager', 'org_admin'];
 // Roles that can be assigned via PATCH /users/:id/role (cannot elevate to org_admin)
 const ASSIGNABLE_ROLES: Role[] = ['employee', 'manager'];
 

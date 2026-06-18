@@ -1,7 +1,7 @@
 /// <reference path="./types/fastify.d.ts" />
 import 'dotenv/config';
 import Fastify from 'fastify';
-import rateLimit, { RateLimitPluginOptions } from '@fastify/rate-limit';
+import rateLimit from '@fastify/rate-limit';
 import { FastifyRequest } from 'fastify';
 
 import corsPlugin          from './plugins/cors';

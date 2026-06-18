@@ -144,7 +144,7 @@ export default function ExportSheet({ homeId, residents, onClose }: Props) {
           <button
             onClick={() => { void handleExport() }}
             disabled={!canExport || exporting}
-            className='w-full bg-primary text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
+            className='w-full bg-primary text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] hover:bg-primary/90 disabled:opacity-50 transition-colors'
           >
             {exporting ? 'Generating…' : 'Download PDF'}
           </button>

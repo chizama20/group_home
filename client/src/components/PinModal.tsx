@@ -80,7 +80,7 @@ export default function PinModal({ open, onSuccess, onCancel }: Props) {
           <button
             disabled={loading || pin.length !== 4}
             onClick={() => { void handleSubmit() }}
-            className='flex-1 bg-primary text-white rounded-xl py-3 text-sm font-semibold min-h-[48px] hover:bg-primary disabled:opacity-50 transition-colors'
+            className='flex-1 bg-primary text-white rounded-xl py-3 text-sm font-semibold min-h-[48px] hover:bg-primary/90 disabled:opacity-50 transition-colors'
           >
             {loading ? 'Verifying…' : 'Confirm'}
           </button>

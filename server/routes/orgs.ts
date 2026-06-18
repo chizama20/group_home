@@ -249,7 +249,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     '/invitations/:id/resend',
     { preHandler: [fastify.authenticate, orgAdminOnly] },
     async (request, reply) => {
-      const { org_id, id: resent_by } = request.user;
+      const { org_id } = request.user;
       const inviteId = request.params.id;
 
       // Verify invite belongs to this org and is still pending

@@ -93,7 +93,7 @@ export default function CreateHomeWizard() {
       const newHomeId = res.data.data?.id
       // TODO: Assign selected staff to home after creation
       navigate(newHomeId ? `/homes/${newHomeId}` : '/homes')
-    } catch (e) {
+    } catch {
       setError('Failed to create home. Please try again.')
       setSubmitting(false)
     }

@@ -151,7 +151,7 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
                   value={r.value}
                   checked={role === r.value}
                   onChange={() => setRole(r.value)}
-                  className='mt-0.5 w-4 h-4 accent-indigo-600'
+                  className='mt-0.5 w-4 h-4 accent-primary'
                 />
                 <div className='flex-1 min-w-0'>
                   <p className='text-sm font-medium text-zinc-900 dark:text-white'>
@@ -184,7 +184,7 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
                 name='home'
                 checked={selectedHomeId === null}
                 onChange={() => setSelectedHomeId(null)}
-                className='w-4 h-4 accent-indigo-600'
+                className='w-4 h-4 accent-primary'
               />
               <span className='text-sm text-zinc-600 dark:text-zinc-400'>No home (assign later)</span>
             </label>
@@ -205,7 +205,7 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
                     name='home'
                     checked={selectedHomeId === home.id}
                     onChange={() => setSelectedHomeId(home.id)}
-                    className='w-4 h-4 accent-indigo-600'
+                    className='w-4 h-4 accent-primary'
                   />
                   <div className='flex-1 min-w-0'>
                     <p className='text-sm font-medium text-zinc-900 dark:text-white truncate'>
@@ -347,7 +347,7 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
               <button
                 onClick={handleNext}
                 disabled={!canProceed()}
-                className='flex items-center justify-center gap-1 flex-1 py-3 bg-primary text-white rounded-xl text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
+                className='flex items-center justify-center gap-1 flex-1 py-3 bg-primary text-white rounded-xl text-sm font-semibold min-h-[44px] hover:bg-primary/90 disabled:opacity-50 transition-colors'
               >
                 Next
                 <ChevronRight className='w-4 h-4' />
@@ -356,7 +356,7 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
               <button
                 onClick={() => { void handleSubmit() }}
                 disabled={!canProceed()}
-                className='flex items-center justify-center gap-1 flex-1 py-3 bg-primary text-white rounded-xl text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
+                className='flex items-center justify-center gap-1 flex-1 py-3 bg-primary text-white rounded-xl text-sm font-semibold min-h-[44px] hover:bg-primary/90 disabled:opacity-50 transition-colors'
               >
                 {submitting ? 'Sending...' : 'Send Invitation'}
               </button>

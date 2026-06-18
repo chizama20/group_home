@@ -5,7 +5,7 @@ import { success, failure } from '../utils/response';
 import { orgAdminOnly, managerOrAbove } from '../middleware/rbac';
 import { canAccessHome } from '../utils/homeAccess';
 import { logAudit } from '../utils/audit';
-import { validate, createHomeSchema, createResidentSchema, patchResidentSchema, createMedicationSchema, administerMedSchema, createShiftNoteSchema, createIncidentSchema, createAnnouncementSchema, createTaskSchema, createAppointmentSchema, paginationSchema } from '../schemas';
+import { validate, createResidentSchema, createShiftNoteSchema, createIncidentSchema, paginationSchema } from '../schemas';
 
 interface HomeBody   { name: string; address?: string; phone?: string; capacity?: number; facility_type?: string; }
 interface HomeParam  { id: string; }
@@ -41,7 +41,6 @@ interface ShiftNoteBody {
   shift_date: string; content: string; flagged?: boolean;
 }
 
-interface AnnouncementQuery { home_id?: string; }
 
 interface AppointmentBody {
   resident_id: string; type: string; title: string;
