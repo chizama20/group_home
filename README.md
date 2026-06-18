@@ -37,7 +37,9 @@ DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=
 DB_NAME=grouphome
-JWT_SECRET=your_secret_key_minimum_32_characters_long
+JWT_SECRET=          # min 32 chars
+ADMIN_JWT_SECRET=    # separate secret for the /admin panel
+RESEND_API_KEY=      # optional — only needed for invite/reset emails
 ```
 
 **client/.env**
@@ -60,8 +62,9 @@ npm run migrate
 
 ```bash
 npm run seed
-# Creates: admin@grouphome.com / Admin@123
-# Prints the Org ID needed to log in
+# Org Admin:  orgadmin@grouphome.com  / Admin@123
+# Manager:    manager@grouphome.com   / Manager@123
+# Employee:   employee@grouphome.com  / Employee@123
 ```
 
 ## Running
