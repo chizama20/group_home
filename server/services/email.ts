@@ -63,7 +63,7 @@ export async function sendPasswordResetEmail(
 export async function sendOrgApprovedEmail(
   to: string,
   orgName: string,
-  loginUrl: string
+  _loginUrl: string
 ): Promise<void> {
   await send({
     from:    FROM,

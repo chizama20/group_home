@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { RowDataPacket } from 'mysql2';
-import { success, failure } from '../utils/response';
+import { success } from '../utils/response';
 import { orgAdminOnly } from '../middleware/rbac';
 
 interface AuditLogQuery {

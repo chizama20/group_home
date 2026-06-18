@@ -24,6 +24,11 @@ npm run preview       # Preview production build
 
 There are no automated tests. Type-checking (`tsc --noEmit`) is the primary correctness gate.
 
+Seed credentials (after `npm run seed`):
+- Org Admin: `orgadmin@grouphome.com` / `Admin@123`
+- Manager: `manager@grouphome.com` / `Manager@123`
+- Employee: `employee@grouphome.com` / `Employee@123`
+
 ## Architecture
 
 ### Overview
@@ -48,6 +53,8 @@ Multi-tenant care home management platform. A single Fastify REST API serves a R
 - **API layer**: `src/api/client.ts` — single axios instance with `withCredentials: true`. A 401 interceptor redirects to `/login` or `/admin/login` based on current path
 - **Route guards**: `ProtectedRoute` (any authenticated user), `ManagerRoute` (manager+), `OrgAdminRoute` (org_admin only), `AdminRoute` (admin panel)
 - **UI**: shadcn/ui components (Radix UI primitives + Tailwind). Component library via `components.json`
+- **Design tokens**: muted steel blue primary (`oklch(0.54 0.16 254)`), zinc-950 dark bg, `rounded-lg` max radius. Token source: `client/src/index.css`. Role badges are subtle outline-only (no fill). Status colors are semantic only — emerald/amber/red.
+- **Org admin nav**: `AppLayout` renders a separate `ORG_ADMIN_NAV` (Dashboard · Homes · Org Logs · Calendar · Settings) when `user.role === 'org_admin'`, vs `STAFF_NAV` for manager/employee
 
 ### Roles
 | Role | Scope |
@@ -64,6 +71,12 @@ Admin panel (`/admin/*`) is a separate surface with its own session — not tied
 - Most clinical data (medications, incidents, shift notes, ipos entries, vitals) hangs off `resident_id` + `home_id`
 - Announcements and tasks are home-scoped
 - `audit_logs` are org-scoped and written alongside mutations
+
+### Employee Scheduling (migrations 047–048)
+- `shift_slots` — planned shift assignments (home, user, date, shift_type day/evening/night, status scheduled/cancelled). `user_id` is NOT NULL — every slot must have an assigned person.
+- `shift_requests` — time-off requests (requester, slot_id, reason, replacement_user_id, status pending/approved/denied, reviewed_by)
+- Routes in `server/routes/schedule.ts`: 8 endpoints under `/homes/:homeId/schedule/*` + `/schedule/my-slots`
+- Client: `ScheduleTab` (Mon–Sun weekly grid, manager CRUD), `MySchedule` page in Settings
 
 ### Migrations
 Sequential numbered files in `server/migrations/`. Always add a new numbered file — never edit an existing migration. The knexfile uses `mysql2` for development and `postgresql` for staging/production, so avoid MySQL-specific syntax in new migrations.
