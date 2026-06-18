@@ -48,7 +48,7 @@ export default function ShiftSelect({ onComplete }: Props) {
 
   return (
     <div className='min-h-screen bg-zinc-950 flex items-center justify-center px-4'>
-      <div className='bg-zinc-900 border border-zinc-800 rounded-3xl p-6 w-full max-w-sm'>
+      <div className='bg-zinc-900 border border-zinc-800 rounded-lg p-6 w-full max-w-sm'>
         {/* Header */}
         <div className='mb-6'>
           <h1 className='text-xl font-bold text-white mb-1'>{greeting()}</h1>
@@ -66,7 +66,7 @@ export default function ShiftSelect({ onComplete }: Props) {
                 className={cn(
                   'w-full min-h-[52px] rounded-xl border text-sm font-semibold px-4 py-3 text-left transition-colors',
                   isSelected
-                    ? 'bg-indigo-600 text-white border-indigo-500'
+                    ? 'bg-primary text-white border-primary'
                     : 'bg-zinc-800 text-zinc-400 border-zinc-700 active:bg-zinc-700'
                 )}
               >
@@ -90,7 +90,7 @@ export default function ShiftSelect({ onComplete }: Props) {
         <button
           onClick={() => { void handleStart() }}
           disabled={selected.length === 0 || loading}
-          className='bg-indigo-600 text-white rounded-xl py-3.5 w-full font-semibold min-h-[44px] disabled:opacity-40 transition-opacity'
+          className='bg-primary text-white rounded-xl py-3.5 w-full font-semibold min-h-[44px] disabled:opacity-40 transition-opacity'
         >
           {loading ? 'Starting…' : 'Start Shift'}
         </button>

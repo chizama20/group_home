@@ -150,7 +150,7 @@ export default function VitalsLogForm({ residentId, residentVitalsConfig, onSucc
         {/* Header */}
         <div className='px-4 mb-5 relative'>
           <p className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>Vitals</p>
-          <p className='text-[17px] font-semibold text-zinc-900 dark:text-white mt-0.5'>Log Vitals</p>
+          <p className='text-base font-semibold text-zinc-900 dark:text-white mt-0.5'>Log Vitals</p>
           <button
             onClick={onCancel}
             className='absolute top-0 right-4 w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 dark:text-zinc-400'
@@ -188,7 +188,7 @@ export default function VitalsLogForm({ residentId, residentVitalsConfig, onSucc
                 <div
                   key={config.vital_type}
                   className={cn(
-                    'bg-zinc-50 dark:bg-zinc-800/50 border rounded-2xl p-4',
+                    'bg-zinc-50 dark:bg-zinc-800/50 border rounded-lg p-4',
                     isFlagged && !isAcked
                       ? 'border-red-400 dark:border-red-500'
                       : 'border-zinc-200 dark:border-zinc-700'
@@ -221,7 +221,7 @@ export default function VitalsLogForm({ residentId, residentVitalsConfig, onSucc
                         <select
                           value={form.mealTiming}
                           onChange={e => setField(config.vital_type, 'mealTiming', e.target.value)}
-                          className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+                          className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
                         >
                           <option value=''>Select timing…</option>
                           {MEAL_TIMING_OPTIONS.map(o => (
@@ -238,7 +238,7 @@ export default function VitalsLogForm({ residentId, residentVitalsConfig, onSucc
                           value={form.valuePrimary}
                           onChange={e => setField(config.vital_type, 'valuePrimary', e.target.value)}
                           placeholder='mg/dL'
-                          className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-zinc-400'
+                          className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary placeholder-zinc-400'
                         />
                       </div>
                     </div>
@@ -256,7 +256,7 @@ export default function VitalsLogForm({ residentId, residentVitalsConfig, onSucc
                           value={form.valuePrimary}
                           onChange={e => setField(config.vital_type, 'valuePrimary', e.target.value)}
                           placeholder='mmHg'
-                          className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-zinc-400'
+                          className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary placeholder-zinc-400'
                         />
                       </div>
                       <div>
@@ -268,7 +268,7 @@ export default function VitalsLogForm({ residentId, residentVitalsConfig, onSucc
                           value={form.valueSecondary}
                           onChange={e => setField(config.vital_type, 'valueSecondary', e.target.value)}
                           placeholder='mmHg'
-                          className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-zinc-400'
+                          className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary placeholder-zinc-400'
                         />
                       </div>
                     </div>
@@ -285,7 +285,7 @@ export default function VitalsLogForm({ residentId, residentVitalsConfig, onSucc
                         value={form.valuePrimary}
                         onChange={e => setField(config.vital_type, 'valuePrimary', e.target.value)}
                         placeholder={config.unit || 'Enter value'}
-                        className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-zinc-400'
+                        className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary placeholder-zinc-400'
                       />
                     </div>
                   )}
@@ -300,7 +300,7 @@ export default function VitalsLogForm({ residentId, residentVitalsConfig, onSucc
                       onChange={e => setField(config.vital_type, 'notes', e.target.value)}
                       placeholder='Any relevant notes…'
                       rows={1}
-                      className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-zinc-400'
+                      className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-primary placeholder-zinc-400'
                     />
                   </div>
 
@@ -340,7 +340,7 @@ export default function VitalsLogForm({ residentId, residentVitalsConfig, onSucc
               <button
                 onClick={() => { void handleSubmit() }}
                 disabled={submitting}
-                className='flex-1 bg-indigo-600 text-white text-sm font-semibold py-3 rounded-xl min-h-[44px] disabled:opacity-50 active:bg-indigo-700 transition-colors'
+                className='flex-1 bg-primary text-white text-sm font-semibold py-3 rounded-xl min-h-[44px] disabled:opacity-50 active:bg-primary transition-colors'
               >
                 {submitting ? 'Saving…' : 'Save Vitals'}
               </button>

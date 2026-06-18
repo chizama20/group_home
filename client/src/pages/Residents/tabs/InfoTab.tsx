@@ -18,7 +18,7 @@ function Row({ label, value }: { label: string; value: string }) {
 
 function SectionCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4'>
+    <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4'>
       <h2 className='text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500 mb-3'>
         {title}
       </h2>
@@ -30,7 +30,7 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
 function Spinner() {
   return (
     <div className='flex justify-center py-4'>
-      <div className='w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin' />
+      <div className='w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin' />
     </div>
   )
 }
@@ -195,7 +195,7 @@ export default function InfoTab({ resident }: Props) {
                 <ul className='space-y-1.5'>
                   {clsGoals.map(g => (
                     <li key={g.id} className='flex items-center gap-2'>
-                      <span className='text-[11px] font-semibold bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-full shrink-0'>
+                      <span className='text-[11px] font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full shrink-0'>
                         {g.code}
                       </span>
                       <span className='text-sm text-zinc-700 dark:text-zinc-300'>
@@ -279,7 +279,7 @@ export default function InfoTab({ resident }: Props) {
 
       {/* Notes */}
       {resident.notes && (
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4'>
           <h2 className='text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500 mb-2'>
             Notes
           </h2>

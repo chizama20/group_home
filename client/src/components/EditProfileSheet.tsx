@@ -16,7 +16,7 @@ export default function EditProfileSheet({ onSuccess, onCancel }: Props) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
   const labelClass = 'block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1'
 
   const hasChanges =
@@ -54,7 +54,7 @@ export default function EditProfileSheet({ onSuccess, onCancel }: Props) {
   return (
     <>
       <div className='fixed inset-0 bg-black/50 z-40' onClick={onCancel} />
-      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-md md:rounded-2xl md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-2xl z-50 pb-8 max-h-[92vh] overflow-y-auto'>
+      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-md md:rounded-lg md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-2xl z-50 pb-8 max-h-[92vh] overflow-y-auto'>
         {/* Drag indicator (mobile) */}
         <div className='w-12 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 md:hidden' />
 
@@ -123,7 +123,7 @@ export default function EditProfileSheet({ onSuccess, onCancel }: Props) {
               <button
                 type='submit'
                 disabled={!hasChanges || submitting}
-                className='flex-1 py-3 bg-indigo-600 text-white rounded-xl text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
+                className='flex-1 py-3 bg-primary text-white rounded-xl text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
               >
                 {submitting ? 'Saving...' : 'Save Changes'}
               </button>

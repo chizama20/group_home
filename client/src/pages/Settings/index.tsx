@@ -153,15 +153,15 @@ export default function SettingsPage() {
   // Role badge
   const roleBadge =
     user?.role === 'org_admin' ? (
-      <span className='bg-amber-600 text-white text-[11px] font-semibold px-2 py-0.5 rounded-full'>
+      <span className='border border-amber-500/30 text-amber-400/70 text-[10px] font-medium px-2 py-0.5 rounded-full'>
         Org Admin
       </span>
     ) : user?.role === 'manager' ? (
-      <span className='bg-violet-600 text-white text-[11px] font-semibold px-2 py-0.5 rounded-full'>
+      <span className='border border-violet-400/30 text-violet-400/70 text-[10px] font-medium px-2 py-0.5 rounded-full'>
         Manager
       </span>
     ) : (
-      <span className='bg-zinc-600 text-white text-[11px] font-semibold px-2 py-0.5 rounded-full'>
+      <span className='border border-zinc-600/40 text-zinc-400 text-[10px] font-medium px-2 py-0.5 rounded-full'>
         Employee
       </span>
     )
@@ -190,7 +190,7 @@ export default function SettingsPage() {
               {initials}
             </div>
             <div className='flex-1 min-w-0'>
-              <p className='text-[15px] font-semibold text-zinc-900 dark:text-white leading-tight'>
+              <p className='text-sm font-semibold text-zinc-900 dark:text-white leading-tight'>
                 {user?.first_name} {user?.last_name}
               </p>
               <div className='mt-1'>{roleBadge}</div>

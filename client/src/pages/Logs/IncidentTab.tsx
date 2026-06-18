@@ -132,7 +132,7 @@ function ManagerIncidentView({ homeId }: { homeId: string }) {
           {(incident.status === 'open' || incident.status === 'reviewed') && (
             <button
               onClick={() => setReviewing(incident)}
-              className='text-xs font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50 rounded-lg px-3 py-1.5 min-h-[36px] mt-2'
+              className='text-xs font-semibold text-primary dark:text-primary border border-primary dark:border-primary/50 rounded-lg px-3 py-1.5 min-h-[36px] mt-2'
             >
               Review
             </button>
@@ -216,9 +216,9 @@ function EmployeeIncidentView({ homeId, residents, showFab, onFabHandled }: Prop
         <p className='text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>New Incident Report</p>
 
         {submitted && (
-          <div className='bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-3'>
-            <p className='text-sm font-medium text-indigo-400'>Incident filed.</p>
-            <p className='text-xs text-indigo-400/70 mt-0.5'>A manager will review and sign off.</p>
+          <div className='bg-primary/10 border border-primary/20 rounded-xl px-4 py-3'>
+            <p className='text-sm font-medium text-primary'>Incident filed.</p>
+            <p className='text-xs text-primary/70 mt-0.5'>A manager will review and sign off.</p>
           </div>
         )}
 
@@ -264,7 +264,7 @@ function EmployeeIncidentView({ homeId, residents, showFab, onFabHandled }: Prop
                 className={cn(
                   'flex-1 py-2.5 rounded-xl text-sm font-semibold border min-h-[44px] transition-all',
                   severity === s.value
-                    ? s.selectedClasses + ' ring-2 ring-offset-1 ring-indigo-400'
+                    ? s.selectedClasses + ' ring-2 ring-offset-1 ring-primary'
                     : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700'
                 )}
               >
@@ -283,7 +283,7 @@ function EmployeeIncidentView({ homeId, residents, showFab, onFabHandled }: Prop
             onChange={e => setDescription(e.target.value)}
             placeholder='Describe what happened…'
             rows={4}
-            className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-zinc-400'
+            className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-primary placeholder-zinc-400'
           />
         </div>
 

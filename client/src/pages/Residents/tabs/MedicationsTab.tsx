@@ -52,14 +52,14 @@ function MedicationForm({ residentId, medication, onSuccess, onCancel }: MedForm
     }
   }
 
-  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
 
   return (
     <>
       <div className='fixed inset-0 bg-black/60 z-40' onClick={onCancel} />
-      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-xl md:rounded-2xl md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-3xl z-50 max-h-[90vh] overflow-y-auto'>
+      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-xl md:rounded-lg md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-3xl z-50 max-h-[90vh] overflow-y-auto'>
         <div className='w-9 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-4' />
-        <p className='text-[17px] font-semibold text-zinc-900 dark:text-white px-4 mb-4'>
+        <p className='text-base font-semibold text-zinc-900 dark:text-white px-4 mb-4'>
           {isEdit ? 'Edit medication' : 'Add medication'}
         </p>
         <form
@@ -110,7 +110,7 @@ function MedicationForm({ residentId, medication, onSuccess, onCancel }: MedForm
             <button
               type='submit'
               disabled={saving || !name.trim() || !dosage.trim() || !frequency.trim() || !time}
-              className='w-full bg-indigo-600 text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
+              className='w-full bg-primary text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
             >
               {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Add medication'}
             </button>
@@ -173,7 +173,7 @@ export default function MedicationsTab({ residentId }: { residentId: string }) {
 
   if (loading) return (
     <div className='flex items-center justify-center min-h-[200px]'>
-      <div className='w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin' />
+      <div className='w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin' />
     </div>
   )
   if (error) return <p className='px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400'>{error}</p>
@@ -190,7 +190,7 @@ export default function MedicationsTab({ residentId }: { residentId: string }) {
       {isManagerOrAbove && (
         <button
           onClick={() => setShowAdd(true)}
-          className='w-full border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl py-3 text-sm text-zinc-400 dark:text-zinc-600 min-h-[44px] hover:border-indigo-400 hover:text-indigo-500 transition-colors'
+          className='w-full border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl py-3 text-sm text-zinc-400 dark:text-zinc-600 min-h-[44px] hover:border-primary hover:text-primary transition-colors'
         >
           + Add medication
         </button>
@@ -225,7 +225,7 @@ export default function MedicationsTab({ residentId }: { residentId: string }) {
                     <button
                       onClick={() => setEditing(med)}
                       aria-label='Edit medication'
-                      className='w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-indigo-500 rounded-full hover:bg-indigo-500/10 transition-colors'
+                      className='w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-primary rounded-full hover:bg-primary/10 transition-colors'
                     >
                       <Pencil className='w-4 h-4' />
                     </button>

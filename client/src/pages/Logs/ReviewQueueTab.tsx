@@ -54,7 +54,7 @@ const STATUS_LABELS: Record<string, string> = {
 const SHIFT_PILL: Record<Shift, string> = {
   am: 'bg-sky-500/10 text-sky-400',
   pm: 'bg-violet-500/10 text-violet-400',
-  mn: 'bg-indigo-500/10 text-indigo-400',
+  mn: 'bg-primary/10 text-primary',
 }
 
 function ShiftPill({ shift }: { shift: Shift }) {
@@ -83,7 +83,7 @@ function QueueSkeleton() {
   return (
     <div className='px-4 pt-2 space-y-2'>
       {[0, 1, 2].map(i => (
-        <div key={i} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 animate-pulse'>
+        <div key={i} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 animate-pulse'>
           <div className='flex justify-between mb-2'>
             <div className='h-4 bg-zinc-100 dark:bg-zinc-800 rounded w-32' />
             <div className='h-4 bg-zinc-100 dark:bg-zinc-800 rounded w-20' />
@@ -124,7 +124,7 @@ function QueueList({ queue, loading, onSelect }: QueueListProps) {
       {loading && <QueueSkeleton />}
 
       {!loading && queue.length === 0 && (
-        <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 flex flex-col items-center justify-center gap-2'>
+        <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 flex flex-col items-center justify-center gap-2'>
           <p className='text-sm font-medium text-zinc-500 dark:text-zinc-400'>No logs pending approval</p>
           <p className='text-xs text-zinc-400 dark:text-zinc-600'>All caught up</p>
         </div>
@@ -138,7 +138,7 @@ function QueueList({ queue, loading, onSelect }: QueueListProps) {
               <button
                 key={item.id}
                 onClick={() => onSelect(item)}
-                className='w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 mb-2 active:bg-zinc-50 dark:active:bg-zinc-800/50 transition-colors'
+                className='w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 mb-2 active:bg-zinc-50 dark:active:bg-zinc-800/50 transition-colors'
               >
                 {/* Row 1: name + date */}
                 <div className='flex items-center justify-between mb-1'>
@@ -257,8 +257,8 @@ function LogDetail({ detail, onBack, onRefresh }: LogDetailProps) {
           onClick={() => { void handleApprove() }}
           disabled={approving || localStatus === 'approved'}
           className={cn(
-            'bg-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-xl min-h-[44px] transition-colors',
-            (approving || localStatus === 'approved') ? 'opacity-50 cursor-not-allowed' : 'active:bg-indigo-700'
+            'bg-primary text-white text-sm font-semibold px-4 py-2 rounded-xl min-h-[44px] transition-colors',
+            (approving || localStatus === 'approved') ? 'opacity-50 cursor-not-allowed' : 'active:bg-primary'
           )}
         >
           {approving ? 'Approving…' : localStatus === 'approved' ? 'Approved' : 'Approve All'}
@@ -279,7 +279,7 @@ function LogDetail({ detail, onBack, onRefresh }: LogDetailProps) {
           <p className='text-sm text-zinc-400 dark:text-zinc-600'>No entries recorded.</p>
         )}
         {entries.map(entry => (
-          <div key={entry.id} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4'>
+          <div key={entry.id} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4'>
             {/* Entry header: staff + shift + time */}
             <div className='flex items-center gap-2 mb-2'>
               <p className='text-sm font-semibold text-zinc-900 dark:text-white flex-1 min-w-0 truncate'>
@@ -293,7 +293,7 @@ function LogDetail({ detail, onBack, onRefresh }: LogDetailProps) {
             {(entry.goal_code || entry.goal_description) && (
               <div className='flex items-start gap-2 mb-2'>
                 {entry.goal_code && (
-                  <span className='bg-indigo-500/10 text-indigo-400 text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0'>
+                  <span className='bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0'>
                     {entry.goal_code}
                   </span>
                 )}
@@ -333,7 +333,7 @@ function LogDetail({ detail, onBack, onRefresh }: LogDetailProps) {
             {/* Leave comment */}
             <button
               onClick={() => openCommentModal(entry.id)}
-              className='flex items-center gap-1.5 text-xs font-medium text-indigo-500 dark:text-indigo-400 min-h-[44px] pr-2'
+              className='flex items-center gap-1.5 text-xs font-medium text-primary dark:text-primary min-h-[44px] pr-2'
             >
               <MessageSquare size={13} />
               Leave Comment
@@ -346,7 +346,7 @@ function LogDetail({ detail, onBack, onRefresh }: LogDetailProps) {
       <div className='px-4 mb-6'>
         <button
           onClick={() => openCommentModal(null)}
-          className='w-full flex items-center justify-center gap-2 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-2xl py-3 min-h-[44px] text-sm font-medium text-zinc-500 dark:text-zinc-400 active:bg-zinc-50 dark:active:bg-zinc-800/30 transition-colors'
+          className='w-full flex items-center justify-center gap-2 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg py-3 min-h-[44px] text-sm font-medium text-zinc-500 dark:text-zinc-400 active:bg-zinc-50 dark:active:bg-zinc-800/30 transition-colors'
         >
           <MessageSquare size={15} />
           Comment on entire log
@@ -360,7 +360,7 @@ function LogDetail({ detail, onBack, onRefresh }: LogDetailProps) {
           {comments.map(c => {
             const ctx = getEntryContext(c.entry_id)
             return (
-              <div key={c.id} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3'>
+              <div key={c.id} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3'>
                 <div className='flex items-center justify-between mb-1'>
                   <p className='text-xs font-semibold text-zinc-900 dark:text-white'>
                     {c.commenter_first} {c.commenter_last}
@@ -371,7 +371,7 @@ function LogDetail({ detail, onBack, onRefresh }: LogDetailProps) {
                   <div className='flex items-center gap-1.5 mb-1.5'>
                     <ShiftPill shift={ctx.shift} />
                     {ctx.goalCode && (
-                      <span className='bg-indigo-500/10 text-indigo-400 text-[10px] font-bold px-1.5 py-0.5 rounded'>
+                      <span className='bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded'>
                         {ctx.goalCode}
                       </span>
                     )}
@@ -411,7 +411,7 @@ function LogDetail({ detail, onBack, onRefresh }: LogDetailProps) {
                 placeholder='Enter your comment…'
                 rows={4}
                 autoFocus
-                className='w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-zinc-400'
+                className='w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-primary placeholder-zinc-400'
               />
             </div>
 
@@ -425,7 +425,7 @@ function LogDetail({ detail, onBack, onRefresh }: LogDetailProps) {
               <button
                 onClick={() => { void handleSendComment() }}
                 disabled={!commentText.trim() || sending}
-                className='flex-1 bg-indigo-600 text-white text-sm font-semibold py-3 rounded-xl min-h-[44px] disabled:opacity-50 active:bg-indigo-700 transition-colors'
+                className='flex-1 bg-primary text-white text-sm font-semibold py-3 rounded-xl min-h-[44px] disabled:opacity-50 active:bg-primary transition-colors'
               >
                 {sending ? 'Sending…' : 'Send & Request Revision'}
               </button>
@@ -475,7 +475,7 @@ export default function ReviewQueueTab({ homeId }: Props) {
     return (
       <div className='px-4 pt-4 space-y-3'>
         {[0, 1, 2].map(i => (
-          <div key={i} className='h-24 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl animate-pulse' />
+          <div key={i} className='h-24 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg animate-pulse' />
         ))}
       </div>
     )

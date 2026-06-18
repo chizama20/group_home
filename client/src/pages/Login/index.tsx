@@ -22,7 +22,7 @@ export default function LoginPage() {
   if (isLoading) {
     return (
       <div className='min-h-screen bg-zinc-50 dark:bg-black flex items-center justify-center'>
-        <div className='w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin' />
+        <div className='w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin' />
       </div>
     )
   }
@@ -62,7 +62,7 @@ export default function LoginPage() {
               autoFocus
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+              className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
               placeholder='you@example.com'
             />
           </div>
@@ -75,19 +75,19 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+                className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
               />
               <button
                 type='button'
                 onClick={() => setShowPassword(v => !v)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
-                className='absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded'
+                className='absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary rounded'
               >
                 {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
               </button>
             </div>
             <div className='text-right mt-1'>
-              <Link to='/forgot-password' className='text-xs text-indigo-600 dark:text-indigo-400 hover:underline'>
+              <Link to='/forgot-password' className='text-xs text-primary dark:text-primary hover:underline'>
                 Forgot password?
               </Link>
             </div>
@@ -100,7 +100,7 @@ export default function LoginPage() {
           <button
             type='submit'
             disabled={loading}
-            className='w-full bg-indigo-600 text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
+            className='w-full bg-primary text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
@@ -108,7 +108,7 @@ export default function LoginPage() {
 
         <p className='text-xs text-zinc-400 dark:text-zinc-500 text-center mt-6'>
           New organisation?{' '}
-          <Link to='/request-access' className='text-indigo-600 dark:text-indigo-400 hover:underline'>
+          <Link to='/request-access' className='text-primary dark:text-primary hover:underline'>
             Request access →
           </Link>
         </p>

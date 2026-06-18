@@ -77,7 +77,7 @@ export default function ShiftNotesTab({ homeId, residents }: Props) {
     }
   }
 
-  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
 
   return (
     <div>
@@ -88,8 +88,8 @@ export default function ShiftNotesTab({ homeId, residents }: Props) {
         </p>
 
         {submitted && (
-          <div className='bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-2.5'>
-            <p className='text-sm font-medium text-indigo-400'>Note posted.</p>
+          <div className='bg-primary/10 border border-primary/20 rounded-xl px-4 py-2.5'>
+            <p className='text-sm font-medium text-primary'>Note posted.</p>
           </div>
         )}
 
@@ -113,7 +113,7 @@ export default function ShiftNotesTab({ homeId, residents }: Props) {
             placeholder='Write a shift note…'
             rows={4}
             required
-            className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500'
+            className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary'
           />
 
           {/* Flag toggle */}
@@ -140,7 +140,7 @@ export default function ShiftNotesTab({ homeId, residents }: Props) {
           <button
             type='submit'
             disabled={submitting || !content.trim()}
-            className='w-full bg-indigo-600 text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
+            className='w-full bg-primary text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
           >
             {submitting ? 'Posting…' : 'Post note'}
           </button>
@@ -210,7 +210,7 @@ export default function ShiftNotesTab({ homeId, residents }: Props) {
             </div>
 
             {note.resident_first && (
-              <p className='text-xs text-indigo-400 mb-1.5'>
+              <p className='text-xs text-primary mb-1.5'>
                 Re: {note.resident_first} {note.resident_last}
               </p>
             )}

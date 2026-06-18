@@ -54,7 +54,7 @@ export default function LogsPage() {
           {isManagerOrAbove && homeId && (
             <button
               onClick={() => setShowExport(true)}
-              className='text-sm font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50 rounded-xl px-3 py-2 min-h-[40px] transition-colors'
+              className='text-sm font-medium text-primary dark:text-primary border border-primary dark:border-primary/50 rounded-xl px-3 py-2 min-h-[40px] transition-colors'
             >
               Export
             </button>
@@ -73,7 +73,7 @@ export default function LogsPage() {
             className={cn(
               'flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-medium border-b-2 transition-colors min-h-[44px]',
               tab === t.id
-                ? 'border-indigo-500 text-zinc-900 dark:text-white'
+                ? 'border-primary text-zinc-900 dark:text-white'
                 : 'border-transparent text-zinc-500'
             )}
           >
@@ -106,7 +106,7 @@ export default function LogsPage() {
       {/* FAB */}
       <button
         onClick={() => setShowFab(true)}
-        className='fixed bottom-4 right-4 md:bottom-6 md:right-6 z-30 w-14 h-14 bg-indigo-600 rounded-full shadow-lg shadow-indigo-500/40 flex items-center justify-center'
+        className='fixed bottom-4 right-4 md:bottom-6 md:right-6 z-30 w-14 h-14 bg-primary rounded-full shadow-lg shadow-indigo-500/40 flex items-center justify-center'
         aria-label='New log'
       >
         <Plus size={22} color='white' />

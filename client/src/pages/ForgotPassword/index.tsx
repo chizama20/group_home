@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
             </p>
             <Link
               to='/login'
-              className='block text-center text-sm text-indigo-600 dark:text-indigo-400 hover:underline'
+              className='block text-center text-sm text-primary dark:text-primary hover:underline'
             >
               Back to sign in
             </Link>
@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
                 autoFocus
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+                className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
                 placeholder='you@example.com'
               />
             </div>
@@ -58,7 +58,7 @@ export default function ForgotPasswordPage() {
             <button
               type='submit'
               disabled={loading}
-              className='w-full bg-indigo-600 text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
+              className='w-full bg-primary text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
             >
               {loading ? 'Sending…' : 'Send reset link'}
             </button>

@@ -84,15 +84,15 @@ function AdminForm({ entry, onSuccess, onCancel }: AdminFormProps) {
     }
   }
 
-  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
 
   return (
     <>
       <div className='fixed inset-0 bg-black/60 z-40' onClick={onCancel} />
-      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-xl md:rounded-2xl md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-3xl z-50 max-h-[90vh] overflow-y-auto'>
+      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-xl md:rounded-lg md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-3xl z-50 max-h-[90vh] overflow-y-auto'>
         <div className='w-9 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-4' />
         <div className='px-4 mb-4'>
-          <p className='text-[17px] font-semibold text-zinc-900 dark:text-white'>Administer medication</p>
+          <p className='text-base font-semibold text-zinc-900 dark:text-white'>Administer medication</p>
           <p className='text-sm text-zinc-500 dark:text-zinc-400 mt-0.5'>
             {entry.resident_first} {entry.resident_last} · {entry.med_name} · {entry.med_dosage}
           </p>
@@ -106,7 +106,7 @@ function AdminForm({ entry, onSuccess, onCancel }: AdminFormProps) {
                 onClick={() => setOutcome(o.value)}
                 className={`py-2 rounded-xl text-xs font-semibold border transition-colors min-h-[40px] ${
                   outcome === o.value
-                    ? 'bg-indigo-600 border-indigo-600 text-white'
+                    ? 'bg-primary border-primary text-white'
                     : 'bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300'
                 }`}
               >
@@ -133,7 +133,7 @@ function AdminForm({ entry, onSuccess, onCancel }: AdminFormProps) {
             <button
               type='submit'
               disabled={saving}
-              className='w-full bg-indigo-600 text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
+              className='w-full bg-primary text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
             >
               {saving ? 'Saving…' : 'Record administration'}
             </button>
@@ -181,7 +181,7 @@ export default function MedsTab({ homeId }: { homeId: string }) {
     <div className='p-4 space-y-3'>
 
       {/* Summary strip */}
-      <div className='flex items-center justify-between bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-4 py-3'>
+      <div className='flex items-center justify-between bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-4 py-3'>
         <div>
           <p className='text-sm font-semibold text-zinc-900 dark:text-white'>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -197,12 +197,12 @@ export default function MedsTab({ homeId }: { homeId: string }) {
 
       {/* Loading skeletons */}
       {loading && [0, 1, 2, 3].map(i => (
-        <div key={i} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl h-20 animate-pulse' />
+        <div key={i} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg h-20 animate-pulse' />
       ))}
 
       {/* Empty state */}
       {!loading && entries.length === 0 && (
-        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 text-center'>
+        <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 text-center'>
           <p className='text-sm text-zinc-500 dark:text-zinc-400'>No medications scheduled for any residents.</p>
         </div>
       )}
@@ -215,7 +215,7 @@ export default function MedsTab({ homeId }: { homeId: string }) {
         )
 
         return (
-          <div key={timeKey} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden'>
+          <div key={timeKey} className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden'>
             {/* Time header */}
             <div className='px-4 py-2 bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-100 dark:border-zinc-800'>
               <span className='text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
@@ -265,7 +265,7 @@ export default function MedsTab({ homeId }: { homeId: string }) {
                             ) : (
                               <button
                                 onClick={() => setAdminEntry(entry)}
-                                className='text-xs font-semibold text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800/50 min-h-[32px] hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors'
+                                className='text-xs font-semibold text-primary dark:text-primary px-3 py-1.5 rounded-xl border border-primary dark:border-primary/50 min-h-[32px] hover:bg-primary dark:hover:bg-primary/10 transition-colors'
                               >
                                 Administer
                               </button>

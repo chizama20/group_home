@@ -46,7 +46,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 to={item.path}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400'
+                    ? 'bg-primary dark:bg-primary/10 text-primary dark:text-primary'
                     : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
                 }`}
               >

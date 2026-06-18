@@ -103,7 +103,7 @@ function NeedsAttentionSection({ items }: { items: NeedsAttentionItem[] }) {
 
   return (
     <div className='mt-5'>
-      <p className='text-[17px] font-semibold text-zinc-900 dark:text-white px-4 mb-3'>
+      <p className='text-base font-semibold text-zinc-900 dark:text-white px-4 mb-3'>
         Needs Attention
       </p>
 
@@ -135,7 +135,7 @@ function HomeCardsSection({ homes }: { homes: OrgDashboardHome[] }) {
   if (!homes.length) {
     return (
       <div className='mt-5'>
-        <p className='text-[17px] font-semibold text-zinc-900 dark:text-white px-4 mb-3'>
+        <p className='text-base font-semibold text-zinc-900 dark:text-white px-4 mb-3'>
           Homes
         </p>
         <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 text-sm text-zinc-400 dark:text-zinc-500'>
@@ -147,7 +147,7 @@ function HomeCardsSection({ homes }: { homes: OrgDashboardHome[] }) {
 
   return (
     <div className='mt-5'>
-      <p className='text-[17px] font-semibold text-zinc-900 dark:text-white px-4 mb-3'>
+      <p className='text-base font-semibold text-zinc-900 dark:text-white px-4 mb-3'>
         Homes
       </p>
 

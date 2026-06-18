@@ -17,19 +17,19 @@ function getRoleBadge(role: string) {
   switch (role) {
     case 'org_admin':
       return (
-        <span className='bg-amber-500/10 text-amber-400 text-[10px] font-semibold px-2 py-0.5 rounded-full'>
+        <span className='border border-amber-500/30 text-amber-400/70 text-[10px] font-medium px-2 py-0.5 rounded-full'>
           Org Admin
         </span>
       )
     case 'manager':
       return (
-        <span className='bg-violet-500/10 text-violet-400 text-[10px] font-semibold px-2 py-0.5 rounded-full'>
+        <span className='border border-violet-400/30 text-violet-400/70 text-[10px] font-medium px-2 py-0.5 rounded-full'>
           Manager
         </span>
       )
     default:
       return (
-        <span className='bg-zinc-200 dark:bg-zinc-800 text-zinc-500 text-[10px] font-semibold px-2 py-0.5 rounded-full'>
+        <span className='border border-zinc-600/40 text-zinc-400 text-[10px] font-medium px-2 py-0.5 rounded-full'>
           Employee
         </span>
       )
@@ -72,7 +72,7 @@ function StaffRow({
 
       {/* Info */}
       <div className='flex-1 min-w-0'>
-        <p className='text-[15px] font-semibold text-zinc-900 dark:text-white'>
+        <p className='text-sm font-semibold text-zinc-900 dark:text-white'>
           {staff.first_name} {staff.last_name}
         </p>
         <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-0.5'>

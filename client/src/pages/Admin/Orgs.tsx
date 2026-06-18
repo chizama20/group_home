@@ -14,7 +14,7 @@ const FACILITY_LABELS: Record<string, string> = {
 
 const STATUS_STYLES: Record<string, string> = {
   active:      'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-  pending_baa: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
+  pending_baa: 'bg-primary/10 text-primary dark:text-primary',
   pending:     'bg-amber-500/10 text-amber-600 dark:text-amber-400',
   suspended:   'bg-red-500/10 text-red-600 dark:text-red-400',
 }
@@ -84,7 +84,7 @@ export default function AdminOrgs() {
                   <tr key={org.id} className='hover:bg-zinc-50 dark:hover:bg-zinc-800/40'>
                     <td className='px-4 py-3 font-medium text-zinc-900 dark:text-white'>{org.name}</td>
                     <td className='px-4 py-3'>
-                      <span className='bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs px-2 py-0.5 rounded-full'>
+                      <span className='bg-primary/10 text-primary dark:text-primary text-xs px-2 py-0.5 rounded-full'>
                         {FACILITY_LABELS[org.facility_type] ?? org.facility_type}
                       </span>
                     </td>

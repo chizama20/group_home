@@ -44,7 +44,7 @@ export default function AnnouncementComposer({ homeId, onPosted }: Props) {
       <div className='mx-4 mt-4'>
         <button
           onClick={() => setOpen(true)}
-          className='w-full bg-white dark:bg-zinc-900 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-400 dark:text-zinc-500 text-left min-h-[44px] hover:border-indigo-400 dark:hover:border-indigo-600 hover:text-indigo-500 transition-colors'
+          className='w-full bg-white dark:bg-zinc-900 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-400 dark:text-zinc-500 text-left min-h-[44px] hover:border-primary dark:hover:border-primary hover:text-primary transition-colors'
         >
           + Post an announcement…
         </button>
@@ -52,11 +52,11 @@ export default function AnnouncementComposer({ homeId, onPosted }: Props) {
     )
   }
 
-  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
 
   return (
-    <div className='mx-4 mt-4 bg-white dark:bg-zinc-900 border border-indigo-200 dark:border-indigo-500/30 rounded-xl p-4'>
-      <p className='text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-3'>New Announcement</p>
+    <div className='mx-4 mt-4 bg-white dark:bg-zinc-900 border border-primary dark:border-primary/30 rounded-xl p-4'>
+      <p className='text-xs font-semibold text-primary dark:text-primary uppercase tracking-wide mb-3'>New Announcement</p>
       <form onSubmit={e => { void handlePost(e) }} className='space-y-3'>
         <input
           type='text'
@@ -72,7 +72,7 @@ export default function AnnouncementComposer({ homeId, onPosted }: Props) {
           rows={3}
           value={body}
           onChange={e => setBody(e.target.value)}
-          className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500'
+          className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary'
         />
         <label className='flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 cursor-pointer'>
           <input
@@ -89,14 +89,14 @@ export default function AnnouncementComposer({ homeId, onPosted }: Props) {
             <button
               type='button'
               onClick={() => setAllHomes(false)}
-              className={`flex-1 py-2 transition-colors ${!allHomes ? 'bg-indigo-600 text-white font-semibold' : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}
+              className={`flex-1 py-2 transition-colors ${!allHomes ? 'bg-primary text-white font-semibold' : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}
             >
               This home
             </button>
             <button
               type='button'
               onClick={() => setAllHomes(true)}
-              className={`flex-1 py-2 transition-colors ${allHomes ? 'bg-indigo-600 text-white font-semibold' : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}
+              className={`flex-1 py-2 transition-colors ${allHomes ? 'bg-primary text-white font-semibold' : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}
             >
               All homes
             </button>
@@ -116,7 +116,7 @@ export default function AnnouncementComposer({ homeId, onPosted }: Props) {
           <button
             type='submit'
             disabled={posting || !title.trim() || !body.trim()}
-            className='flex-1 bg-indigo-600 text-white rounded-lg py-2.5 text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
+            className='flex-1 bg-primary text-white rounded-lg py-2.5 text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
           >
             {posting ? 'Posting…' : 'Post'}
           </button>

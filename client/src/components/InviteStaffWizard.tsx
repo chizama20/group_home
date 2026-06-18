@@ -30,7 +30,7 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
   const labelClass = 'block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1'
 
   function isValidEmail(email: string): boolean {
@@ -96,9 +96,9 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
             key={i}
             className={`w-2 h-2 rounded-full transition-colors ${
               i === step
-                ? 'bg-indigo-600 dark:bg-indigo-500'
+                ? 'bg-primary dark:bg-primary'
                 : i < step
-                  ? 'bg-indigo-300 dark:bg-indigo-700'
+                  ? 'bg-primary dark:bg-primary'
                   : 'bg-zinc-300 dark:bg-zinc-700'
             }`}
           />
@@ -141,7 +141,7 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
                 key={r.value}
                 className={`flex items-start gap-3 p-3 bg-white dark:bg-zinc-800 border rounded-xl cursor-pointer transition-colors ${
                   role === r.value
-                    ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10'
+                    ? 'border-primary bg-primary dark:bg-primary/10'
                     : 'border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700/50'
                 }`}
               >
@@ -175,7 +175,7 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
             <label
               className={`flex items-center gap-3 p-3 bg-white dark:bg-zinc-800 border rounded-xl cursor-pointer transition-colors ${
                 selectedHomeId === null
-                  ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10'
+                  ? 'border-primary bg-primary dark:bg-primary/10'
                   : 'border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700/50'
               }`}
             >
@@ -196,7 +196,7 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
                   key={home.id}
                   className={`flex items-center gap-3 p-3 bg-white dark:bg-zinc-800 border rounded-xl cursor-pointer transition-colors ${
                     selectedHomeId === home.id
-                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10'
+                      ? 'border-primary bg-primary dark:bg-primary/10'
                       : 'border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700/50'
                   }`}
                 >
@@ -233,7 +233,7 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
       <div className='space-y-4'>
         <div className='bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-4 space-y-3'>
           <div className='flex items-center gap-3'>
-            <div className='w-12 h-12 rounded-full bg-indigo-500/15 flex items-center justify-center text-indigo-600 dark:text-indigo-400'>
+            <div className='w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center text-primary dark:text-primary'>
               <Mail className='w-5 h-5' />
             </div>
             <div className='flex-1 min-w-0'>
@@ -265,10 +265,10 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
           </div>
         </div>
 
-        <div className='bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-xl p-3'>
+        <div className='bg-primary dark:bg-primary/10 border border-primary dark:border-primary/20 rounded-xl p-3'>
           <div className='flex items-start gap-2'>
-            <Mail className='w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0' />
-            <div className='text-sm text-indigo-700 dark:text-indigo-300'>
+            <Mail className='w-4 h-4 text-primary dark:text-primary mt-0.5 shrink-0' />
+            <div className='text-sm text-primary dark:text-primary'>
               <p>The recipient will receive an email with a link to:</p>
               <ul className='list-disc list-inside mt-1 text-xs space-y-0.5'>
                 <li>Set up their name and password</li>
@@ -286,7 +286,7 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
   return (
     <>
       <div className='fixed inset-0 bg-black/50 z-40' onClick={onCancel} />
-      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-xl md:rounded-2xl md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-2xl z-50 pb-8 max-h-[92vh] overflow-y-auto'>
+      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-xl md:rounded-lg md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-2xl z-50 pb-8 max-h-[92vh] overflow-y-auto'>
         {/* Drag indicator (mobile) */}
         <div className='w-12 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 md:hidden' />
 
@@ -347,7 +347,7 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
               <button
                 onClick={handleNext}
                 disabled={!canProceed()}
-                className='flex items-center justify-center gap-1 flex-1 py-3 bg-indigo-600 text-white rounded-xl text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
+                className='flex items-center justify-center gap-1 flex-1 py-3 bg-primary text-white rounded-xl text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
               >
                 Next
                 <ChevronRight className='w-4 h-4' />
@@ -356,7 +356,7 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
               <button
                 onClick={() => { void handleSubmit() }}
                 disabled={!canProceed()}
-                className='flex items-center justify-center gap-1 flex-1 py-3 bg-indigo-600 text-white rounded-xl text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
+                className='flex items-center justify-center gap-1 flex-1 py-3 bg-primary text-white rounded-xl text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
               >
                 {submitting ? 'Sending...' : 'Send Invitation'}
               </button>

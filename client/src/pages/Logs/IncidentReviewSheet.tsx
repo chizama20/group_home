@@ -50,7 +50,7 @@ export default function IncidentReviewSheet({ incident, onClose, onUpdate }: Pro
   return (
     <>
       <div className='fixed inset-0 bg-black/40 z-40' onClick={onClose} />
-      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-xl md:rounded-2xl md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-2xl z-50 max-h-[90vh] flex flex-col'>
+      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-xl md:rounded-lg md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-2xl z-50 max-h-[90vh] flex flex-col'>
         <div className='w-12 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 shrink-0 md:hidden' />
 
         <div className='px-4 pt-3 pb-2 border-b border-zinc-200 dark:border-zinc-800 shrink-0 flex items-center justify-between'>
@@ -128,7 +128,7 @@ export default function IncidentReviewSheet({ incident, onClose, onUpdate }: Pro
               <button
                 onClick={() => { void handleSignOff() }}
                 disabled={signingOff || escalating}
-                className='w-full bg-indigo-600 text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
+                className='w-full bg-primary text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
               >
                 {signingOff ? 'Signing off…' : 'Sign off incident'}
               </button>

@@ -57,7 +57,7 @@ export default function AdminRequests() {
               className={cn(
                 'px-3 py-1.5 text-sm rounded-lg transition-colors',
                 filter === f
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'
               )}>
               {f === 'pending' ? 'Pending' : 'All'}
@@ -94,13 +94,13 @@ export default function AdminRequests() {
                 {requests.map(req => (
                   <tr key={req.id} className='hover:bg-zinc-50 dark:hover:bg-zinc-800/40'>
                     <td className='px-4 py-3'>
-                      <Link to={`/admin/requests/${req.id}`} className='font-medium text-indigo-600 dark:text-indigo-400 hover:underline'>
+                      <Link to={`/admin/requests/${req.id}`} className='font-medium text-primary dark:text-primary hover:underline'>
                         {req.org_name}
                       </Link>
                       <p className='text-xs text-zinc-400 dark:text-zinc-500'>{new Date(req.created_at).toLocaleDateString()}</p>
                     </td>
                     <td className='px-4 py-3'>
-                      <span className='bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs px-2 py-0.5 rounded-full'>
+                      <span className='bg-primary/10 text-primary dark:text-primary text-xs px-2 py-0.5 rounded-full'>
                         {FACILITY_LABELS[req.facility_type] ?? req.facility_type}
                       </span>
                     </td>

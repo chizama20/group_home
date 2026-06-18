@@ -91,7 +91,7 @@ export default function BehavioralTab({ homeId, residents }: Props) {
           {isManagerOrAbove && (
             <button
               onClick={() => setShowExport(true)}
-              className='text-xs font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50 rounded-lg px-3 py-1.5 min-h-[36px] transition-colors'
+              className='text-xs font-semibold text-primary dark:text-primary border border-primary dark:border-primary/50 rounded-lg px-3 py-1.5 min-h-[36px] transition-colors'
             >
               Export PDF
             </button>
@@ -127,7 +127,7 @@ export default function BehavioralTab({ homeId, residents }: Props) {
                   className={cn(
                     'px-3 py-2 rounded-xl text-sm font-medium border min-h-[44px] transition-all',
                     behaviorId === b.id
-                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      ? 'bg-primary text-white border-primary'
                       : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700'
                   )}
                 >
@@ -169,7 +169,7 @@ export default function BehavioralTab({ homeId, residents }: Props) {
             onChange={e => setNotes(e.target.value)}
             placeholder='Optional…'
             rows={2}
-            className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-zinc-400'
+            className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-primary placeholder-zinc-400'
           />
         </div>
 
@@ -187,7 +187,7 @@ export default function BehavioralTab({ homeId, residents }: Props) {
         <button
           onClick={() => { void handleSubmit() }}
           disabled={!residentId || !behaviorId || !occurredAt || submitting}
-          className='w-full bg-indigo-600 text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
+          className='w-full bg-primary text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
         >
           {submitting ? 'Submitting…' : 'Submit'}
         </button>

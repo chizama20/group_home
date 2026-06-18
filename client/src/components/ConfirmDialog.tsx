@@ -28,9 +28,9 @@ export default function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(isOpen: boolean) => { if (!isOpen) onCancel() }}>
-      <DialogContent className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl'>
+      <DialogContent className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg'>
         <DialogHeader>
-          <DialogTitle className='text-[17px] font-semibold text-zinc-900 dark:text-white'>
+          <DialogTitle className='text-base font-semibold text-zinc-900 dark:text-white'>
             {title}
           </DialogTitle>
           {description && (
@@ -53,7 +53,7 @@ export default function ConfirmDialog({
             className={
               confirmVariant === 'destructive'
                 ? 'bg-red-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl min-h-[44px]'
-                : 'bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl min-h-[44px]'
+                : 'bg-primary text-white text-sm font-semibold px-4 py-2.5 rounded-xl min-h-[44px]'
             }
           >
             {confirmLabel}

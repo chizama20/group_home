@@ -68,7 +68,7 @@ export default function ResidentProfile() {
 
   if (loading) return (
     <div className='min-h-screen bg-zinc-50 dark:bg-black flex items-center justify-center min-h-[200px]'>
-      <div className='w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin' />
+      <div className='w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin' />
     </div>
   )
   if (error) return (
@@ -126,7 +126,7 @@ export default function ResidentProfile() {
       )}
 
       {/* Avatar */}
-      <div className='mx-auto mt-4 w-20 h-20 rounded-full bg-indigo-500/15 text-indigo-400 text-2xl font-bold flex items-center justify-center'>
+      <div className='mx-auto mt-4 w-20 h-20 rounded-full bg-primary/15 text-primary text-2xl font-bold flex items-center justify-center'>
         {initials}
       </div>
 
@@ -163,7 +163,7 @@ export default function ResidentProfile() {
             className={cn(
               'flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors min-h-[44px]',
               tab === t
-                ? 'border-indigo-500 text-zinc-900 dark:text-white'
+                ? 'border-primary text-zinc-900 dark:text-white'
                 : 'border-transparent text-zinc-500'
             )}
           >

@@ -126,7 +126,7 @@ export default function AppLayout({ children }: Props) {
               className={({ isActive }) => cn(
                 'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors min-h-[44px]',
                 isActive
-                  ? 'bg-primary/10 text-primary'
+                  ? 'text-primary'
                   : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-white'
               )}
             >

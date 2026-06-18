@@ -89,7 +89,7 @@ export default function VitalsTab({ residentId }: { residentId: string }) {
       {[0, 1, 2].map(i => (
         <div
           key={i}
-          className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl h-20 animate-pulse'
+          className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg h-20 animate-pulse'
         />
       ))}
     </div>
@@ -97,7 +97,7 @@ export default function VitalsTab({ residentId }: { residentId: string }) {
 
   if (!logs.length) return (
     <div className='p-4'>
-      <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 text-center'>
+      <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 text-center'>
         <p className='text-sm text-zinc-500 dark:text-zinc-400'>No vitals recorded yet.</p>
       </div>
     </div>
@@ -116,7 +116,7 @@ export default function VitalsTab({ residentId }: { residentId: string }) {
           className={cn(
             'flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border min-h-[32px] transition-colors',
             activeType === null
-              ? 'bg-indigo-600 text-white border-indigo-600'
+              ? 'bg-primary text-white border-primary'
               : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700'
           )}
         >
@@ -130,7 +130,7 @@ export default function VitalsTab({ residentId }: { residentId: string }) {
             className={cn(
               'flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border min-h-[32px] transition-colors',
               activeType === type
-                ? 'bg-indigo-600 text-white border-indigo-600'
+                ? 'bg-primary text-white border-primary'
                 : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700'
             )}
           >
@@ -144,7 +144,7 @@ export default function VitalsTab({ residentId }: { residentId: string }) {
         <div
           key={log.id}
           className={cn(
-            'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 mb-2',
+            'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 mb-2',
             log.is_flagged && 'border-l-4 border-l-red-500'
           )}
         >
