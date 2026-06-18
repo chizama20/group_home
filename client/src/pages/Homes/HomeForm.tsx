@@ -50,7 +50,7 @@ export default function HomeForm() {
 
         {/* Header */}
         <div className='px-4 flex items-start gap-3 mb-6'>
-          <div className='w-12 h-12 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center shrink-0'>
+          <div className='w-12 h-12 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0'>
             <Home className='h-6 w-6' />
           </div>
           <div>
@@ -65,7 +65,7 @@ export default function HomeForm() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className='mx-4'>
-          <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 space-y-4'>
+          <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-4'>
             {/* Name */}
             <div>
               <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5'>
@@ -77,7 +77,7 @@ export default function HomeForm() {
                 onChange={e => setName(e.target.value)}
                 placeholder='e.g., Sunrise House'
                 autoFocus
-                className='w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[44px]'
+                className='w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary min-h-[44px]'
               />
             </div>
 
@@ -91,7 +91,7 @@ export default function HomeForm() {
                 value={address}
                 onChange={e => setAddress(e.target.value)}
                 placeholder='e.g., 123 Main Street, City, State 12345'
-                className='w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[44px]'
+                className='w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary min-h-[44px]'
               />
             </div>
 
@@ -104,7 +104,7 @@ export default function HomeForm() {
             <button
               type='submit'
               disabled={saving || !name.trim()}
-              className='w-full flex items-center justify-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-3 rounded-xl min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed'
+              className='w-full flex items-center justify-center gap-2 bg-primary text-white text-sm font-semibold px-4 py-3 rounded-xl min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed'
             >
               <Save className='h-4 w-4' />
               {saving ? 'Creating...' : 'Create Home'}

@@ -5,7 +5,7 @@ import type { Appointment } from '../../../types/appointment'
 import { todayStr, formatDate } from '../../../utils/date'
 
 const TYPE_CHIP: Record<string, string> = {
-  'GP Visit':   'bg-indigo-500/10 text-indigo-400',
+  'GP Visit':   'bg-primary/10 text-primary',
   'Therapy':    'bg-violet-500/10 text-violet-400',
   'Hospital':   'bg-red-500/10 text-red-400',
   'Specialist': 'bg-orange-500/10 text-orange-400',
@@ -46,7 +46,7 @@ export default function AppointmentsTab({ residentId, onAddAppointment }: Props)
 
   if (loading) return (
     <div className='flex items-center justify-center min-h-[200px]'>
-      <div className='w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin' />
+      <div className='w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin' />
     </div>
   )
   if (error) return <p className='p-4 text-sm text-zinc-500 dark:text-zinc-400'>{error}</p>
@@ -63,7 +63,7 @@ export default function AppointmentsTab({ residentId, onAddAppointment }: Props)
         </p>
         <button
           onClick={onAddAppointment}
-          className='text-xs font-semibold text-indigo-600 dark:text-indigo-400 min-h-[44px] flex items-center px-2 -mr-2'
+          className='text-xs font-semibold text-primary dark:text-primary min-h-[44px] flex items-center px-2 -mr-2'
         >
           + Add
         </button>

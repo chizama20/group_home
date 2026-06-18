@@ -162,7 +162,7 @@ const OUTCOMES: { value: MedicationOutcome; label: string; active: string }[] = 
   { value: 'given',   label: 'Given',   active: 'bg-emerald-600 text-white border-emerald-600' },
   { value: 'refused', label: 'Refused', active: 'bg-red-500 text-white border-red-500' },
   { value: 'missed',  label: 'Missed',  active: 'bg-zinc-500 text-white border-zinc-500' },
-  { value: 'held',    label: 'Held',    active: 'bg-indigo-500 text-white border-indigo-500' },
+  { value: 'held',    label: 'Held',    active: 'bg-primary text-white border-primary' },
 ]
 
 function AdministerSheet({ round, onClose, onDone }: {
@@ -199,7 +199,7 @@ function AdministerSheet({ round, onClose, onDone }: {
   return (
     <>
       <div className='fixed inset-0 bg-black/50 z-40' onClick={onClose} />
-      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-xl md:rounded-2xl md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-2xl z-50 max-h-[85vh] overflow-y-auto pb-8'>
+      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-xl md:rounded-lg md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-2xl z-50 max-h-[85vh] overflow-y-auto pb-8'>
         <div className='flex items-center justify-between px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800'>
           <div>
             <h2 className='text-base font-bold text-zinc-900 dark:text-white'>
@@ -253,7 +253,7 @@ function AdministerSheet({ round, onClose, onDone }: {
           <button
             disabled={submitting}
             onClick={() => { void handleSubmit() }}
-            className='w-full bg-indigo-600 text-white py-3 rounded-xl text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
+            className='w-full bg-primary text-white py-3 rounded-xl text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
           >
             {submitting ? 'Recording…' : 'Record all'}
           </button>
@@ -351,7 +351,7 @@ function MedRoundCard({ round, onAdminister }: { round: MedRound; onAdminister: 
       )}
 
       <button type='button' onClick={onAdminister}
-        className='bg-indigo-600 text-white text-xs font-semibold px-3 py-2 rounded-lg min-h-[36px] mt-2 w-full hover:bg-indigo-700 transition-colors'>
+        className='bg-primary text-white text-xs font-semibold px-3 py-2 rounded-lg min-h-[36px] mt-2 w-full hover:bg-primary transition-colors'>
         Administer
       </button>
     </div>
@@ -506,14 +506,14 @@ export default function CalendarPage() {
           <div className='flex items-center gap-2'>
             <button
               onClick={goToday}
-              className='text-xs font-semibold px-3 py-1.5 rounded-full min-h-[32px] bg-indigo-600 text-white hover:bg-indigo-700 transition-colors'
+              className='text-xs font-semibold px-3 py-1.5 rounded-full min-h-[32px] bg-primary text-white hover:bg-primary transition-colors'
             >
               Today
             </button>
             {isManagerOrAbove && homeId && (
               <button
                 onClick={() => setShowAddAppt(true)}
-                className='w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center hover:bg-indigo-700 transition-colors'
+                className='w-8 h-8 rounded-full bg-primary flex items-center justify-center hover:bg-primary transition-colors'
                 aria-label='Add appointment'
               >
                 <Plus className='w-4 h-4 text-white' />
@@ -523,7 +523,7 @@ export default function CalendarPage() {
         </div>
 
         {/* ── Month Grid ───────────────────────────────────────────────── */}
-        <div className='mx-4 mb-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden'>
+        <div className='mx-4 mb-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden'>
           {/* Month nav row */}
           <div className='flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800'>
             <button onClick={prevMonth}
@@ -559,14 +559,14 @@ export default function CalendarPage() {
                   className={cn(
                     'flex flex-col items-center justify-center min-h-[112px] rounded-xl text-sm transition-colors',
                     isSelected
-                      ? 'bg-indigo-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'
                   )}
                 >
                   <span className={cn(
                     'w-7 h-7 flex items-center justify-center rounded-full text-sm font-medium',
                     isSelected   ? 'text-white' :
-                    isTodayCell  ? 'text-indigo-600 dark:text-indigo-400 font-bold ring-2 ring-indigo-500 ring-offset-1 dark:ring-offset-zinc-900' :
+                    isTodayCell  ? 'text-primary dark:text-primary font-bold ring-2 ring-primary ring-offset-1 dark:ring-offset-zinc-900' :
                                    'text-zinc-700 dark:text-zinc-300'
                   )}>
                     {new Date(cell + 'T00:00:00').getDate()}
@@ -603,7 +603,7 @@ export default function CalendarPage() {
                   className={cn(
                     'text-xs font-semibold px-2.5 py-1 rounded-full border transition-colors',
                     activeFilter === f
-                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      ? 'bg-primary text-white border-primary'
                       : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-500'
                   )}
                 >
@@ -631,10 +631,10 @@ export default function CalendarPage() {
                 if (isToday && idx === nowInsertIdx) {
                   rows.push(
                     <div key='now-line' className='flex items-center gap-2 py-1 -mx-4 px-4'>
-                      <div className='w-2.5 h-2.5 rounded-full bg-indigo-500 ring-2 ring-indigo-500/25 shrink-0' />
-                      <span className='text-indigo-500 text-xs font-semibold'>Now</span>
-                      <div className='flex-1 h-px bg-indigo-400/40' />
-                      <span className='text-indigo-500 text-xs font-semibold'>{nowLabel}</span>
+                      <div className='w-2.5 h-2.5 rounded-full bg-primary ring-2 ring-primary/25 shrink-0' />
+                      <span className='text-primary text-xs font-semibold'>Now</span>
+                      <div className='flex-1 h-px bg-primary/40' />
+                      <span className='text-primary text-xs font-semibold'>{nowLabel}</span>
                     </div>
                   )
                 }
@@ -673,10 +673,10 @@ export default function CalendarPage() {
               if (isToday && nowInsertIdx === allEvents.length) {
                 rows.push(
                   <div key='now-line-end' className='flex items-center gap-2 py-1 -mx-4 px-4'>
-                    <div className='w-2.5 h-2.5 rounded-full bg-indigo-500 ring-2 ring-indigo-500/25 shrink-0' />
-                    <span className='text-indigo-500 text-xs font-semibold'>Now</span>
-                    <div className='flex-1 h-px bg-indigo-400/40' />
-                    <span className='text-indigo-500 text-xs font-semibold'>{nowLabel}</span>
+                    <div className='w-2.5 h-2.5 rounded-full bg-primary ring-2 ring-primary/25 shrink-0' />
+                    <span className='text-primary text-xs font-semibold'>Now</span>
+                    <div className='flex-1 h-px bg-primary/40' />
+                    <span className='text-primary text-xs font-semibold'>{nowLabel}</span>
                   </div>
                 )
               }

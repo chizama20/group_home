@@ -12,21 +12,21 @@ export default function HomeSwitcherStrip() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className='w-full flex items-center justify-between bg-indigo-50 dark:bg-indigo-500/10 border-b border-indigo-100 dark:border-indigo-500/20 px-4 py-2.5 text-left'
+        className='w-full flex items-center justify-between bg-primary dark:bg-primary/10 border-b border-primary dark:border-primary/20 px-4 py-2.5 text-left'
       >
         <div className='flex items-center gap-2 min-w-0'>
-          <MapPin className='h-3.5 w-3.5 text-indigo-400 shrink-0' />
-          <span className='text-sm font-medium text-indigo-800 dark:text-indigo-300 truncate'>
+          <MapPin className='h-3.5 w-3.5 text-primary shrink-0' />
+          <span className='text-sm font-medium text-primary dark:text-primary truncate'>
             {selectedHome?.name ?? 'Select a home'}
           </span>
         </div>
-        <ChevronsUpDown className='h-3.5 w-3.5 text-indigo-400 dark:text-indigo-500 shrink-0 ml-2' />
+        <ChevronsUpDown className='h-3.5 w-3.5 text-primary dark:text-primary shrink-0 ml-2' />
       </button>
 
       {open && (
         <>
           <div className='fixed inset-0 bg-black/40 z-40' onClick={() => setOpen(false)} />
-          <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-sm md:rounded-2xl md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-t-2xl z-50'>
+          <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-sm md:rounded-lg md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-t-2xl z-50'>
             <div className='w-12 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 md:hidden' />
             <div className='px-4 pt-3 pb-6'>
               <h2 className='text-base font-semibold text-zinc-900 dark:text-white mb-3'>Switch home</h2>

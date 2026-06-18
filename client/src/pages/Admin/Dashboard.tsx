@@ -24,7 +24,7 @@ export default function AdminDashboard() {
           <p className='text-3xl font-bold text-amber-600 dark:text-amber-400'>
             {loading ? '—' : pending.length}
           </p>
-          <Link to='/admin/requests' className='text-xs text-indigo-600 dark:text-indigo-400 hover:underline mt-2 block'>
+          <Link to='/admin/requests' className='text-xs text-primary dark:text-primary hover:underline mt-2 block'>
             Review →
           </Link>
         </div>
@@ -44,7 +44,7 @@ export default function AdminDashboard() {
                     {req.contact_email} · {req.facility_type.replace('_', ' ')}
                   </p>
                 </div>
-                <Link to={`/admin/requests/${req.id}`} className='text-xs text-indigo-600 dark:text-indigo-400 hover:underline'>
+                <Link to={`/admin/requests/${req.id}`} className='text-xs text-primary dark:text-primary hover:underline'>
                   Review
                 </Link>
               </div>

@@ -43,7 +43,7 @@ export default function HomeSelectionPage() {
   if (isLoading) {
     return (
       <div className='min-h-screen bg-zinc-50 dark:bg-black flex items-center justify-center'>
-        <div className='w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin' />
+        <div className='w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin' />
       </div>
     )
   }
@@ -53,14 +53,14 @@ export default function HomeSelectionPage() {
       {/* Header */}
       <div className='bg-white dark:bg-zinc-950 px-4 pt-12 pb-5 border-b border-zinc-100 dark:border-zinc-800'>
         <div className='flex items-center gap-3 mb-1'>
-          <div className='w-10 h-10 rounded-full bg-indigo-600 text-white font-bold text-sm flex items-center justify-center shrink-0'>
+          <div className='w-10 h-10 rounded-full bg-primary text-white font-bold text-sm flex items-center justify-center shrink-0'>
             {user ? initials(user.first_name, user.last_name) : '?'}
           </div>
           <div>
             <p className='text-xs text-zinc-500 dark:text-zinc-400'>
               {user?.first_name} {user?.last_name}
             </p>
-            <p className='text-xs text-indigo-600 dark:text-indigo-400 font-medium capitalize'>{user?.role.replace('_', ' ')}</p>
+            <p className='text-xs text-primary dark:text-primary font-medium capitalize'>{user?.role.replace('_', ' ')}</p>
           </div>
         </div>
         <h1 className='text-2xl font-bold text-zinc-900 dark:text-white mt-4'>Select a home</h1>
@@ -75,7 +75,7 @@ export default function HomeSelectionPage() {
             <button
               key={home.id}
               onClick={() => handleSelect(home)}
-              className='w-full bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-zinc-200 dark:border-zinc-800 text-left hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md transition-all min-h-[80px]'
+              className='w-full bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800 text-left hover:border-primary dark:hover:border-primary hover:shadow-md transition-all min-h-[80px]'
             >
               <div className='flex items-start justify-between gap-3'>
                 <div className='min-w-0'>

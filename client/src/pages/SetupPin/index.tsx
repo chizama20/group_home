@@ -46,7 +46,7 @@ export default function SetupPinPage() {
 
   return (
     <div className='min-h-screen bg-zinc-50 dark:bg-black flex items-center justify-center p-4'>
-      <div className='w-full max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6'>
+      <div className='w-full max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6'>
         <h1 className='text-xl font-bold text-zinc-900 dark:text-white mb-1'>Set your signing PIN</h1>
         <p className='text-sm text-zinc-500 dark:text-zinc-400 mb-6'>
           Your 4-digit PIN is your digital signature when recording medications and signing off incidents.
@@ -63,7 +63,7 @@ export default function SetupPinPage() {
                 autoFocus
                 value={currentPassword}
                 onChange={e => setCurrentPassword(e.target.value)}
-                className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+                className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
               />
               <button
                 type='button'
@@ -87,7 +87,7 @@ export default function SetupPinPage() {
                 required
                 value={pin}
                 onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500 tracking-[0.5em] text-center text-lg'
+                className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary tracking-[0.5em] text-center text-lg'
                 placeholder='••••'
               />
               <button
@@ -112,7 +112,7 @@ export default function SetupPinPage() {
                 required
                 value={confirmPin}
                 onChange={e => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500 tracking-[0.5em] text-center text-lg'
+                className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary tracking-[0.5em] text-center text-lg'
                 placeholder='••••'
               />
               <button
@@ -131,7 +131,7 @@ export default function SetupPinPage() {
           )}
 
           <button type='submit' disabled={loading}
-            className='w-full bg-indigo-600 text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] disabled:opacity-50'>
+            className='w-full bg-primary text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] disabled:opacity-50'>
             {loading ? 'Saving…' : 'Set PIN'}
           </button>
         </form>

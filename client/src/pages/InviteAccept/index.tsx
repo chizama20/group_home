@@ -76,7 +76,7 @@ export default function InviteAcceptPage() {
   if (loadingInvite) {
     return (
       <div className='min-h-screen bg-zinc-50 dark:bg-black flex items-center justify-center'>
-        <div className='w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin' />
+        <div className='w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin' />
       </div>
     )
   }
@@ -116,7 +116,7 @@ export default function InviteAcceptPage() {
               autoFocus
               value={firstName}
               onChange={e => setFirstName(e.target.value)}
-              className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+              className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
             />
           </div>
 
@@ -127,7 +127,7 @@ export default function InviteAcceptPage() {
               required
               value={lastName}
               onChange={e => setLastName(e.target.value)}
-              className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+              className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
             />
           </div>
 
@@ -141,7 +141,7 @@ export default function InviteAcceptPage() {
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+                className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
               />
               <button
                 type='button'
@@ -161,7 +161,7 @@ export default function InviteAcceptPage() {
           <button
             type='submit'
             disabled={loading}
-            className='w-full bg-indigo-600 text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
+            className='w-full bg-primary text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
           >
             {loading ? 'Creating account…' : 'Create account'}
           </button>

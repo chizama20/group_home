@@ -23,7 +23,7 @@ export default function IncidentsTab({ residentId }: Props) {
 
   if (loading) return (
     <div className='flex items-center justify-center min-h-[200px]'>
-      <div className='w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin' />
+      <div className='w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin' />
     </div>
   )
   if (error)   return <p className='p-4 text-sm text-zinc-500 dark:text-zinc-400'>{error}</p>

@@ -163,7 +163,7 @@ function NeedsAttentionSection({
 
   return (
     <div className='mt-5'>
-      <p className='text-[17px] font-semibold text-zinc-900 dark:text-white px-4 mb-3'>
+      <p className='text-base font-semibold text-zinc-900 dark:text-white px-4 mb-3'>
         Needs Attention
       </p>
 
@@ -223,7 +223,7 @@ function UpcomingAppointmentsSection({
   return (
     <div className='mt-5'>
       <div className='flex items-center justify-between px-4 mb-3'>
-        <p className='text-[17px] font-semibold text-zinc-900 dark:text-white'>
+        <p className='text-base font-semibold text-zinc-900 dark:text-white'>
           Upcoming Appointments
         </p>
         <button
@@ -527,7 +527,7 @@ export default function DashboardPage() {
 
       {/* Section 4 — Announcements "From Management" */}
       <div className='mt-5'>
-        <p className='text-[17px] font-semibold text-zinc-900 dark:text-white px-4 mb-3'>
+        <p className='text-base font-semibold text-zinc-900 dark:text-white px-4 mb-3'>
           From Management
         </p>
         <AnnouncementCard announcements={announcements} isManager={isManagerOrAbove} onRefresh={refresh} />

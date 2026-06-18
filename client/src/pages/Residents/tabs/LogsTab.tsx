@@ -37,7 +37,7 @@ export default function LogsTab({ residentId }: { residentId: string }) {
       {[0, 1, 2, 3].map(i => (
         <div
           key={i}
-          className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl h-14 animate-pulse'
+          className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg h-14 animate-pulse'
         />
       ))}
     </div>
@@ -45,7 +45,7 @@ export default function LogsTab({ residentId }: { residentId: string }) {
 
   if (!logs.length) return (
     <div className='p-4'>
-      <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 text-center'>
+      <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 text-center'>
         <p className='text-sm text-zinc-500 dark:text-zinc-400'>No IPOS logs yet.</p>
       </div>
     </div>
@@ -56,7 +56,7 @@ export default function LogsTab({ residentId }: { residentId: string }) {
       {logs.map(log => (
         <div
           key={log.id}
-          className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden mb-2'
+          className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden mb-2'
         >
           <div className='flex items-center gap-3 px-4 min-h-[56px]'>
             {/* Date + label */}

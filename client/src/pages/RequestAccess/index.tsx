@@ -58,7 +58,7 @@ export default function RequestAccessPage() {
     }
   }
 
-  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
   const labelClass = 'block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1'
 
   if (submitted) {
@@ -74,7 +74,7 @@ export default function RequestAccessPage() {
           <p className='text-sm text-zinc-500 dark:text-zinc-400 mb-6'>
             We'll review your request and be in touch at <strong>{form.contact_email}</strong>.
           </p>
-          <Link to='/login' className='text-sm text-indigo-600 dark:text-indigo-400 hover:underline'>
+          <Link to='/login' className='text-sm text-primary dark:text-primary hover:underline'>
             Back to sign in
           </Link>
         </div>
@@ -153,13 +153,13 @@ export default function RequestAccessPage() {
               <label className={labelClass}>How do you currently manage operations?</label>
               <textarea rows={2} value={form.current_operations} onChange={e => set('current_operations', e.target.value)}
                 placeholder='Paper, spreadsheets, other software...'
-                className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none' />
+                className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary resize-none' />
             </div>
 
             <div>
               <label className={labelClass}>Anything else we should know?</label>
               <textarea rows={2} value={form.additional_notes} onChange={e => set('additional_notes', e.target.value)}
-                className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none' />
+                className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary resize-none' />
             </div>
 
             {error && (
@@ -167,7 +167,7 @@ export default function RequestAccessPage() {
             )}
 
             <button type='submit' disabled={loading}
-              className='w-full bg-indigo-600 text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'>
+              className='w-full bg-primary text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'>
               {loading ? 'Submitting…' : 'Submit request'}
             </button>
           </form>

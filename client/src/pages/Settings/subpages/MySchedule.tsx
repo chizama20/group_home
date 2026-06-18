@@ -172,7 +172,7 @@ function RequestModal({ slot, onClose, onSubmit }: RequestModalProps) {
       <div className='fixed inset-0 bg-black/50 z-40' onClick={onClose} />
 
       {/* Sheet */}
-      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-md md:rounded-2xl md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-2xl z-50 pb-safe max-h-[85vh] overflow-y-auto'>
+      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-md md:rounded-lg md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-2xl z-50 pb-safe max-h-[85vh] overflow-y-auto'>
         {/* Drag handle */}
         <div className='w-12 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 md:hidden' />
 

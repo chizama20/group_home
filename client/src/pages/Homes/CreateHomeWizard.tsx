@@ -133,14 +133,14 @@ export default function CreateHomeWizard() {
                 <div className={cn(
                   'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold mb-1',
                   i + 1 < step ? 'bg-emerald-500 text-white' :
-                  i + 1 === step ? 'bg-indigo-600 text-white' :
+                  i + 1 === step ? 'bg-primary text-white' :
                   'bg-zinc-200 dark:bg-zinc-800 text-zinc-500'
                 )}>
                   {i + 1 < step ? <Check className='w-4 h-4' /> : i + 1}
                 </div>
                 <span className={cn(
                   'text-[10px] text-center hidden sm:block',
-                  i + 1 === step ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-zinc-400'
+                  i + 1 === step ? 'text-primary dark:text-primary font-medium' : 'text-zinc-400'
                 )}>
                   {label}
                 </span>
@@ -149,7 +149,7 @@ export default function CreateHomeWizard() {
           </div>
           <div className='h-1 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden'>
             <div
-              className='h-full bg-indigo-600 transition-all duration-300'
+              className='h-full bg-primary transition-all duration-300'
               style={{ width: `${((step - 1) / 4) * 100}%` }}
             />
           </div>
@@ -159,9 +159,9 @@ export default function CreateHomeWizard() {
         <div className='px-4 mt-6'>
           {step === 1 && (
             <div className='space-y-4'>
-              <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4'>
+              <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4'>
                 <div className='flex items-center gap-3 mb-4'>
-                  <div className='w-10 h-10 rounded-xl bg-indigo-500/15 text-indigo-500 flex items-center justify-center'>
+                  <div className='w-10 h-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center'>
                     <Building2 className='w-5 h-5' />
                   </div>
                   <div>
@@ -197,7 +197,7 @@ export default function CreateHomeWizard() {
 
           {step === 2 && (
             <div className='space-y-4'>
-              <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4'>
+              <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4'>
                 <div className='flex items-center gap-3 mb-4'>
                   <div className='w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center'>
                     <MapPin className='w-5 h-5' />
@@ -267,7 +267,7 @@ export default function CreateHomeWizard() {
 
           {step === 3 && (
             <div className='space-y-4'>
-              <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4'>
+              <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4'>
                 <div className='flex items-center gap-3 mb-4'>
                   <div className='w-10 h-10 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center'>
                     <Clock className='w-5 h-5' />
@@ -302,7 +302,7 @@ export default function CreateHomeWizard() {
 
           {step === 4 && (
             <div className='space-y-4'>
-              <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4'>
+              <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4'>
                 <div className='flex items-center gap-3 mb-4'>
                   <div className='w-10 h-10 rounded-xl bg-violet-500/15 text-violet-500 flex items-center justify-center'>
                     <Users className='w-5 h-5' />
@@ -315,7 +315,7 @@ export default function CreateHomeWizard() {
 
                 {loadingStaff ? (
                   <div className='flex justify-center py-8'>
-                    <div className='w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin' />
+                    <div className='w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin' />
                   </div>
                 ) : staffList.length === 0 ? (
                   <p className='text-sm text-zinc-500 dark:text-zinc-400 text-center py-4'>
@@ -329,7 +329,7 @@ export default function CreateHomeWizard() {
                         className={cn(
                           'flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors',
                           selectedStaff.includes(staff.id)
-                            ? 'bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30'
+                            ? 'bg-primary dark:bg-primary/10 border border-primary dark:border-primary/30'
                             : 'bg-zinc-50 dark:bg-zinc-800 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700'
                         )}
                       >
@@ -342,7 +342,7 @@ export default function CreateHomeWizard() {
                         <div className={cn(
                           'w-5 h-5 rounded-md border-2 flex items-center justify-center',
                           selectedStaff.includes(staff.id)
-                            ? 'bg-indigo-600 border-indigo-600'
+                            ? 'bg-primary border-primary'
                             : 'border-zinc-300 dark:border-zinc-600'
                         )}>
                           {selectedStaff.includes(staff.id) && <Check className='w-3 h-3 text-white' />}
@@ -369,7 +369,7 @@ export default function CreateHomeWizard() {
 
           {step === 5 && (
             <div className='space-y-4'>
-              <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4'>
+              <div className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4'>
                 <p className='text-sm font-semibold text-zinc-900 dark:text-white mb-4'>Review & Create</p>
 
                 <div className='space-y-3'>
@@ -421,7 +421,7 @@ export default function CreateHomeWizard() {
             <button
               onClick={handleNext}
               disabled={!canProceed()}
-              className='flex-1 bg-indigo-600 text-white py-3 rounded-xl text-sm font-semibold min-h-[48px] disabled:opacity-50 flex items-center justify-center gap-2'
+              className='flex-1 bg-primary text-white py-3 rounded-xl text-sm font-semibold min-h-[48px] disabled:opacity-50 flex items-center justify-center gap-2'
             >
               Next
               <ChevronRight className='w-4 h-4' />
@@ -430,7 +430,7 @@ export default function CreateHomeWizard() {
             <button
               onClick={() => { void handleSubmit() }}
               disabled={submitting || !canProceed()}
-              className='flex-1 bg-indigo-600 text-white py-3 rounded-xl text-sm font-semibold min-h-[48px] disabled:opacity-50'
+              className='flex-1 bg-primary text-white py-3 rounded-xl text-sm font-semibold min-h-[48px] disabled:opacity-50'
             >
               {submitting ? 'Creating...' : 'Create Home'}
             </button>

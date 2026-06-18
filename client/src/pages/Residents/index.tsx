@@ -25,7 +25,7 @@ function getInitials(r: Resident) {
 
 function SkeletonRow() {
   return (
-    <div className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center gap-3'>
+    <div className='mx-4 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 flex items-center gap-3'>
       <div className='w-11 h-11 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse shrink-0' />
       <div className='flex-1 space-y-2'>
         <div className='h-4 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse' />
@@ -71,7 +71,7 @@ function ResidentRow({
 
       {/* Info */}
       <div className='flex-1 min-w-0'>
-        <p className='text-[15px] font-semibold text-zinc-900 dark:text-white'>
+        <p className='text-sm font-semibold text-zinc-900 dark:text-white'>
           {r.first_name} {r.last_name}
         </p>
         {r.room && (
@@ -139,7 +139,7 @@ function Section({
       </div>
 
       {/* Section card */}
-      <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden mb-3'>
+      <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden mb-3'>
         {residents.map((r, idx) => (
           <ResidentRow
             key={r.id}
@@ -206,7 +206,7 @@ export default function ResidentsPage() {
   function chipClass(chip: { label: FilterChip; count: number }) {
     const isActive = activeFilter === chip.label
     if (isActive) {
-      return 'px-3 py-1.5 rounded-full text-xs font-semibold border shrink-0 min-h-[32px] whitespace-nowrap bg-indigo-600 text-white border-indigo-600'
+      return 'px-3 py-1.5 rounded-full text-xs font-semibold border shrink-0 min-h-[32px] whitespace-nowrap bg-primary text-white border-primary'
     }
     if (chip.label === 'Urgent' && chip.count > 0) {
       return 'px-3 py-1.5 rounded-full text-xs font-semibold border shrink-0 min-h-[32px] whitespace-nowrap bg-red-500/10 text-red-500 border-red-200 dark:border-red-900/40'
@@ -232,7 +232,7 @@ export default function ResidentsPage() {
         {isManagerOrAbove && homeId && (
           <button
             onClick={() => setShowAdd(true)}
-            className='w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center'
+            className='w-8 h-8 rounded-full bg-primary flex items-center justify-center'
             aria-label='Add resident'
           >
             <Plus className='h-4 w-4 text-white' />
@@ -249,7 +249,7 @@ export default function ResidentsPage() {
             placeholder='Search by name or room…'
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[44px]'
+            className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary min-h-[44px]'
           />
         </div>
       </div>
@@ -278,14 +278,14 @@ export default function ResidentsPage() {
 
       {/* Error */}
       {!loading && error && (
-        <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4'>
+        <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4'>
           <p className='text-sm text-red-500'>{error}</p>
         </div>
       )}
 
       {/* No home selected */}
       {!loading && !homeId && !error && (
-        <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 text-center'>
+        <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 text-center'>
           <p className='text-sm text-zinc-500 dark:text-zinc-400'>No home selected.</p>
         </div>
       )}
@@ -300,7 +300,7 @@ export default function ResidentsPage() {
               <Section group='allGood'   residents={allGood}   filedIds={filedIds} />
             </>
           ) : (
-            <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 text-center'>
+            <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 text-center'>
               <p className='text-sm text-zinc-500 dark:text-zinc-400'>
                 {active.length === 0 ? 'No residents added yet.' : 'No residents found.'}
               </p>

@@ -45,7 +45,7 @@ export default function PinModal({ open, onSuccess, onCancel }: Props) {
     <div className='fixed inset-0 z-50 flex items-end sm:items-center justify-center'>
       <div className='absolute inset-0 bg-black/50' onClick={handleCancel} />
 
-      <div className='relative w-full sm:max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-t-2xl sm:rounded-2xl shadow-xl p-6 z-10'>
+      <div className='relative w-full sm:max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-t-2xl sm:rounded-lg shadow-xl p-6 z-10'>
         <h2 className='text-lg font-semibold text-zinc-900 dark:text-white mb-1 text-center'>
           Enter your signing PIN
         </h2>
@@ -62,7 +62,7 @@ export default function PinModal({ open, onSuccess, onCancel }: Props) {
           value={pin}
           onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
           onKeyDown={e => { if (e.key === 'Enter') void handleSubmit() }}
-          className='w-full bg-white dark:bg-zinc-800 border-2 border-zinc-300 dark:border-zinc-700 rounded-xl px-4 py-4 text-center text-3xl tracking-[0.75em] text-zinc-900 dark:text-white focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 mb-4'
+          className='w-full bg-white dark:bg-zinc-800 border-2 border-zinc-300 dark:border-zinc-700 rounded-xl px-4 py-4 text-center text-3xl tracking-[0.75em] text-zinc-900 dark:text-white focus:outline-none focus:border-primary dark:focus:border-primary mb-4'
           placeholder='••••'
         />
 
@@ -80,7 +80,7 @@ export default function PinModal({ open, onSuccess, onCancel }: Props) {
           <button
             disabled={loading || pin.length !== 4}
             onClick={() => { void handleSubmit() }}
-            className='flex-1 bg-indigo-600 text-white rounded-xl py-3 text-sm font-semibold min-h-[48px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
+            className='flex-1 bg-primary text-white rounded-xl py-3 text-sm font-semibold min-h-[48px] hover:bg-primary disabled:opacity-50 transition-colors'
           >
             {loading ? 'Verifying…' : 'Confirm'}
           </button>

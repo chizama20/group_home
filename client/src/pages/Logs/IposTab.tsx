@@ -101,7 +101,7 @@ function OtherEntries({ entries }: OtherEntriesProps) {
                   {e.staff_first ?? '?'} {e.staff_last ?? ''}
                 </span>
                 {/* Shift badge */}
-                <span className='bg-indigo-900/50 text-indigo-300 text-[11px] font-semibold px-2 py-0.5 rounded-full uppercase'>
+                <span className='bg-primary/50 text-primary text-[11px] font-semibold px-2 py-0.5 rounded-full uppercase'>
                   {e.shift}
                 </span>
                 {/* Goal code */}
@@ -148,7 +148,7 @@ function GoalRow({ draft, onChange, goalType }: GoalRowProps) {
         <span className={cn(
           'text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide',
           goalType === 'cls'
-            ? 'bg-indigo-900/60 text-indigo-300'
+            ? 'bg-primary/60 text-primary'
             : 'bg-zinc-700 text-zinc-300'
         )}>
           {goalType.toUpperCase()} · {draft.code}
@@ -165,7 +165,7 @@ function GoalRow({ draft, onChange, goalType }: GoalRowProps) {
             value={draft.task_id_code}
             onChange={e => set('task_id_code', e.target.value)}
             placeholder='Task code'
-            className='w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-h-[36px]'
+            className='w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-primary min-h-[36px]'
           />
         </div>
         <div className='w-20'>
@@ -176,7 +176,7 @@ function GoalRow({ draft, onChange, goalType }: GoalRowProps) {
             onChange={e => set('cls_minutes', e.target.value)}
             placeholder='0'
             min='0'
-            className='w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-h-[36px]'
+            className='w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-primary min-h-[36px]'
           />
         </div>
         <div className='w-20'>
@@ -187,7 +187,7 @@ function GoalRow({ draft, onChange, goalType }: GoalRowProps) {
             onChange={e => set('pc_minutes', e.target.value)}
             placeholder='0'
             min='0'
-            className='w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-h-[36px]'
+            className='w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-primary min-h-[36px]'
           />
         </div>
       </div>
@@ -198,7 +198,7 @@ function GoalRow({ draft, onChange, goalType }: GoalRowProps) {
         <select
           value={draft.progress_code}
           onChange={e => set('progress_code', e.target.value)}
-          className='w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 min-h-[36px]'
+          className='w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary min-h-[36px]'
         >
           <option value=''>— Select —</option>
           {PROGRESS_CODES.map(pc => (
@@ -215,7 +215,7 @@ function GoalRow({ draft, onChange, goalType }: GoalRowProps) {
           onChange={e => set('narrative', e.target.value)}
           placeholder='Notes…'
           rows={2}
-          className='w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none'
+          className='w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-primary resize-none'
         />
       </div>
     </div>
@@ -395,7 +395,7 @@ function IposEmployeeView({ homeId, residents, showFab, onFabHandled }: Employee
                     'w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0',
                     filed
                       ? 'bg-emerald-500/15 text-emerald-400'
-                      : 'bg-indigo-500/15 text-indigo-400'
+                      : 'bg-primary/15 text-primary'
                   )}>
                     {r.first_name[0]}{r.last_name[0]}
                   </div>
@@ -448,7 +448,7 @@ function IposEmployeeView({ homeId, residents, showFab, onFabHandled }: Employee
           <ArrowLeft size={18} />
         </button>
         <div className='flex-1 min-w-0'>
-          <p className='text-[15px] font-semibold text-white truncate'>
+          <p className='text-sm font-semibold text-white truncate'>
             {selectedResident.first_name} {selectedResident.last_name}
           </p>
           <p className='text-xs text-zinc-500'>IPOS Entry · Today</p>
@@ -466,7 +466,7 @@ function IposEmployeeView({ homeId, residents, showFab, onFabHandled }: Employee
               className={cn(
                 'flex-1 py-2 rounded-xl text-xs font-bold border min-h-[44px] uppercase tracking-widest transition-colors',
                 shift === s
-                  ? 'bg-indigo-600 text-white border-indigo-500'
+                  ? 'bg-primary text-white border-primary'
                   : 'bg-zinc-800 text-zinc-400 border-zinc-700'
               )}
             >
@@ -497,7 +497,7 @@ function IposEmployeeView({ homeId, residents, showFab, onFabHandled }: Employee
       {/* CLS goals */}
       {!goalsLoading && clsGoals.length > 0 && (
         <div className='px-4 pt-3'>
-          <p className='text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2'>CLS Goals</p>
+          <p className='text-xs font-bold text-primary uppercase tracking-widest mb-2'>CLS Goals</p>
           {entries
             .filter(e => clsGoals.some(g => g.id === e.goal_id))
             .map((draft) => {
@@ -549,7 +549,7 @@ function IposEmployeeView({ homeId, residents, showFab, onFabHandled }: Employee
           <button
             onClick={() => { void handleSubmit() }}
             disabled={!hasAnyContent || submitting}
-            className='w-full bg-indigo-600 text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-40 transition-opacity'
+            className='w-full bg-primary text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-40 transition-opacity'
           >
             {submitting ? 'Submitting…' : 'Submit Entry'}
           </button>

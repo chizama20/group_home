@@ -92,7 +92,7 @@ export default function IposCompliancePanel({ homeId }: Props) {
             {/* Progress bar */}
             <div className='h-1.5 bg-zinc-100 dark:bg-zinc-800'>
               <div
-                className={`h-full rounded-full transition-all ${allDone ? 'bg-emerald-500' : 'bg-indigo-500'}`}
+                className={`h-full rounded-full transition-all ${allDone ? 'bg-emerald-500' : 'bg-primary'}`}
                 style={{ width: `${pct}%` }}
               />
             </div>

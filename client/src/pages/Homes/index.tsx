@@ -40,7 +40,7 @@ function HomeCard({ home }: { home: HomeWithCounts }) {
           <Home className='h-5 w-5' />
         </div>
         <div className='flex-1 min-w-0'>
-          <h3 className='text-[15px] font-semibold text-zinc-900 dark:text-white truncate'>
+          <h3 className='text-sm font-semibold text-zinc-900 dark:text-white truncate'>
             {home.name}
           </h3>
           {home.address && (

@@ -140,7 +140,7 @@ function emptyMed(): MedDraft {
 
 // ─── Style constants ──────────────────────────────────────────────────────────
 
-const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
 const labelClass = 'block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1'
 const sectionLabel = 'text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500 mb-3'
 
@@ -154,7 +154,7 @@ function Toggle({ value, onChange, label }: { value: boolean; onChange: (v: bool
       className='flex items-center justify-between w-full min-h-[44px] py-2'
     >
       <span className='text-sm text-zinc-700 dark:text-zinc-300'>{label}</span>
-      <div className={`relative w-11 h-6 rounded-full transition-colors ${value ? 'bg-indigo-600' : 'bg-zinc-200 dark:bg-zinc-700'}`}>
+      <div className={`relative w-11 h-6 rounded-full transition-colors ${value ? 'bg-primary' : 'bg-zinc-200 dark:bg-zinc-700'}`}>
         <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${value ? 'translate-x-5' : 'translate-x-0'}`} />
       </div>
     </button>
@@ -217,7 +217,7 @@ function Step1({ data, update }: { data: WizardData; update: (patch: Partial<Wiz
         <textarea
           placeholder='Diagnosis' rows={2} value={data.diagnosis}
           onChange={e => update({ diagnosis: e.target.value })}
-          className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500'
+          className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary'
         />
 
         <div className='bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3'>
@@ -231,7 +231,7 @@ function Step1({ data, update }: { data: WizardData; update: (patch: Partial<Wiz
               <textarea
                 placeholder='LOA / Waiver notes' rows={2} value={data.loa_info}
                 onChange={e => update({ loa_info: e.target.value })}
-                className='w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500'
+                className='w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary'
               />
             </div>
           )}
@@ -345,7 +345,7 @@ function Step2({ data, update }: { data: WizardData; update: (patch: Partial<Wiz
               type='button'
               onClick={addContact}
               disabled={!draft.name.trim()}
-              className='flex-1 bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
+              className='flex-1 bg-primary text-white rounded-xl py-2.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
             >
               Add
             </button>
@@ -362,7 +362,7 @@ function Step2({ data, update }: { data: WizardData; update: (patch: Partial<Wiz
         <button
           type='button'
           onClick={() => setShowForm(true)}
-          className='flex items-center gap-2 text-indigo-500 text-sm font-semibold min-h-[44px]'
+          className='flex items-center gap-2 text-primary text-sm font-semibold min-h-[44px]'
         >
           <Plus className='h-4 w-4' />
           Add Contact
@@ -400,11 +400,11 @@ function GoalSection({
               onClick={() => toggle(i)}
               className='flex items-center gap-3 w-full px-4 min-h-[44px] py-3'
             >
-              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${g.checked ? 'bg-indigo-600 border-indigo-600' : 'border-zinc-300 dark:border-zinc-600'}`}>
+              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${g.checked ? 'bg-primary border-primary' : 'border-zinc-300 dark:border-zinc-600'}`}>
                 {g.checked && <svg className='w-3 h-3 text-white' fill='none' viewBox='0 0 12 12'><path d='M2 6l3 3 5-5' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' strokeLinejoin='round'/></svg>}
               </div>
               <span className='text-sm text-zinc-900 dark:text-white text-left'>
-                <span className='font-semibold text-indigo-500 mr-1.5'>{g.code}</span>
+                <span className='font-semibold text-primary mr-1.5'>{g.code}</span>
                 {g.label}
               </span>
             </button>
@@ -413,7 +413,7 @@ function GoalSection({
                 <textarea
                   placeholder='Custom description (optional)' rows={2} value={g.description}
                   onChange={e => setDesc(i, e.target.value)}
-                  className='w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500'
+                  className='w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary'
                 />
               </div>
             )}
@@ -473,7 +473,7 @@ function VitalCard({
         className='flex items-center justify-between w-full px-4 min-h-[44px] py-3'
       >
         <span className='text-sm font-semibold text-zinc-900 dark:text-white'>{VITAL_LABELS[vitalKey]}</span>
-        <div className={`relative w-11 h-6 rounded-full transition-colors ${vital.enabled ? 'bg-indigo-600' : 'bg-zinc-200 dark:bg-zinc-700'}`}>
+        <div className={`relative w-11 h-6 rounded-full transition-colors ${vital.enabled ? 'bg-primary' : 'bg-zinc-200 dark:bg-zinc-700'}`}>
           <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${vital.enabled ? 'translate-x-5' : 'translate-x-0'}`} />
         </div>
       </button>
@@ -618,7 +618,7 @@ function Step5({
         <p className='text-sm text-zinc-500 dark:text-zinc-400 flex-1 pr-4'>
           Add initial medications — you can skip and add these later from the resident's profile.
         </p>
-        <button type='button' onClick={onSkip} className='text-indigo-500 text-sm font-semibold shrink-0 min-h-[44px]'>
+        <button type='button' onClick={onSkip} className='text-primary text-sm font-semibold shrink-0 min-h-[44px]'>
           Skip
         </button>
       </div>
@@ -679,7 +679,7 @@ function Step5({
               type='button'
               onClick={addMed}
               disabled={!draft.name.trim() || !draft.dosage.trim() || !draft.frequency.trim()}
-              className='flex-1 bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
+              className='flex-1 bg-primary text-white rounded-xl py-2.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
             >
               Add
             </button>
@@ -696,7 +696,7 @@ function Step5({
         <button
           type='button'
           onClick={() => setShowForm(true)}
-          className='flex items-center gap-2 text-indigo-500 text-sm font-semibold min-h-[44px]'
+          className='flex items-center gap-2 text-primary text-sm font-semibold min-h-[44px]'
         >
           <Plus className='h-4 w-4' />
           Add Medication
@@ -952,7 +952,7 @@ export default function ResidentForm({ homeId, onSuccess, onCancel }: Props) {
         {/* Progress bar */}
         <div className='h-1 bg-zinc-100 dark:bg-zinc-800 rounded-t-3xl overflow-hidden shrink-0'>
           <div
-            className='h-full bg-indigo-600 transition-all duration-300'
+            className='h-full bg-primary transition-all duration-300'
             style={{ width: `${(step / 6) * 100}%` }}
           />
         </div>
@@ -967,7 +967,7 @@ export default function ResidentForm({ homeId, onSuccess, onCancel }: Props) {
             {step === 1 ? <X className='h-4 w-4' /> : <ChevronLeft className='h-4 w-4' />}
           </button>
           <div className='text-center'>
-            <p className='text-[15px] font-semibold text-zinc-900 dark:text-white'>{STEP_LABELS[step - 1]}</p>
+            <p className='text-sm font-semibold text-zinc-900 dark:text-white'>{STEP_LABELS[step - 1]}</p>
             <p className='text-xs text-zinc-400 dark:text-zinc-500'>Step {step} of 6</p>
           </div>
           <div className='w-9' />
@@ -999,7 +999,7 @@ export default function ResidentForm({ homeId, onSuccess, onCancel }: Props) {
               type='button'
               onClick={goNext}
               disabled={nextDisabled}
-              className='w-full bg-indigo-600 text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
+              className='w-full bg-primary text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
             >
               Next
             </button>
@@ -1008,7 +1008,7 @@ export default function ResidentForm({ homeId, onSuccess, onCancel }: Props) {
               type='button'
               onClick={() => { void handleSubmit() }}
               disabled={submitting}
-              className='w-full bg-indigo-600 text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
+              className='w-full bg-primary text-white rounded-xl py-3.5 text-sm font-semibold min-h-[44px] disabled:opacity-50'
             >
               {submitting ? 'Creating…' : 'Create Resident'}
             </button>

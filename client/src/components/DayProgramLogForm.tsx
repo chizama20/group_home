@@ -39,7 +39,7 @@ const TRANSPORT_METHODS = [
 // ── Input / textarea style constants ─────────────────────────────────────────
 
 const INPUT_CLS =
-  'w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-zinc-400'
+  'w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary placeholder-zinc-400'
 
 const LABEL_CLS = 'block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1'
 
@@ -156,7 +156,7 @@ function DepartureForm({ residentId, onSuccess, onCancel }: { residentId: string
         <button
           onClick={() => { void handleSubmit() }}
           disabled={submitting}
-          className='flex-1 bg-indigo-600 text-white text-sm font-semibold py-3 rounded-xl min-h-[44px] disabled:opacity-50 active:bg-indigo-700 transition-colors'
+          className='flex-1 bg-primary text-white text-sm font-semibold py-3 rounded-xl min-h-[44px] disabled:opacity-50 active:bg-primary transition-colors'
         >
           {submitting ? 'Logging…' : 'Log Departure'}
         </button>
@@ -194,7 +194,7 @@ function ReturnForm({ existingLog, onSuccess, onCancel }: { existingLog: DayProg
   return (
     <div className='px-4 space-y-4 mb-6'>
       {/* Read-only departure info */}
-      <div className='bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-4 space-y-2'>
+      <div className='bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 space-y-2'>
         <p className='text-xs font-semibold uppercase tracking-wide text-zinc-400 mb-2'>Departure Info</p>
         <div className='flex items-center justify-between'>
           <p className='text-xs text-zinc-500 dark:text-zinc-400'>Departed</p>
@@ -239,7 +239,7 @@ function ReturnForm({ existingLog, onSuccess, onCancel }: { existingLog: DayProg
           onChange={e => setReturnNotes(e.target.value)}
           placeholder='Any notes about the return…'
           rows={2}
-          className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-zinc-400'
+          className='w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-primary placeholder-zinc-400'
         />
       </div>
 
@@ -259,7 +259,7 @@ function ReturnForm({ existingLog, onSuccess, onCancel }: { existingLog: DayProg
         <button
           onClick={() => { void handleSubmit() }}
           disabled={submitting}
-          className='flex-1 bg-indigo-600 text-white text-sm font-semibold py-3 rounded-xl min-h-[44px] disabled:opacity-50 active:bg-indigo-700 transition-colors'
+          className='flex-1 bg-primary text-white text-sm font-semibold py-3 rounded-xl min-h-[44px] disabled:opacity-50 active:bg-primary transition-colors'
         >
           {submitting ? 'Logging…' : 'Log Return'}
         </button>
@@ -289,7 +289,7 @@ export default function DayProgramLogForm({ residentId, existingLog, onSuccess, 
           <p className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>
             {existingLog ? 'Day Program' : 'Day Program'}
           </p>
-          <p className='text-[17px] font-semibold text-zinc-900 dark:text-white mt-0.5 pr-10'>
+          <p className='text-base font-semibold text-zinc-900 dark:text-white mt-0.5 pr-10'>
             {title}
           </p>
           <button

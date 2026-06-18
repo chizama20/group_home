@@ -69,12 +69,12 @@ export default function ExportSheet({ homeId, residents, onClose }: Props) {
     }
   }
 
-  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+  const inputClass = 'w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
 
   return (
     <>
       <div className='fixed inset-0 bg-black/40 z-40' onClick={onClose} />
-      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-xl md:rounded-2xl md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-2xl z-50 max-h-[90vh] flex flex-col'>
+      <div className='fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:max-w-xl md:rounded-lg md:bottom-auto md:top-1/2 md:-translate-y-1/2 bg-white dark:bg-zinc-900 rounded-t-2xl z-50 max-h-[90vh] flex flex-col'>
         <div className='w-12 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 shrink-0 md:hidden' />
 
         <div className='px-4 pt-3 pb-2 border-b border-zinc-200 dark:border-zinc-800 shrink-0 flex items-center justify-between'>
@@ -97,11 +97,11 @@ export default function ExportSheet({ homeId, residents, onClose }: Props) {
                 className={cn(
                   'w-full text-left px-4 py-3 rounded-xl border transition-colors min-h-[56px]',
                   type === t.id
-                    ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10'
+                    ? 'border-primary bg-primary dark:bg-primary/10'
                     : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50'
                 )}
               >
-                <p className={cn('text-sm font-semibold', type === t.id ? 'text-indigo-700 dark:text-indigo-300' : 'text-zinc-900 dark:text-white')}>
+                <p className={cn('text-sm font-semibold', type === t.id ? 'text-primary dark:text-primary' : 'text-zinc-900 dark:text-white')}>
                   {t.label}
                 </p>
                 <p className='text-xs text-zinc-400 dark:text-zinc-500 mt-0.5'>{t.description}</p>
@@ -144,7 +144,7 @@ export default function ExportSheet({ homeId, residents, onClose }: Props) {
           <button
             onClick={() => { void handleExport() }}
             disabled={!canExport || exporting}
-            className='w-full bg-indigo-600 text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
+            className='w-full bg-primary text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
           >
             {exporting ? 'Generating…' : 'Download PDF'}
           </button>

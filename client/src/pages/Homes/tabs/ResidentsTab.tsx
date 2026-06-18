@@ -41,7 +41,7 @@ function ResidentRow({ resident, isFirst }: { resident: Resident; isFirst: boole
 
       {/* Info */}
       <div className='flex-1 min-w-0'>
-        <p className='text-[15px] font-semibold text-zinc-900 dark:text-white'>
+        <p className='text-sm font-semibold text-zinc-900 dark:text-white'>
           {resident.first_name} {resident.last_name}
         </p>
         {resident.room && (

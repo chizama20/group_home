@@ -47,7 +47,7 @@ export default function ResetPasswordPage() {
       <div className='min-h-screen bg-zinc-50 dark:bg-black flex items-center justify-center p-4'>
         <div className='w-full max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm p-6 text-center'>
           <p className='text-sm text-red-600 dark:text-red-400 mb-4'>This reset link is invalid.</p>
-          <Link to='/forgot-password' className='text-sm text-indigo-600 dark:text-indigo-400 hover:underline'>
+          <Link to='/forgot-password' className='text-sm text-primary dark:text-primary hover:underline'>
             Request a new link
           </Link>
         </div>
@@ -71,7 +71,7 @@ export default function ResetPasswordPage() {
                 autoFocus
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+                className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
                 placeholder='At least 8 characters'
               />
               <button
@@ -93,7 +93,7 @@ export default function ResetPasswordPage() {
                 required
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
-                className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500'
+                className='w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary'
               />
               <button
                 type='button'
@@ -113,7 +113,7 @@ export default function ResetPasswordPage() {
           <button
             type='submit'
             disabled={loading}
-            className='w-full bg-indigo-600 text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-indigo-700 disabled:opacity-50 transition-colors'
+            className='w-full bg-primary text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
           >
             {loading ? 'Saving…' : 'Set new password'}
           </button>
