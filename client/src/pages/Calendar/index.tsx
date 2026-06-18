@@ -253,7 +253,7 @@ function AdministerSheet({ round, onClose, onDone }: {
           <button
             disabled={submitting}
             onClick={() => { void handleSubmit() }}
-            className='w-full bg-primary text-white py-3 rounded-xl text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
+            className='w-full bg-primary text-white py-3 rounded-xl text-sm font-semibold min-h-[44px] hover:bg-primary/90 disabled:opacity-50 transition-colors'
           >
             {submitting ? 'Recording…' : 'Record all'}
           </button>
@@ -351,7 +351,7 @@ function MedRoundCard({ round, onAdminister }: { round: MedRound; onAdminister: 
       )}
 
       <button type='button' onClick={onAdminister}
-        className='bg-primary text-white text-xs font-semibold px-3 py-2 rounded-lg min-h-[36px] mt-2 w-full hover:bg-primary transition-colors'>
+        className='bg-primary text-white text-xs font-semibold px-3 py-2 rounded-lg min-h-[36px] mt-2 w-full hover:bg-primary/90 transition-colors'>
         Administer
       </button>
     </div>
@@ -506,14 +506,14 @@ export default function CalendarPage() {
           <div className='flex items-center gap-2'>
             <button
               onClick={goToday}
-              className='text-xs font-semibold px-3 py-1.5 rounded-full min-h-[32px] bg-primary text-white hover:bg-primary transition-colors'
+              className='text-xs font-semibold px-3 py-1.5 rounded-full min-h-[32px] bg-primary text-white hover:bg-primary/90 transition-colors'
             >
               Today
             </button>
             {isManagerOrAbove && homeId && (
               <button
                 onClick={() => setShowAddAppt(true)}
-                className='w-8 h-8 rounded-full bg-primary flex items-center justify-center hover:bg-primary transition-colors'
+                className='w-8 h-8 rounded-full bg-primary flex items-center justify-center hover:bg-primary/90 transition-colors'
                 aria-label='Add appointment'
               >
                 <Plus className='w-4 h-4 text-white' />

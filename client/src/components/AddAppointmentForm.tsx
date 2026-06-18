@@ -192,7 +192,7 @@ export default function AddAppointmentForm({ homeId, residentId, residents = [],
             <button
               onClick={() => { void handleSubmit() }}
               disabled={!canSubmit}
-              className='flex-1 py-3 bg-primary text-white rounded-xl text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
+              className='flex-1 py-3 bg-primary text-white rounded-xl text-sm font-semibold min-h-[44px] hover:bg-primary/90 disabled:opacity-50 transition-colors'
             >
               {submitting ? 'Saving…' : 'Save'}
             </button>

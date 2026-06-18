@@ -153,7 +153,7 @@ export default function ChangePasswordSheet({ onSuccess, onCancel }: Props) {
               <button
                 type='submit'
                 disabled={!isValid || submitting}
-                className='flex-1 py-3 bg-primary text-white rounded-xl text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
+                className='flex-1 py-3 bg-primary text-white rounded-xl text-sm font-semibold min-h-[44px] hover:bg-primary/90 disabled:opacity-50 transition-colors'
               >
                 {submitting ? 'Changing...' : 'Change Password'}
               </button>

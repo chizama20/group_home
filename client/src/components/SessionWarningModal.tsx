@@ -22,7 +22,7 @@ export default function SessionWarningModal({ open, onStayLoggedIn, onLogoutNow 
         <div className='flex gap-3'>
           <button
             onClick={onStayLoggedIn}
-            className='flex-1 bg-primary text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-primary transition-colors'
+            className='flex-1 bg-primary text-white rounded-lg py-3 text-sm font-semibold min-h-[44px] hover:bg-primary/90 transition-colors'
           >
             Stay logged in
           </button>

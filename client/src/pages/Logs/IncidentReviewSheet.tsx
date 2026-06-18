@@ -128,7 +128,7 @@ export default function IncidentReviewSheet({ incident, onClose, onUpdate }: Pro
               <button
                 onClick={() => { void handleSignOff() }}
                 disabled={signingOff || escalating}
-                className='w-full bg-primary text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
+                className='w-full bg-primary text-white rounded-xl py-3 text-sm font-semibold min-h-[44px] hover:bg-primary/90 disabled:opacity-50 transition-colors'
               >
                 {signingOff ? 'Signing off…' : 'Sign off incident'}
               </button>

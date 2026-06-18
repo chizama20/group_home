@@ -79,7 +79,7 @@ export default function AnnouncementComposer({ homeId, onPosted }: Props) {
             type='checkbox'
             checked={pinned}
             onChange={e => setPinned(e.target.checked)}
-            className='w-4 h-4 accent-indigo-600'
+            className='w-4 h-4 accent-primary'
           />
           Pin announcement
         </label>
@@ -116,7 +116,7 @@ export default function AnnouncementComposer({ homeId, onPosted }: Props) {
           <button
             type='submit'
             disabled={posting || !title.trim() || !body.trim()}
-            className='flex-1 bg-primary text-white rounded-lg py-2.5 text-sm font-semibold min-h-[44px] hover:bg-primary disabled:opacity-50 transition-colors'
+            className='flex-1 bg-primary text-white rounded-lg py-2.5 text-sm font-semibold min-h-[44px] hover:bg-primary/90 disabled:opacity-50 transition-colors'
           >
             {posting ? 'Posting…' : 'Post'}
           </button>
