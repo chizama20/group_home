@@ -6,13 +6,12 @@ import { Eye, EyeOff } from 'lucide-react'
 
 interface InviteInfo {
   email:    string
-  role:     'employee' | 'manager'
+  role:     'staff'
   org_name: string
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  employee: 'Employee',
-  manager:  'Manager',
+  staff: 'Staff',
 }
 
 export default function InviteAcceptPage() {

@@ -12,11 +12,9 @@ import InfoTab         from './tabs/InfoTab'
 import MedicationsTab  from './tabs/MedicationsTab'
 import LogsTab         from './tabs/LogsTab'
 import AppointmentsTab from './tabs/AppointmentsTab'
-import IncidentsTab    from './tabs/IncidentsTab'
 import VitalsTab       from './tabs/VitalsTab'
-import MarTab          from './tabs/MarTab'
 
-const TABS = ['info', 'meds', 'logs', 'appointments', 'incidents', 'mar', 'vitals'] as const
+const TABS = ['info', 'meds', 'logs', 'appointments', 'vitals'] as const
 type Tab = typeof TABS[number]
 
 const TAB_LABELS: Record<Tab, string> = {
@@ -24,8 +22,6 @@ const TAB_LABELS: Record<Tab, string> = {
   meds:         'Meds',
   logs:         'Logs',
   appointments: 'Appointments',
-  incidents:    'Incidents',
-  mar:          'MAR',
   vitals:       'Vitals',
 }
 
@@ -37,7 +33,7 @@ function getInitials(first: string, last: string) {
 export default function ResidentProfile() {
   const { id }                        = useParams<{ id: string }>()
   const navigate                      = useNavigate()
-  const { isOrgAdmin }                = useRole()
+  const { isAdmin }                   = useRole()
 
   const [resident, setResident]       = useState<Resident | null>(null)
   const [loading, setLoading]         = useState(true)
@@ -130,8 +126,8 @@ export default function ResidentProfile() {
         {initials}
       </div>
 
-      {/* Action buttons — org_admin only */}
-      {isOrgAdmin && (
+      {/* Action buttons — admin only */}
+      {isAdmin && (
         <div className='flex gap-2 justify-center px-4 mt-4'>
           <button
             onClick={() => setShowEdit(true)}
@@ -183,10 +179,6 @@ export default function ResidentProfile() {
           onAddAppointment={() => setShowAddAppt(true)}
         />
       )}
-      {tab === 'incidents' && (
-        <IncidentsTab residentId={resident.id} homeId={resident.home_id} />
-      )}
-      {tab === 'mar'    && <MarTab residentId={resident.id} />}
       {tab === 'vitals' && <VitalsTab residentId={resident.id} />}
 
       {/* Edit resident form */}

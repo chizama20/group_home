@@ -1,7 +1,7 @@
-import { FastifyInstance } from 'fastify';
+﻿import { FastifyInstance } from 'fastify';
 import { RowDataPacket } from 'mysql2';
 import { success, failure } from '../utils/response';
-import { orgAdminOnly } from '../middleware/rbac';
+import { adminOnly } from '../middleware/rbac';
 import { logAudit } from '../utils/audit';
 import { sendInviteEmail } from '../services/email';
 
@@ -9,10 +9,10 @@ interface TokenParam { token: string; }
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
-  // ── POST /invites/:token/resend — resend a pending invite by token ─────────
+  // â”€â”€ POST /invites/:token/resend â€” resend a pending invite by token â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.post<{ Params: TokenParam }>(
     '/:token/resend',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id, id: userId } = request.user;
       const { token } = request.params;

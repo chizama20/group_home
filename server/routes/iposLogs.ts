@@ -1,9 +1,9 @@
-import { FastifyInstance } from 'fastify';
+﻿import { FastifyInstance } from 'fastify';
 import { RowDataPacket } from 'mysql2';
 import { v4 as uuidv4 } from 'uuid';
 import { success, failure } from '../utils/response';
 import { canAccessHome, getAccessibleHomeIds } from '../utils/homeAccess';
-import { managerOrAbove } from '../middleware/rbac';
+import { adminOnly } from '../middleware/rbac';
 
 interface IdParam { id: string; }
 
@@ -21,7 +21,7 @@ interface CommentBody {
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
-  // ── GET /ipos-logs — list logs across accessible homes ──────────────────
+  // â”€â”€ GET /ipos-logs â€” list logs across accessible homes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.get<{ Querystring: ListQuery }>('/', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const homeIds = await getAccessibleHomeIds(fastify, request.user);
     const { home_id, date, status, resident_id } = request.query;
@@ -56,7 +56,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     return reply.send(success(rows));
   });
 
-  // ── GET /ipos-logs/:id — single log with entries and comments ───────────
+  // â”€â”€ GET /ipos-logs/:id â€” single log with entries and comments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.get<{ Params: IdParam }>('/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const [logs] = await fastify.db.execute<RowDataPacket[]>(
       'SELECT il.*, r.home_id FROM ipos_logs il JOIN residents r ON il.resident_id = r.id WHERE il.id = ?',
@@ -88,7 +88,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     return reply.send(success({ log: logs[0], entries, comments }));
   });
 
-  // ── PATCH /ipos-logs/:id/submit — staff submits log for review ──────────
+  // â”€â”€ PATCH /ipos-logs/:id/submit â€” staff submits log for review â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.patch<{ Params: IdParam }>('/:id/submit', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const [logs] = await fastify.db.execute<RowDataPacket[]>(
       'SELECT id, status FROM ipos_logs WHERE id = ?', [request.params.id]
@@ -111,10 +111,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     return reply.send(success({ message: 'Log submitted' }));
   });
 
-  // ── PATCH /ipos-logs/:id/approve — manager approves log ─────────────────
+  // â”€â”€ PATCH /ipos-logs/:id/approve â€” manager approves log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.patch<{ Params: IdParam }>(
     '/:id/approve',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const [logs] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT il.*, r.home_id FROM ipos_logs il JOIN residents r ON il.resident_id = r.id WHERE il.id = ?',
@@ -139,10 +139,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /ipos-logs/:id/comments — add review comment ───────────────────
+  // â”€â”€ POST /ipos-logs/:id/comments â€” add review comment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.post<{ Params: IdParam; Body: CommentBody }>(
     '/:id/comments',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { content, entry_id } = request.body;
 

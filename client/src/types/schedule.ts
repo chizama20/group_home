@@ -1,6 +1,6 @@
 export type ShiftType = 'day' | 'evening' | 'night'
 export type SlotStatus = 'scheduled' | 'cancelled'
-export type RequestStatus = 'pending' | 'approved' | 'denied'
+export type RequestStatus = 'pending' | 'approved' | 'denied' | 'cancelled'
 
 export interface ShiftSlot {
   id: string
@@ -32,8 +32,8 @@ export interface ShiftRequest {
   id: string
   home_id: string
   requester_id: string
-  requester_first_name: string
-  requester_last_name: string
+  requester_first: string
+  requester_last: string
   slot_id?: string
   type: 'time_off'
   date: string
@@ -75,3 +75,86 @@ export interface ReviewRequestPayload {
 }
 
 export type ScheduleRequest = ShiftRequest
+
+// ── Trade / claim board ─────────────────────────────────────────────────────
+
+export interface ShiftTrade {
+  id: string
+  slot_id?: string
+  date: string
+  shift_type: ShiftType
+  reason?: string
+  status: RequestStatus
+  requester_id: string
+  requester_first: string
+  requester_last: string
+  replacement_user_id?: string
+  reviewed_at?: string
+  created_at: string
+}
+
+export interface CreateTradePayload {
+  slot_id: string
+  reason?: string
+}
+
+export interface TradeBoard {
+  open: ShiftTrade[]
+  mine: ShiftTrade[]
+}
+
+// ── Live roster ──────────────────────────────────────────────────────────────
+
+export interface OnNowEntry {
+  user_id: string
+  first_name: string
+  last_name: string
+  phone: string | null
+  role: string
+  shift: ShiftType
+  clocked_in_at: string
+}
+
+export interface OnLaterEntry {
+  slot_id: string
+  user_id: string
+  first_name: string
+  last_name: string
+  phone: string | null
+  role: string
+  shift_type: ShiftType
+  date: string
+}
+
+export interface LiveRoster {
+  onNow: OnNowEntry[]
+  onLater: OnLaterEntry[]
+}
+
+// ── Recent changes feed ──────────────────────────────────────────────────────
+
+export interface RecentChangeItem {
+  id: string
+  action: string
+  entity_type: string
+  entity_id: string | null
+  description: string | null
+  created_at: string
+  actor_first: string | null
+  actor_last: string | null
+  home_id: string | null
+  is_new: number
+}
+
+export interface RecentChanges {
+  items: RecentChangeItem[]
+  unseenCount: number
+}
+
+// ── Notification preferences ──────────────────────────────────────────────────
+
+export interface NotificationPrefs {
+  announcements: boolean
+  schedule_changes: boolean
+  trade_claimed: boolean
+}

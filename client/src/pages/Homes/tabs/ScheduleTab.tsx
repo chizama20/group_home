@@ -118,7 +118,7 @@ function getInitials(first: string, last: string): string {
 }
 
 function canManage(role: string): boolean {
-  return role === 'manager' || role === 'org_admin'
+  return role === 'admin'
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -351,12 +351,12 @@ function RequestCard({ req, onApprove, onDeny }: RequestCardProps) {
     <div className='flex flex-col sm:flex-row sm:items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3'>
       {/* Avatar */}
       <div className='w-8 h-8 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-bold flex items-center justify-center shrink-0'>
-        {getInitials(req.first_name ?? '', req.last_name ?? '')}
+        {getInitials(req.requester_first ?? '', req.requester_last ?? '')}
       </div>
       {/* Info */}
       <div className='flex-1 min-w-0'>
         <p className='text-sm font-semibold text-zinc-900 dark:text-white'>
-          {req.first_name} {req.last_name}
+          {req.requester_first} {req.requester_last}
         </p>
         <p className='text-xs text-zinc-500 dark:text-zinc-400'>
           Requested off {dateLabel}

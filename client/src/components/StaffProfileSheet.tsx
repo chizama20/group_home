@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import { updateUserRole, deactivateUser } from '../api/orgs'
+import { deactivateUser } from '../api/orgs'
 import { removeStaff } from '../api/homes'
-import type { UserRole } from '../types/auth'
 
 interface StaffMember {
   id: string
@@ -26,86 +25,29 @@ function getInitials(first: string, last: string) {
 }
 
 function getAvatarColors(role: string): string {
-  switch (role) {
-    case 'org_admin':
-      return 'bg-amber-500/15 text-amber-400'
-    case 'manager':
-      return 'bg-violet-500/15 text-violet-400'
-    default:
-      return 'bg-emerald-500/15 text-emerald-400'
-  }
+  return role === 'admin' ? 'bg-amber-500/15 text-amber-400' : 'bg-emerald-500/15 text-emerald-400'
 }
 
 function RoleBadge({ role }: { role: string }) {
-  switch (role) {
-    case 'org_admin':
-      return (
-        <span className='border border-amber-500/30 text-amber-400/70 text-[10px] font-medium px-2 py-0.5 rounded-full'>
-          Org Admin
-        </span>
-      )
-    case 'manager':
-      return (
-        <span className='border border-violet-400/30 text-violet-400/70 text-[10px] font-medium px-2 py-0.5 rounded-full'>
-          Manager
-        </span>
-      )
-    default:
-      return (
-        <span className='border border-zinc-600/40 text-zinc-400 text-[10px] font-medium px-2 py-0.5 rounded-full'>
-          Employee
-        </span>
-      )
-  }
-}
-
-function getRoleLabel(role: string): string {
-  switch (role) {
-    case 'org_admin':
-      return 'Org Admin'
-    case 'manager':
-      return 'Manager'
-    default:
-      return 'Employee'
-  }
+  return role === 'admin' ? (
+    <span className='border border-amber-500/30 text-amber-400/70 text-[10px] font-medium px-2 py-0.5 rounded-full'>
+      Admin
+    </span>
+  ) : (
+    <span className='border border-zinc-600/40 text-zinc-400 text-[10px] font-medium px-2 py-0.5 rounded-full'>
+      Staff
+    </span>
+  )
 }
 
 type ActionConfirm = 'remove' | 'deactivate' | null
 
 export default function StaffProfileSheet({ open, homeId, staff, onClose, onChanged }: Props) {
-  const [currentRole, setCurrentRole] = useState<string>(staff.role)
-  const [showRolePicker, setShowRolePicker] = useState(false)
-  const [selectedRole, setSelectedRole] = useState<'manager' | 'employee'>(
-    staff.role === 'manager' ? 'manager' : 'employee'
-  )
   const [confirmAction, setConfirmAction] = useState<ActionConfirm>(null)
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   if (!open) return null
-
-  async function handleRoleChange() {
-    if (selectedRole === currentRole) {
-      setShowRolePicker(false)
-      return
-    }
-    setLoading('role')
-    setError(null)
-    try {
-      const res = await updateUserRole(staff.id, selectedRole as UserRole)
-      if (res.data.success) {
-        setCurrentRole(selectedRole)
-        setShowRolePicker(false)
-        onChanged()
-      } else {
-        setError('Failed to update role')
-      }
-    } catch {
-      setError('Failed to update role')
-    } finally {
-      setLoading(null)
-    }
-  }
 
   async function handleRemove() {
     setLoading('remove')
@@ -163,7 +105,7 @@ export default function StaffProfileSheet({ open, homeId, staff, onClose, onChan
             <div className='flex items-center gap-3'>
               {/* Avatar with role-color */}
               <div
-                className={`w-12 h-12 rounded-full text-base font-bold flex items-center justify-center shrink-0 ${getAvatarColors(currentRole)}`}
+                className={`w-12 h-12 rounded-full text-base font-bold flex items-center justify-center shrink-0 ${getAvatarColors(staff.role)}`}
               >
                 {getInitials(staff.first_name, staff.last_name)}
               </div>
@@ -176,7 +118,7 @@ export default function StaffProfileSheet({ open, homeId, staff, onClose, onChan
                   {staff.email}
                 </p>
                 <div className='mt-1.5'>
-                  <RoleBadge role={currentRole} />
+                  <RoleBadge role={staff.role} />
                 </div>
               </div>
             </div>
@@ -199,57 +141,7 @@ export default function StaffProfileSheet({ open, homeId, staff, onClose, onChan
           {/* Action buttons */}
           <div className='space-y-2.5'>
 
-            {/* 1. Change Role */}
-            <div className='bg-zinc-50 dark:bg-zinc-800/50 rounded-lg overflow-hidden'>
-              <button
-                onClick={() => {
-                  setShowRolePicker(v => !v)
-                  setConfirmAction(null)
-                  setError(null)
-                }}
-                className='w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors min-h-[44px]'
-              >
-                <span>Change Role</span>
-                <span className='text-xs text-zinc-500 dark:text-zinc-400'>
-                  {showRolePicker ? 'Cancel' : getRoleLabel(currentRole)}
-                </span>
-              </button>
-
-              {showRolePicker && (
-                <div className='px-4 pb-4 pt-2 border-t border-zinc-200 dark:border-zinc-700 space-y-3'>
-                  <div className='space-y-1'>
-                    {(['manager', 'employee'] as const).map(r => (
-                      <label
-                        key={r}
-                        className='flex items-center gap-3 cursor-pointer p-2.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors'
-                      >
-                        <input
-                          type='radio'
-                          name='role-pick'
-                          value={r}
-                          checked={selectedRole === r}
-                          onChange={() => setSelectedRole(r)}
-                          className='accent-primary'
-                        />
-                        <span className='flex-1 text-sm text-zinc-800 dark:text-zinc-200'>
-                          {r === 'manager' ? 'Manager' : 'Employee'}
-                        </span>
-                        <RoleBadge role={r} />
-                      </label>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => { void handleRoleChange() }}
-                    disabled={loading === 'role' || selectedRole === currentRole}
-                    className='w-full py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-md disabled:opacity-50 transition-colors min-h-[40px]'
-                  >
-                    {loading === 'role' ? 'Saving...' : 'Confirm Role Change'}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* 2. Remove from Home */}
+            {/* 1. Remove from Home */}
             <div className='bg-zinc-50 dark:bg-zinc-800/50 rounded-lg overflow-hidden'>
               {confirmAction === 'remove' ? (
                 <div className='px-4 py-3 space-y-3'>
@@ -280,7 +172,6 @@ export default function StaffProfileSheet({ open, homeId, staff, onClose, onChan
                 <button
                   onClick={() => {
                     setConfirmAction('remove')
-                    setShowRolePicker(false)
                     setError(null)
                   }}
                   className='w-full px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-left min-h-[44px]'
@@ -290,7 +181,7 @@ export default function StaffProfileSheet({ open, homeId, staff, onClose, onChan
               )}
             </div>
 
-            {/* 3. Deactivate Account — only when staff is active */}
+            {/* 2. Deactivate Account — only when staff is active */}
             {staff.is_active && (
               <div className='bg-zinc-50 dark:bg-zinc-800/50 rounded-lg overflow-hidden'>
                 {confirmAction === 'deactivate' ? (
@@ -322,7 +213,6 @@ export default function StaffProfileSheet({ open, homeId, staff, onClose, onChan
                   <button
                     onClick={() => {
                       setConfirmAction('deactivate')
-                      setShowRolePicker(false)
                       setError(null)
                     }}
                     className='w-full px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-left min-h-[44px]'

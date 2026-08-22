@@ -89,10 +89,9 @@ export default function CreateHomeWizard() {
     setError(null)
     try {
       const fullAddress = [address, city, state, zip].filter(Boolean).join(', ')
-      const res = await createHome({ name: name.trim(), address: fullAddress || undefined })
-      const newHomeId = res.data.data?.id
+      await createHome({ name: name.trim(), address: fullAddress || undefined })
       // TODO: Assign selected staff to home after creation
-      navigate(newHomeId ? `/homes/${newHomeId}` : '/homes')
+      navigate('/homes')
     } catch {
       setError('Failed to create home. Please try again.')
       setSubmitting(false)
@@ -323,7 +322,7 @@ export default function CreateHomeWizard() {
                   </p>
                 ) : (
                   <div className='space-y-2 max-h-64 overflow-y-auto'>
-                    {staffList.filter(s => s.role !== 'org_admin').map(staff => (
+                    {staffList.filter(s => s.role !== 'admin').map(staff => (
                       <label
                         key={staff.id}
                         className={cn(
@@ -353,10 +352,7 @@ export default function CreateHomeWizard() {
                           </p>
                           <p className='text-xs text-zinc-500'>{staff.email}</p>
                         </div>
-                        <span className={cn(
-                          'text-[11px] font-semibold px-2 py-0.5 rounded-full',
-                          staff.role === 'manager' ? 'bg-violet-500/15 text-violet-500' : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400'
-                        )}>
+                        <span className='text-[11px] font-semibold px-2 py-0.5 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400'>
                           {staff.role}
                         </span>
                       </label>

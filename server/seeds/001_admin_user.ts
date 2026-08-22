@@ -4,59 +4,54 @@ import { v4 as uuidv4 } from 'uuid';
 
 export async function seed(knex: Knex): Promise<void> {
   // ── Org ───────────────────────────────────────────────────────────────────
-  let org = await knex('orgs').where({ name: 'Sunrise Care Group' }).first();
+  let org = await knex('orgs').where({ name: 'Precious AFC Home, Inc.' }).first();
   if (!org) {
     const orgId = uuidv4();
-    await knex('orgs').insert({ id: orgId, name: 'Sunrise Care Group' });
+    await knex('orgs').insert({ id: orgId, name: 'Precious AFC Home, Inc.' });
     org = { id: orgId };
   }
 
   // ── Skip if already seeded ────────────────────────────────────────────────
-  const already = await knex('users').where({ email: 'admin@sunrise.com', org_id: org.id }).first();
+  const already = await knex('users').where({ email: 'admin@preciousafchome.com', org_id: org.id }).first();
   if (already) {
     console.log('Seed already applied — skipping');
     return;
   }
 
   // ── Users ─────────────────────────────────────────────────────────────────
-  const adminHash    = await bcrypt.hash('Admin@123',    12);
-  const managerHash  = await bcrypt.hash('Manager@123',  12);
-  const employeeHash = await bcrypt.hash('Employee@123', 12);
+  const adminHash = await bcrypt.hash('Admin@123', 12);
+  const staffHash  = await bcrypt.hash('Staff@123', 12);
 
-  const adminId    = uuidv4();
-  const managerId  = uuidv4();
-  const employeeId = uuidv4();
+  const adminId = uuidv4();
+  const staffId  = uuidv4();
 
   await knex('users').insert([
     {
       id: adminId, org_id: org.id,
-      email: 'admin@sunrise.com', password_hash: adminHash,
-      first_name: 'Alex', last_name: 'Admin', role: 'org_admin',
+      email: 'admin@preciousafchome.com', password_hash: adminHash,
+      first_name: 'Alex', last_name: 'Admin', role: 'admin',
     },
     {
-      id: managerId, org_id: org.id,
-      email: 'manager@sunrise.com', password_hash: managerHash,
-      first_name: 'Maya', last_name: 'Manager', role: 'manager',
-    },
-    {
-      id: employeeId, org_id: org.id,
-      email: 'employee@sunrise.com', password_hash: employeeHash,
-      first_name: 'Eddie', last_name: 'Employee', role: 'employee',
+      id: staffId, org_id: org.id,
+      email: 'staff@preciousafchome.com', password_hash: staffHash,
+      first_name: 'Sam', last_name: 'Staff', role: 'staff',
     },
   ]);
 
-  // ── Home ──────────────────────────────────────────────────────────────────
-  const homeId = uuidv4();
-  await knex('homes').insert({
-    id: homeId, org_id: org.id,
-    name: 'Sunrise House',
-    address: '12 Sunrise Lane',
-  });
+  // ── Homes ─────────────────────────────────────────────────────────────────
+  const merritt    = uuidv4();
+  const dixie      = uuidv4();
+  const southfield = uuidv4();
 
-  // Assign manager and employee to the home
+  await knex('homes').insert([
+    { id: merritt,    org_id: org.id, name: 'Merritt Home' },
+    { id: dixie,      org_id: org.id, name: 'Dixie Home' },
+    { id: southfield, org_id: org.id, name: 'Southfield Home' },
+  ]);
+
+  // Assign staff to Merritt Home
   await knex('home_staff').insert([
-    { id: uuidv4(), home_id: homeId, user_id: managerId },
-    { id: uuidv4(), home_id: homeId, user_id: employeeId },
+    { id: uuidv4(), home_id: merritt, user_id: staffId },
   ]);
 
   // ── Residents ─────────────────────────────────────────────────────────────
@@ -65,7 +60,7 @@ export async function seed(knex: Knex): Promise<void> {
 
   await knex('residents').insert([
     {
-      id: res1Id, home_id: homeId, created_by: adminId,
+      id: res1Id, home_id: merritt, created_by: adminId,
       first_name: 'Margaret', last_name: 'Johnson',
       date_of_birth: '1945-03-12',
       room: '1A',
@@ -75,7 +70,7 @@ export async function seed(knex: Knex): Promise<void> {
       primary_contact_relation: 'Son',
     },
     {
-      id: res2Id, home_id: homeId, created_by: adminId,
+      id: res2Id, home_id: merritt, created_by: adminId,
       first_name: 'Thomas', last_name: 'Harris',
       date_of_birth: '1938-07-22',
       room: '2B',
@@ -93,7 +88,7 @@ export async function seed(knex: Knex): Promise<void> {
     { id: uuidv4(), resident_id: res2Id, name: 'Tremor Episodes' },
   ]);
 
-  // ── Medications ───────────────────────────────────────────────────────────
+  // ── Medications (static reference info only) ─────────────────────────────
   await knex('medications').insert([
     {
       id: uuidv4(), resident_id: res1Id,
@@ -117,9 +112,8 @@ export async function seed(knex: Knex): Promise<void> {
     },
   ]);
 
-  console.log('\n✓ Seed complete — Sunrise Care Group\n');
+  console.log('\n✓ Seed complete — Precious AFC Home, Inc.\n');
   console.log('  Test accounts:');
-  console.log('  Org Admin  →  admin@sunrise.com    / Admin@123');
-  console.log('  Manager    →  manager@sunrise.com  / Manager@123');
-  console.log('  Employee   →  employee@sunrise.com / Employee@123\n');
+  console.log('  Admin  →  admin@preciousafchome.com / Admin@123');
+  console.log('  Staff  →  staff@preciousafchome.com / Staff@123\n');
 }

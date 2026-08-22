@@ -103,7 +103,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     return reply.send(success({ message: 'Logged out successfully' }));
   });
 
-  // ── Signup (public — creates org + org_admin) ────────────────────────────
+  // ── Signup (public — creates org + admin) ────────────────────────────
   fastify.post<{ Body: SignupBody }>('/signup', async (request, reply) => {
     const { organizationName, first_name, last_name, email, password } = request.body;
 
@@ -122,17 +122,17 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       const password_hash = await hashPassword(password);
       await conn.execute(
         'INSERT INTO users (id, org_id, email, password_hash, first_name, last_name, role) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [userId, orgId, email, password_hash, first_name, last_name, 'org_admin']
+        [userId, orgId, email, password_hash, first_name, last_name, 'admin']
       );
 
       await conn.commit();
 
-      const token = fastify.jwt.sign({ id: userId, role: 'org_admin', org_id: orgId });
+      const token = fastify.jwt.sign({ id: userId, role: 'admin', org_id: orgId });
 
       reply.setCookie('token', token, COOKIE_OPTS);
 
       return reply.code(201).send(success({
-        user: { id: userId, email, role: 'org_admin', first_name, last_name, org_id: orgId, pin_set_at: null },
+        user: { id: userId, email, role: 'admin', first_name, last_name, org_id: orgId, pin_set_at: null },
         org:  { id: orgId, name: organizationName }
       }));
     } catch (err) {
@@ -148,7 +148,8 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     const { id, org_id } = request.user;
 
     const [rows] = await fastify.db.execute<RowDataPacket[]>(
-      `SELECT u.id, u.first_name, u.last_name, u.email, u.role, u.is_active, u.pin_set_at, u.created_at,
+      `SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.role, u.is_active,
+              u.pin_set_at, u.created_at, u.notification_prefs,
               o.id as o_id, o.name as o_name
        FROM users u
        JOIN orgs o ON u.org_id = o.id
@@ -160,14 +161,16 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
     const row = rows[0];
     return reply.send(success({
-      id:         row.id,
-      first_name: row.first_name,
-      last_name:  row.last_name,
-      email:      row.email,
-      role:       row.role,
-      is_active:  row.is_active,
-      pin_set_at: row.pin_set_at,
-      org:        { id: row.o_id, name: row.o_name }
+      id:                  row.id,
+      first_name:          row.first_name,
+      last_name:           row.last_name,
+      email:               row.email,
+      phone:               row.phone,
+      role:                row.role,
+      is_active:           row.is_active,
+      pin_set_at:          row.pin_set_at,
+      notification_prefs:  row.notification_prefs,
+      org:                 { id: row.o_id, name: row.o_name }
     }));
   });
 
@@ -245,7 +248,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     const { token } = request.params;
 
     const [rows] = await fastify.db.execute<RowDataPacket[]>(
-      `SELECT i.id, i.email, i.role, i.home_id, i.expires_at,
+      `SELECT i.id, i.email, i.role, i.expires_at,
               o.name as org_name
        FROM invitations i
        JOIN orgs o ON i.org_id = o.id
@@ -279,7 +282,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       return reply.code(400).send(failure('INVALID_PASSWORD', 'Password must be at least 8 characters'));
 
     const [rows] = await fastify.db.execute<RowDataPacket[]>(
-      `SELECT i.id, i.email, i.role, i.org_id, i.home_id, i.invited_by
+      `SELECT i.id, i.email, i.role, i.org_id, i.home_ids, i.invited_by
        FROM invitations i
        WHERE i.token = ? AND i.accepted_at IS NULL AND i.expires_at > NOW()`,
       [token]
@@ -301,10 +304,11 @@ export default async (fastify: FastifyInstance): Promise<void> => {
         [userId, invite.org_id, invite.email, password_hash, first_name, last_name, invite.role, invite.invited_by]
       );
 
-      if (invite.home_id) {
+      const homeIds: string[] = invite.home_ids ? JSON.parse(invite.home_ids as string) : [];
+      for (const homeId of homeIds) {
         await conn.execute(
           'INSERT INTO home_staff (home_id, user_id) VALUES (?, ?)',
-          [invite.home_id, userId]
+          [homeId, userId]
         );
       }
 

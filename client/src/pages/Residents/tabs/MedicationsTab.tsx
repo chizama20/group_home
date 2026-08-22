@@ -141,7 +141,7 @@ function groupByTime(meds: Medication[]): Map<string, Medication[]> {
 }
 
 export default function MedicationsTab({ residentId }: { residentId: string }) {
-  const { isManagerOrAbove }        = useRole()
+  const { isAdmin }                 = useRole()
   const [meds, setMeds]             = useState<Medication[]>([])
   const [loading, setLoading]       = useState(true)
   const [error, setError]           = useState<string | null>(null)
@@ -187,7 +187,7 @@ export default function MedicationsTab({ residentId }: { residentId: string }) {
     <div className='space-y-3 p-4'>
 
       {/* Manager: Add medication button */}
-      {isManagerOrAbove && (
+      {isAdmin && (
         <button
           onClick={() => setShowAdd(true)}
           className='w-full border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl py-3 text-sm text-zinc-400 dark:text-zinc-600 min-h-[44px] hover:border-primary hover:text-primary transition-colors'
@@ -220,7 +220,7 @@ export default function MedicationsTab({ residentId }: { residentId: string }) {
                 </div>
 
                 {/* Manager controls */}
-                {isManagerOrAbove && (
+                {isAdmin && (
                   <div className='flex gap-1 shrink-0 mt-0.5'>
                     <button
                       onClick={() => setEditing(med)}

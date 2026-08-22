@@ -9,7 +9,7 @@ interface Props {
 
 export default function AnnouncementComposer({ homeId, onPosted }: Props) {
   const { org, user }           = useAuth()
-  const isOrgAdmin              = user?.role === 'org_admin'
+  const isAdmin                 = user?.role === 'admin'
   const [open, setOpen]         = useState(false)
   const [title, setTitle]       = useState('')
   const [body, setBody]         = useState('')
@@ -24,7 +24,7 @@ export default function AnnouncementComposer({ homeId, onPosted }: Props) {
     setPosting(true)
     setError(null)
     try {
-      const home_id = (isOrgAdmin && allHomes) ? undefined : homeId
+      const home_id = (isAdmin && allHomes) ? undefined : homeId
       await createAnnouncement(org.id, { title: title.trim(), body: body.trim(), home_id, is_pinned: pinned })
       setTitle('')
       setBody('')
@@ -84,7 +84,7 @@ export default function AnnouncementComposer({ homeId, onPosted }: Props) {
           Pin announcement
         </label>
 
-        {isOrgAdmin && (
+        {isAdmin && (
           <div className='flex rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden text-sm'>
             <button
               type='button'

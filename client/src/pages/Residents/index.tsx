@@ -12,8 +12,8 @@ import ResidentForm from './ResidentForm'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type StatusGroup = 'urgent' | 'attention' | 'allGood'
-type FilterChip  = 'All' | 'Urgent' | 'Attention' | 'All Good'
+type StatusGroup = 'attention' | 'allGood'
+type FilterChip  = 'All' | 'Attention' | 'All Good'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -41,21 +41,17 @@ function ResidentRow({
   r,
   group,
   isFirst,
-  hasMedAlert,
   hasIposAlert,
 }: {
   r: Resident
   group: StatusGroup
   isFirst: boolean
-  hasMedAlert: boolean
   hasIposAlert: boolean
 }) {
   const navigate = useNavigate()
 
   const avatarClass =
-    group === 'urgent'
-      ? 'w-11 h-11 rounded-full bg-red-500/15 text-red-400 text-sm font-bold flex items-center justify-center shrink-0 ring-2 ring-red-400/30 ring-offset-2 ring-offset-white dark:ring-offset-zinc-900'
-      : group === 'attention'
+    group === 'attention'
       ? 'w-11 h-11 rounded-full bg-amber-500/10 text-amber-500 text-sm font-bold flex items-center justify-center shrink-0'
       : 'w-11 h-11 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 text-sm font-bold flex items-center justify-center shrink-0'
 
@@ -81,11 +77,6 @@ function ResidentRow({
 
       {/* Alert pills + chevron */}
       <div className='flex items-center gap-1'>
-        {hasMedAlert && (
-          <span className='bg-red-500/10 text-red-400 text-[10px] font-semibold px-1.5 py-0.5 rounded-md'>
-            Meds due
-          </span>
-        )}
         {hasIposAlert && (
           <span className='bg-amber-500/10 text-amber-400 text-[10px] font-semibold px-1.5 py-0.5 rounded-md'>
             IPOS
@@ -102,30 +93,23 @@ function ResidentRow({
 function Section({
   group,
   residents,
-  filedIds,
 }: {
   group: StatusGroup
   residents: Resident[]
-  filedIds: Set<string>
 }) {
   if (residents.length === 0) return null
 
   const dotClass =
-    group === 'urgent'
-      ? 'w-2 h-2 rounded-full bg-red-500'
-      : group === 'attention'
+    group === 'attention'
       ? 'w-2 h-2 rounded-full bg-amber-500'
       : 'w-2 h-2 rounded-full bg-green-500'
 
   const labelClass =
-    group === 'urgent'
-      ? 'text-xs font-semibold uppercase tracking-wide text-red-500'
-      : group === 'attention'
+    group === 'attention'
       ? 'text-xs font-semibold uppercase tracking-wide text-amber-500'
       : 'text-xs font-semibold uppercase tracking-wide text-green-500'
 
-  const label =
-    group === 'urgent' ? 'Urgent' : group === 'attention' ? 'Attention' : 'All Good'
+  const label = group === 'attention' ? 'Attention' : 'All Good'
 
   return (
     <>
@@ -146,8 +130,7 @@ function Section({
             r={r}
             group={group}
             isFirst={idx === 0}
-            hasMedAlert={group === 'urgent'}
-            hasIposAlert={group === 'attention' || (!filedIds.has(r.id) && group === 'urgent')}
+            hasIposAlert={group === 'attention'}
           />
         ))}
       </div>
@@ -160,7 +143,7 @@ function Section({
 export default function ResidentsPage() {
   const { homeId }                              = useHome()
   const { residents, loading, error, refresh }  = useResidents(homeId)
-  const { isManagerOrAbove }                     = useRole()
+  const { isAdmin }                              = useRole()
   const [search, setSearch]                     = useState('')
   const [filedIds, setFiledIds]                 = useState<Set<string>>(new Set())
   const [showAdd, setShowAdd]                   = useState(false)
@@ -186,19 +169,16 @@ export default function ResidentsPage() {
     (r.room ?? '').toLowerCase().includes(searchLower)
   )
 
-  const urgentAll    = filtered.filter(r => r.status === 'urgent')
-  const attentionAll = filtered.filter(r => r.status !== 'urgent' && !filedIds.has(r.id))
-  const allGoodAll   = filtered.filter(r => r.status !== 'urgent' && filedIds.has(r.id))
+  const attentionAll = filtered.filter(r => !filedIds.has(r.id))
+  const allGoodAll   = filtered.filter(r => filedIds.has(r.id))
 
   // Apply active filter chip
-  const urgent    = activeFilter === 'All' || activeFilter === 'Urgent'    ? urgentAll    : []
   const attention = activeFilter === 'All' || activeFilter === 'Attention' ? attentionAll : []
   const allGood   = activeFilter === 'All' || activeFilter === 'All Good'  ? allGoodAll   : []
 
   // Chip data
   const chips: { label: FilterChip; count: number }[] = [
     { label: 'All',       count: filtered.length },
-    { label: 'Urgent',    count: urgentAll.length },
     { label: 'Attention', count: attentionAll.length },
     { label: 'All Good',  count: allGoodAll.length },
   ]
@@ -208,16 +188,13 @@ export default function ResidentsPage() {
     if (isActive) {
       return 'px-3 py-1.5 rounded-full text-xs font-semibold border shrink-0 min-h-[32px] whitespace-nowrap bg-primary text-white border-primary'
     }
-    if (chip.label === 'Urgent' && chip.count > 0) {
-      return 'px-3 py-1.5 rounded-full text-xs font-semibold border shrink-0 min-h-[32px] whitespace-nowrap bg-red-500/10 text-red-500 border-red-200 dark:border-red-900/40'
-    }
     if (chip.label === 'Attention' && chip.count > 0) {
       return 'px-3 py-1.5 rounded-full text-xs font-semibold border shrink-0 min-h-[32px] whitespace-nowrap bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/40'
     }
     return 'px-3 py-1.5 rounded-full text-xs font-semibold border shrink-0 min-h-[32px] whitespace-nowrap bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700'
   }
 
-  const hasResults = urgent.length + attention.length + allGood.length > 0
+  const hasResults = attention.length + allGood.length > 0
 
   return (
     <div className='pb-8 min-h-screen bg-zinc-50 dark:bg-black'>
@@ -229,7 +206,7 @@ export default function ResidentsPage() {
       {/* Header */}
       <div className='px-4 pt-5 pb-3 flex items-center justify-between'>
         <h1 className='text-xl font-bold text-zinc-900 dark:text-white'>Residents</h1>
-        {isManagerOrAbove && homeId && (
+        {isAdmin && homeId && (
           <button
             onClick={() => setShowAdd(true)}
             className='w-8 h-8 rounded-full bg-primary flex items-center justify-center'
@@ -295,9 +272,8 @@ export default function ResidentsPage() {
         <>
           {hasResults ? (
             <>
-              <Section group='urgent'    residents={urgent}    filedIds={filedIds} />
-              <Section group='attention' residents={attention} filedIds={filedIds} />
-              <Section group='allGood'   residents={allGood}   filedIds={filedIds} />
+              <Section group='attention' residents={attention} />
+              <Section group='allGood'   residents={allGood}   />
             </>
           ) : (
             <div className='mx-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 text-center'>

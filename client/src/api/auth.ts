@@ -9,7 +9,7 @@ interface LoginResponse {
 
 interface InviteInfo {
   email:    string
-  role:     'employee' | 'manager'
+  role:     'staff'
   org_name: string
 }
 

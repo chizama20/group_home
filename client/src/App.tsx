@@ -4,7 +4,6 @@ import { AuthProvider, useAuth }    from './context/AuthContext'
 import { HomeProvider }             from './context/HomeContext'
 import { useHome }                  from './context/HomeContext'
 import ProtectedRoute               from './components/ProtectedRoute'
-import ManagerRoute                 from './components/ManagerRoute'
 import AppLayout                    from './components/AppLayout'
 import SessionWarningModal          from './components/SessionWarningModal'
 import { useInactivityTimer }       from './hooks/useInactivityTimer'
@@ -30,14 +29,13 @@ import AdminRequests      from './pages/Admin/Requests'
 import AdminRequestDetail from './pages/Admin/RequestDetail'
 import AdminOrgs          from './pages/Admin/Orgs'
 import AdminRoute         from './components/AdminRoute'
-import OrgAdminRoute      from './components/OrgAdminRoute'
+import RequireAdmin       from './components/RequireAdmin'
 
-import OrgDashboard       from './pages/OrgDashboard/index'
 import HomesPage          from './pages/Homes/index'
 import CreateHomeWizard   from './pages/Homes/CreateHomeWizard'
-import HomeDetail         from './pages/Homes/HomeDetail'
-import OrgLogsPage        from './pages/OrgLogs/index'
-import MySchedulePage      from './pages/Settings/subpages/MySchedule'
+import StaffPage          from './pages/Staff/index'
+import SchedulePage       from './pages/Schedule/index'
+import AuditLogPage       from './pages/Settings/subpages/AuditLog'
 
 function ShiftGuard({ children }: { children: React.ReactNode }) {
   const { user }   = useAuth()
@@ -139,44 +137,39 @@ function AppRoutes() {
             </ShiftGuard>
           </ProtectedRoute>
         } />
-        <Route path='/my-schedule' element={
+        <Route path='/settings/audit-log' element={
+          <RequireAdmin>
+            <AppLayout><AuditLogPage /></AppLayout>
+          </RequireAdmin>
+        } />
+        <Route path='/schedule' element={
           <ProtectedRoute>
-            <AppLayout><MySchedulePage /></AppLayout>
+            <AppLayout><SchedulePage /></AppLayout>
           </ProtectedRoute>
         } />
 
-        {/* ── Manager only ─────────────────────────────────────────────────── */}
+        {/* ── Any authenticated role (multi-home) ─────────────────────────── */}
         <Route path='/select-home' element={
-          <ManagerRoute>
+          <ProtectedRoute>
             <AppLayout><HomeSelectionPage /></AppLayout>
-          </ManagerRoute>
+          </ProtectedRoute>
         } />
 
-        {/* ── Org Admin only ─────────────────────────────────────────────────── */}
-        <Route path='/dashboard' element={
-          <OrgAdminRoute>
-            <AppLayout><OrgDashboard /></AppLayout>
-          </OrgAdminRoute>
+        {/* ── Admin only ────────────────────────────────────────────────────── */}
+        <Route path='/staff' element={
+          <RequireAdmin>
+            <AppLayout><StaffPage /></AppLayout>
+          </RequireAdmin>
         } />
         <Route path='/homes' element={
-          <OrgAdminRoute>
+          <RequireAdmin>
             <AppLayout><HomesPage /></AppLayout>
-          </OrgAdminRoute>
+          </RequireAdmin>
         } />
         <Route path='/homes/new' element={
-          <OrgAdminRoute>
+          <RequireAdmin>
             <AppLayout><CreateHomeWizard /></AppLayout>
-          </OrgAdminRoute>
-        } />
-        <Route path='/homes/:id' element={
-          <OrgAdminRoute>
-            <AppLayout><HomeDetail /></AppLayout>
-          </OrgAdminRoute>
-        } />
-        <Route path='/org-logs' element={
-          <OrgAdminRoute>
-            <AppLayout><OrgLogsPage /></AppLayout>
-          </OrgAdminRoute>
+          </RequireAdmin>
         } />
       </Routes>
     </>

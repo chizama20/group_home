@@ -1,29 +1,27 @@
-import { FastifyInstance } from 'fastify';
+﻿import { FastifyInstance } from 'fastify';
 import { RowDataPacket } from 'mysql2';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { success, failure } from '../utils/response';
-import { orgAdminOnly, managerOrAbove } from '../middleware/rbac';
+import { adminOnly } from '../middleware/rbac';
 import { logAudit } from '../utils/audit';
 import { sendInviteEmail } from '../services/email';
 
-type InviteRole = 'employee' | 'manager';
+type InviteRole = 'staff';
 
-interface InviteBody        { email: string; first_name?: string; last_name?: string; role: InviteRole; home_ids?: number[]; }
+interface InviteBody        { email: string; first_name?: string; last_name?: string; role: InviteRole; home_ids?: string[]; }
 interface IdParam           { id: string; }
 interface OrgIdParam        { orgId: string; }
 interface AnnouncementBody  { title: string; body: string; home_id?: string; is_pinned?: boolean; }
-interface OrgIncidentQuery  { home_id?: string; status?: string; severity?: string; }
-interface IposComplianceQ   { date?: string; }
 
-const VALID_INVITE_ROLES: InviteRole[] = ['employee', 'manager'];
+const VALID_INVITE_ROLES: InviteRole[] = ['staff'];
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
-  // ── GET /orgs/dashboard — org-wide stats for dashboard (org_admin only) ───
+  // â”€â”€ GET /orgs/dashboard â€” org-wide stats for dashboard (admin only) â”€â”€â”€
   fastify.get(
     '/dashboard',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
 
@@ -49,15 +47,6 @@ export default async (fastify: FastifyInstance): Promise<void> => {
         [org_id]
       );
       const totalStaff = staffResult[0]?.count ?? 0;
-
-      // Get open incidents count
-      const [incidentsResult] = await fastify.db.execute<RowDataPacket[]>(
-        `SELECT COUNT(*) as count FROM incidents i
-         JOIN homes h ON i.home_id = h.id
-         WHERE h.org_id = ? AND i.status != 'resolved'`,
-        [org_id]
-      );
-      const openIncidents = incidentsResult[0]?.count ?? 0;
 
       // Get pending invitations count
       const [pendingInvitesResult] = await fastify.db.execute<RowDataPacket[]>(
@@ -90,28 +79,11 @@ export default async (fastify: FastifyInstance): Promise<void> => {
         });
       }
 
-      // Get unsigned incidents
-      const [unsignedIncidents] = await fastify.db.execute<RowDataPacket[]>(
-        `SELECT COUNT(*) as count FROM incidents i
-         JOIN homes h ON i.home_id = h.id
-         WHERE h.org_id = ? AND i.signed_off_by IS NULL AND i.status != 'resolved'`,
-        [org_id]
-      );
-      if (unsignedIncidents[0]?.count > 0) {
-        needsAttention.push({
-          type: 'unsigned_incidents',
-          count: unsignedIncidents[0].count,
-          label: 'Incidents awaiting sign-off',
-          severity: 'warning'
-        });
-      }
-
       return reply.send(success({
         stats: {
           totalHomes,
           totalResidents,
           totalStaff,
-          openIncidents
         },
         homes,
         needsAttention
@@ -119,10 +91,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /orgs/invite — send token-based invite email (org_admin only) ───
+  // â”€â”€ POST /orgs/invite â€” send token-based invite email (admin only) â”€â”€â”€
   fastify.post<{ Body: InviteBody }>(
     '/invite',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { email, first_name, last_name, role, home_ids } = request.body;
       const { org_id, id: invited_by } = request.user;
@@ -131,7 +103,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
         return reply.code(400).send(failure('MISSING_FIELDS', 'email and role are required'));
 
       if (!VALID_INVITE_ROLES.includes(role))
-        return reply.code(400).send(failure('INVALID_ROLE', 'Role must be employee or manager'));
+        return reply.code(400).send(failure('INVALID_ROLE', 'Role must be staff'));
 
       // Check for existing pending invite for this email+org
       const [pendingInvite] = await fastify.db.execute<RowDataPacket[]>(
@@ -202,14 +174,14 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /orgs/:id/staff — list all staff in org (manager+) ───────────────
+  // â”€â”€ GET /orgs/:id/staff â€” list all staff in org (manager+) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.get<{ Params: IdParam }>(
     '/:id/staff',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
 
-      // Ignore :id — always scope to the JWT org for security
+      // Ignore :id â€” always scope to the JWT org for security
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
         `SELECT id, first_name, last_name, email, role, is_active, created_at
          FROM users
@@ -221,10 +193,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /orgs/invitations — list pending invites (org_admin only) ─────────
+  // â”€â”€ GET /orgs/invitations â€” list pending invites (admin only) â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.get(
     '/invitations',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
 
@@ -244,10 +216,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /invitations/:id/resend — resend invite with new expiry (org_admin only) ─
+  // â”€â”€ POST /invitations/:id/resend â€” resend invite with new expiry (admin only) â”€
   fastify.post<{ Params: IdParam }>(
     '/invitations/:id/resend',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
       const inviteId = request.params.id;
@@ -282,10 +254,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── DELETE /invitations/:id — cancel invitation (org_admin only) ────────────
+  // â”€â”€ DELETE /invitations/:id â€” cancel invitation (admin only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.delete<{ Params: IdParam }>(
     '/invitations/:id',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
       const inviteId = request.params.id;
@@ -304,84 +276,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /orgs/incidents — all incidents across org (org_admin only) ─────────
-  fastify.get<{ Querystring: OrgIncidentQuery }>(
-    '/incidents',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
-    async (request, reply) => {
-      const { org_id } = request.user;
-      const { home_id, status, severity } = request.query;
-
-      const filters: string[] = ['h.org_id = ?'];
-      const values: string[] = [org_id];
-
-      if (home_id) { filters.push('i.home_id = ?');   values.push(home_id); }
-      if (status)  { filters.push('i.status = ?');    values.push(status); }
-      if (severity){ filters.push('i.severity = ?');  values.push(severity); }
-
-      const [rows] = await fastify.db.execute<RowDataPacket[]>(
-        `SELECT i.*,
-                h.name          AS home_name,
-                r.first_name    AS resident_first,
-                r.last_name     AS resident_last,
-                u.first_name    AS reporter_first,
-                u.last_name     AS reporter_last
-         FROM incidents i
-         JOIN homes h    ON i.home_id    = h.id
-         JOIN residents r ON i.resident_id = r.id
-         JOIN users u    ON i.reported_by = u.id
-         WHERE ${filters.join(' AND ')}
-         ORDER BY i.created_at DESC`,
-        values
-      );
-      return reply.send(success(rows));
-    }
-  );
-
-  // ── GET /orgs/ipos-compliance — per-home IPOS compliance (org_admin only) ──
-  fastify.get<{ Querystring: IposComplianceQ }>(
-    '/ipos-compliance',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
-    async (request, reply) => {
-      const { org_id } = request.user;
-      const date = request.query.date ?? new Date().toISOString().split('T')[0];
-
-      const [rows] = await fastify.db.execute<RowDataPacket[]>(
-        `SELECT
-           h.id                                                         AS home_id,
-           h.name                                                       AS home_name,
-           COUNT(DISTINCT r.id)                                         AS total_residents,
-           COUNT(DISTINCT il.resident_id)                               AS filed_count
-         FROM homes h
-         LEFT JOIN residents r ON r.home_id = h.id AND r.is_active = 1
-         LEFT JOIN ipos_logs  il
-           ON il.home_id = h.id
-           AND il.log_date = ?
-           AND il.status IN ('submitted','approved')
-         WHERE h.org_id = ? AND h.is_active = 1
-         GROUP BY h.id, h.name
-         ORDER BY h.name`,
-        [date, org_id]
-      );
-
-      const result = (rows as RowDataPacket[]).map(r => ({
-        home_id:        r.home_id,
-        home_name:      r.home_name,
-        total_residents: Number(r.total_residents),
-        filed_count:    Number(r.filed_count),
-        percentage:     r.total_residents > 0
-          ? Math.round((Number(r.filed_count) / Number(r.total_residents)) * 100)
-          : 0,
-      }));
-
-      return reply.send(success(result));
-    }
-  );
-
-  // ── POST /orgs/:orgId/announcements — post announcement (manager+) ────────
+  // â”€â”€ POST /orgs/:orgId/announcements â€” post announcement (manager+) â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.post<{ Params: OrgIdParam; Body: AnnouncementBody }>(
     '/:orgId/announcements',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { id: posted_by, org_id } = request.user;
       const { title, body, home_id, is_pinned } = request.body;

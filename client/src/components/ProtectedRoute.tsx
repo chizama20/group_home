@@ -14,10 +14,5 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
     return <Navigate to='/setup-pin' replace />
   }
 
-  // Redirect org_admin users to their dashboard when accessing root path
-  if (user.role === 'org_admin' && location.pathname === '/') {
-    return <Navigate to='/dashboard' replace />
-  }
-
   return <>{children}</>
 }

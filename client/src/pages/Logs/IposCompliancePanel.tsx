@@ -2,10 +2,15 @@ import { useState, useEffect } from 'react'
 import { getIposCompliance } from '../../api/homes'
 import type { IposComplianceShift } from '../../api/homes'
 import { todayStr } from '../../utils/date'
-import { SHIFT_LABELS } from '../../types/log'
-import type { Shift } from '../../types/log'
+import type { ShiftType } from '../../types/schedule'
 
-const SHIFT_ORDER: Shift[] = ['day', 'evening', 'night']
+const SHIFT_ORDER: ShiftType[] = ['day', 'evening', 'night']
+
+const SHIFT_LABELS: Record<ShiftType, string> = {
+  day:     'Daytime coverage',
+  evening: 'Evening coverage',
+  night:   'Overnight coverage',
+}
 
 interface Props {
   homeId: string

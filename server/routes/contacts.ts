@@ -1,8 +1,8 @@
-import { FastifyInstance } from 'fastify';
+﻿import { FastifyInstance } from 'fastify';
 import { RowDataPacket } from 'mysql2';
 import { success, failure } from '../utils/response';
 import { canAccessHome } from '../utils/homeAccess';
-import { managerOrAbove } from '../middleware/rbac';
+import { adminOnly } from '../middleware/rbac';
 
 interface IdParam { id: string; }
 interface PatchBody {
@@ -16,10 +16,10 @@ interface PatchBody {
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
-  // ── PATCH /contacts/:id — update contact (manager+) ──────────────────────
+  // â”€â”€ PATCH /contacts/:id â€” update contact (manager+) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.patch<{ Params: IdParam; Body: PatchBody }>(
     '/:id',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const [contact] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id, resident_id FROM resident_contacts WHERE id = ? AND is_active = 1',
@@ -63,10 +63,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── DELETE /contacts/:id — soft delete contact (manager+) ────────────────
+  // â”€â”€ DELETE /contacts/:id â€” soft delete contact (manager+) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.delete<{ Params: IdParam }>(
     '/:id',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const [contact] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id, resident_id FROM resident_contacts WHERE id = ? AND is_active = 1',

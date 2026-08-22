@@ -15,22 +15,16 @@ function getInitials(first: string, last: string) {
 
 function getRoleBadge(role: string) {
   switch (role) {
-    case 'org_admin':
+    case 'admin':
       return (
         <span className='border border-amber-500/30 text-amber-400/70 text-[10px] font-medium px-2 py-0.5 rounded-full'>
-          Org Admin
-        </span>
-      )
-    case 'manager':
-      return (
-        <span className='border border-violet-400/30 text-violet-400/70 text-[10px] font-medium px-2 py-0.5 rounded-full'>
-          Manager
+          Admin
         </span>
       )
     default:
       return (
         <span className='border border-zinc-600/40 text-zinc-400 text-[10px] font-medium px-2 py-0.5 rounded-full'>
-          Employee
+          Staff
         </span>
       )
   }

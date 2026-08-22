@@ -5,8 +5,6 @@ import type { BehavioralLog } from '../../types/log'
 import type { Resident, TrackedBehavior } from '../../types/resident'
 import { formatDate, formatTime } from '../../utils/date'
 import { cn } from '../../lib/cn'
-import { useRole } from '../../utils/role'
-import ExportSheet from './ExportSheet'
 
 interface Props {
   homeId:    string
@@ -14,8 +12,6 @@ interface Props {
 }
 
 export default function BehavioralTab({ homeId, residents }: Props) {
-  const { isManagerOrAbove }          = useRole()
-  const [showExport, setShowExport]   = useState(false)
   const [logs, setLogs]               = useState<BehavioralLog[]>([])
   const [logsLoading, setLogsLoading] = useState(true)
 
@@ -88,14 +84,6 @@ export default function BehavioralTab({ homeId, residents }: Props) {
       <div className='bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 p-4 space-y-4'>
         <div className='flex items-center justify-between'>
           <p className='text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>Log Behavior</p>
-          {isManagerOrAbove && (
-            <button
-              onClick={() => setShowExport(true)}
-              className='text-xs font-semibold text-primary dark:text-primary border border-primary dark:border-primary/50 rounded-lg px-3 py-1.5 min-h-[36px] transition-colors'
-            >
-              Export PDF
-            </button>
-          )}
         </div>
 
         <div>
@@ -231,14 +219,6 @@ export default function BehavioralTab({ homeId, residents }: Props) {
           </div>
         ))}
       </div>
-
-      {showExport && (
-        <ExportSheet
-          homeId={homeId}
-          residents={residents}
-          onClose={() => setShowExport(false)}
-        />
-      )}
     </div>
   )
 }

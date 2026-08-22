@@ -1,6 +1,7 @@
 import api from './client'
 import type { ApiResponse } from '../types/api'
 import type { Shift } from '../types/log'
+import type { ShiftType } from '../types/schedule'
 
 export interface Home {
   id: string
@@ -31,7 +32,7 @@ export interface HomeStaffMember {
 }
 
 export interface IposComplianceShift {
-  shift: Shift
+  shift: ShiftType
   total_residents: number
   filed_count: number
   pending_residents: { id: string; first_name: string; last_name: string }[]

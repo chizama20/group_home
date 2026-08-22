@@ -17,14 +17,14 @@ export interface Resident {
   updated_at: string
   /** Derived field returned by GET /homes/:id/residents */
   status?: 'urgent' | 'all_good'
-  gender?: string
-  medicaid_id?: string
-  admit_date?: string
+  gender?: string | null
+  medicaid_id?: string | null
+  admit_date?: string | null
   hab_waiver?: boolean
-  loa_info?: string
-  sleep_hours?: number
+  loa_info?: string | null
+  sleep_hours?: number | null
   attends_day_program?: boolean
-  day_program_days_per_week?: number
+  day_program_days_per_week?: number | null
   discharge_date?: string
   discharged_by?: string
 }

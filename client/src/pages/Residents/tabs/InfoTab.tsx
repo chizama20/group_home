@@ -77,7 +77,7 @@ interface Props {
 
 export default function InfoTab({ resident }: Props) {
   const navigate                            = useNavigate()
-  const { isManagerOrAbove, isOrgAdmin }    = useRole()
+  const { isAdmin }                         = useRole()
   const [confirmArchive, setConfirmArchive] = useState(false)
   const [archiving,      setArchiving]      = useState(false)
 
@@ -287,13 +287,13 @@ export default function InfoTab({ resident }: Props) {
         </div>
       )}
 
-      {/* Manager: Tracked Behaviors */}
-      {isManagerOrAbove && (
+      {/* Admin: Tracked Behaviors */}
+      {isAdmin && (
         <BehaviorsSection residentId={resident.id} />
       )}
 
-      {/* Org admin: Discharge */}
-      {isOrgAdmin && (
+      {/* Admin: Discharge */}
+      {isAdmin && (
         <div className='pt-2'>
           {!confirmArchive ? (
             <button

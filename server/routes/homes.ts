@@ -1,11 +1,11 @@
-import { FastifyInstance } from 'fastify';
+﻿import { FastifyInstance } from 'fastify';
 import { RowDataPacket } from 'mysql2';
 import { v4 as uuidv4 } from 'uuid';
 import { success, failure } from '../utils/response';
-import { orgAdminOnly, managerOrAbove } from '../middleware/rbac';
+import { adminOnly } from '../middleware/rbac';
 import { canAccessHome } from '../utils/homeAccess';
 import { logAudit } from '../utils/audit';
-import { validate, createResidentSchema, createShiftNoteSchema, createIncidentSchema, paginationSchema } from '../schemas';
+import { validate, createResidentSchema, createShiftNoteSchema, paginationSchema } from '../schemas';
 
 interface HomeBody   { name: string; address?: string; phone?: string; capacity?: number; facility_type?: string; }
 interface HomeParam  { id: string; }
@@ -31,11 +31,6 @@ interface BehavioralLogBody {
   resident_id: string; behavior_id: string; notes?: string; occurred_at: string;
 }
 
-interface IncidentBody {
-  resident_id: string; incident_type: string; severity: 'low' | 'medium' | 'high';
-  description: string; occurred_at: string;
-}
-
 interface ShiftNoteBody {
   resident_id?: string; shift: 'day' | 'evening' | 'night';
   shift_date: string; content: string; flagged?: boolean;
@@ -51,21 +46,19 @@ interface AppointmentBody {
 
 interface AppointmentQuery { from?: string; days?: string; }
 
-interface TaskBody { title: string; description?: string; due_date?: string; }
-
 interface RosterBody { user_id: string; shift: 'day' | 'evening' | 'night'; shift_date: string; }
 interface ClockBody  { shift: 'day' | 'evening' | 'night'; shift_date: string; }
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // HOME CRUD
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.get('/', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const { org_id, id: userId, role } = request.user;
     let rows: RowDataPacket[];
-    if (role === 'org_admin') {
+    if (role === 'admin') {
       [rows] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT * FROM homes WHERE org_id = ? AND is_active = 1 ORDER BY name', [org_id]
       );
@@ -82,7 +75,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
   fastify.post<{ Body: HomeBody }>(
     '/',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id, id: userId } = request.user;
       const { name, address, phone, capacity, facility_type } = request.body;
@@ -116,7 +109,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
   fastify.patch<{ Params: HomeParam; Body: HomeBody }>(
     '/:id',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
       const { name, address } = request.body;
@@ -134,7 +127,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
   fastify.patch<{ Params: HomeParam }>(
     '/:id/archive',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
       const [check] = await fastify.db.execute<RowDataPacket[]>(
@@ -146,13 +139,13 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // STAFF
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.get<{ Params: HomeParam }>(
     '/:id/staff',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
       const [check] = await fastify.db.execute<RowDataPacket[]>(
@@ -171,7 +164,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
   fastify.post<{ Params: HomeParam; Body: AssignBody }>(
     '/:id/staff',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id, id: addedBy } = request.user;
       const { userId } = request.body;
@@ -195,7 +188,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
   fastify.delete<{ Params: StaffParam }>(
     '/:id/staff/:userId',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
       const { id: homeId, userId } = request.params;
@@ -210,9 +203,9 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // RESIDENTS
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.get<{ Params: HomeParam; Querystring: { page?: string; limit?: string; search?: string } }>(
     '/:id/residents',
@@ -245,15 +238,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       );
 
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
-        `SELECT r.*,
-           CASE WHEN COUNT(i.id) > 0 THEN 'urgent' ELSE 'all_good' END AS status
+        `SELECT r.*
          FROM residents r
-         LEFT JOIN incidents i ON i.resident_id = r.id AND i.status = 'open'
          WHERE ${where}
-         GROUP BY r.id
-         ORDER BY
-           CASE WHEN COUNT(i.id) > 0 THEN 0 ELSE 1 END,
-           r.last_name, r.first_name
+         ORDER BY r.last_name, r.first_name
          LIMIT ? OFFSET ?`,
         [...values, Number(pg.limit), Number(offset)]
       );
@@ -264,7 +252,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
   fastify.post<{ Params: HomeParam; Body: ResidentBody }>(
     '/:id/residents',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { id: created_by, org_id } = request.user;
       const homeId = request.params.id;
@@ -310,7 +298,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /:id/ipos-logs — list structured IPOS logs for a home ───────────
+  // â”€â”€ GET /:id/ipos-logs â€” list structured IPOS logs for a home â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.get<{ Params: HomeParam; Querystring: { date?: string; status?: string; resident_id?: string } }>(
     '/:id/ipos-logs',
     { preHandler: [fastify.authenticate] },
@@ -343,10 +331,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /:id/ipos-logs/review-queue — submitted logs pending manager review
+  // â”€â”€ GET /:id/ipos-logs/review-queue â€” submitted logs pending manager review
   fastify.get<{ Params: HomeParam }>(
     '/:id/ipos-logs/review-queue',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
       const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
@@ -375,9 +363,9 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // MEDICATIONS
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.get<{ Params: HomeParam }>(
     '/:id/medications',
@@ -402,57 +390,9 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /homes/:id/mar?date=YYYY-MM-DD — daily MAR across all residents ──────
-  fastify.get<{ Params: HomeParam; Querystring: { date?: string } }>(
-    '/:id/mar',
-    { preHandler: [fastify.authenticate] },
-    async (request, reply) => {
-      const { org_id } = request.user;
-      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
-        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
-      );
-      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
-      if (!await canAccessHome(fastify, request.user, request.params.id))
-        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
-
-      const date = request.query.date ?? new Date().toISOString().split('T')[0];
-
-      // All active meds for the home + their log entry for the requested date
-      const [rows] = await fastify.db.execute<RowDataPacket[]>(
-        `SELECT
-           r.id            AS resident_id,
-           r.first_name    AS resident_first,
-           r.last_name     AS resident_last,
-           r.room,
-           m.id            AS medication_id,
-           m.name          AS med_name,
-           m.dosage        AS med_dosage,
-           m.frequency     AS med_frequency,
-           m.scheduled_time,
-           m.instructions,
-           ml.id           AS log_id,
-           ml.outcome,
-           ml.notes        AS log_notes,
-           ml.administered_at,
-           ml.scheduled_date,
-           u.first_name    AS admin_first,
-           u.last_name     AS admin_last
-         FROM residents r
-         JOIN medications m ON m.resident_id = r.id AND m.is_active = 1
-         LEFT JOIN medication_logs ml
-           ON ml.medication_id = m.id AND ml.scheduled_date = ?
-         LEFT JOIN users u ON ml.administered_by = u.id
-         WHERE r.home_id = ? AND r.is_active = 1
-         ORDER BY m.scheduled_time, r.last_name, r.first_name`,
-        [date, request.params.id]
-      );
-      return reply.send(success(rows));
-    }
-  );
-
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // IPOS LOGS
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.get<{ Params: HomeParam; Querystring: { date?: string; shift?: string } }>(
     '/:id/ipos',
@@ -485,10 +425,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // IPOS compliance summary — filed vs pending per shift (manager+)
+  // IPOS compliance summary â€” filed vs pending per shift (manager+)
   fastify.get<{ Params: HomeParam; Querystring: { date?: string } }>(
     '/:id/ipos/compliance',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
       const homeId = request.params.id;
@@ -574,9 +514,9 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // BEHAVIORAL LOGS
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.get<{ Params: HomeParam }>(
     '/:id/behavioral-logs',
@@ -645,79 +585,9 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // INCIDENTS
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  fastify.get<{ Params: HomeParam; Querystring: { status?: string } }>(
-    '/:id/incidents',
-    { preHandler: [fastify.authenticate] },
-    async (request, reply) => {
-      const { org_id } = request.user;
-      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
-        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
-      );
-      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
-      if (!await canAccessHome(fastify, request.user, request.params.id))
-        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
-
-      const { status } = request.query;
-      const filters: string[] = ['i.home_id = ?'];
-      const values: string[] = [request.params.id];
-      if (status) { filters.push('i.status = ?'); values.push(status); }
-
-      const [rows] = await fastify.db.execute<RowDataPacket[]>(
-        `SELECT i.*, r.first_name as resident_first, r.last_name as resident_last,
-                u.first_name as reporter_first, u.last_name as reporter_last
-         FROM incidents i
-         JOIN residents r ON i.resident_id = r.id
-         JOIN users u ON i.reported_by = u.id
-         WHERE ${filters.join(' AND ')}
-         ORDER BY i.created_at DESC`,
-        values
-      );
-      return reply.send(success(rows));
-    }
-  );
-
-  fastify.post<{ Params: HomeParam; Body: IncidentBody }>(
-    '/:id/incidents',
-    { preHandler: [fastify.authenticate] },
-    async (request, reply) => {
-      const { id: reported_by, org_id } = request.user;
-      const homeId = request.params.id;
-
-      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
-        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
-      );
-      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
-      if (!await canAccessHome(fastify, request.user, homeId))
-        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
-
-      const parsedIncident = validate(createIncidentSchema, request.body);
-      if (!parsedIncident.success) return reply.code(400).send(failure('VALIDATION_ERROR', parsedIncident.message));
-
-      const { resident_id, incident_type, severity, description, occurred_at } = parsedIncident.data;
-
-      const [resCheck] = await fastify.db.execute<RowDataPacket[]>(
-        'SELECT id FROM residents WHERE id = ? AND home_id = ?', [resident_id, homeId]
-      );
-      if (!resCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found in this home'));
-
-      const title = `${incident_type} — ${severity.charAt(0).toUpperCase() + severity.slice(1)}`;
-      const id = uuidv4();
-      await fastify.db.execute(
-        `INSERT INTO incidents (id, resident_id, home_id, reported_by, title, description, incident_type, severity, occurred_at, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'open')`,
-        [id, resident_id, homeId, reported_by, title, description, incident_type, severity, occurred_at]
-      );
-      return reply.code(201).send(success({ id }));
-    }
-  );
-
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // SHIFT NOTES
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.get<{ Params: HomeParam; Querystring: { shift?: string; date?: string } }>(
     '/:id/shift-notes',
@@ -780,9 +650,9 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // ANNOUNCEMENTS
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   // Returns home-specific AND org-wide (home_id IS NULL) announcements
   fastify.get<{ Params: HomeParam }>(
@@ -808,9 +678,9 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // APPOINTMENTS
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.get<{ Params: HomeParam; Querystring: AppointmentQuery }>(
     '/:id/appointments',
@@ -885,60 +755,9 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // TASKS
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  fastify.get<{ Params: HomeParam }>(
-    '/:id/tasks',
-    { preHandler: [fastify.authenticate] },
-    async (request, reply) => {
-      const { org_id } = request.user;
-      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
-        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [request.params.id, org_id]
-      );
-      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
-      if (!await canAccessHome(fastify, request.user, request.params.id))
-        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
-
-      const [rows] = await fastify.db.execute<RowDataPacket[]>(
-        `SELECT t.*, u.first_name as created_by_first, u.last_name as created_by_last
-         FROM tasks t JOIN users u ON t.created_by = u.id
-         WHERE t.home_id = ? AND t.completed_at IS NULL
-         ORDER BY t.due_date, t.created_at`,
-        [request.params.id]
-      );
-      return reply.send(success(rows));
-    }
-  );
-
-  fastify.post<{ Params: HomeParam; Body: TaskBody }>(
-    '/:id/tasks',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
-    async (request, reply) => {
-      const { id: created_by, org_id } = request.user;
-      const homeId = request.params.id;
-
-      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
-        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
-      );
-      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
-
-      const { title, description, due_date } = request.body;
-      if (!title) return reply.code(400).send(failure('MISSING_FIELDS', 'title is required'));
-
-      const id = uuidv4();
-      await fastify.db.execute(
-        'INSERT INTO tasks (id, home_id, created_by, title, description, due_date) VALUES (?, ?, ?, ?, ?, ?)',
-        [id, homeId, created_by, title, description ?? null, due_date ?? null]
-      );
-      return reply.code(201).send(success({ id }));
-    }
-  );
-
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // ROSTER
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.get<{ Params: HomeParam }>(
     '/:id/roster',
@@ -963,10 +782,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // Add staff to shift — emergency override (manager+)
+  // Add staff to shift â€” emergency override (manager+)
   fastify.post<{ Params: HomeParam; Body: RosterBody }>(
     '/:id/roster',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
       const homeId = request.params.id;
@@ -989,10 +808,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // Remove a roster entry — manager override (manager+)
+  // Remove a roster entry â€” manager override (manager+)
   fastify.delete<{ Params: { id: string; entryId: string } }>(
     '/:id/roster/:entryId',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
       const { id: homeId, entryId } = request.params;
@@ -1012,7 +831,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // Clock in — sets clocked_in_at for current user (employee+)
+  // Clock in â€” sets clocked_in_at for current user (employee+)
   fastify.post<{ Params: HomeParam; Body: ClockBody }>(
     '/:id/roster/clockin',
     { preHandler: [fastify.authenticate] },
@@ -1041,7 +860,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // Clock out — sets clocked_out_at for current user (employee+)
+  // Clock out â€” sets clocked_out_at for current user (employee+)
   fastify.post<{ Params: HomeParam; Body: ClockBody }>(
     '/:id/roster/clockout',
     { preHandler: [fastify.authenticate] },
@@ -1063,7 +882,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
         [homeId, user_id, shift, shift_date]
       );
       if (!rosterCheck[0])
-        return reply.code(404).send(failure('NOT_FOUND', 'No roster entry found — clock in first'));
+        return reply.code(404).send(failure('NOT_FOUND', 'No roster entry found â€” clock in first'));
 
       await fastify.db.execute(
         'UPDATE shift_roster SET clocked_out_at = NOW() WHERE home_id = ? AND user_id = ? AND shift = ? AND shift_date = ?',
@@ -1073,113 +892,4 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // DASHBOARD — single-call aggregate for the home dashboard
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  fastify.get<{ Params: HomeParam; Querystring: { shift?: string; date?: string } }>(
-    '/:id/dashboard',
-    { preHandler: [fastify.authenticate] },
-    async (request, reply) => {
-      const { org_id } = request.user;
-      const homeId = request.params.id;
-
-      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
-        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
-      );
-      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
-      if (!await canAccessHome(fastify, request.user, homeId))
-        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
-
-      const { shift, date } = request.query;
-      const today = date ?? new Date().toISOString().slice(0, 10);
-
-      const [
-        [announcements],
-        [residents],
-        [medications],
-        [iposLogs],
-        [appointments],
-        [tasks],
-        [roster],
-        [incidents],
-      ] = await Promise.all([
-        fastify.db.execute<RowDataPacket[]>(
-          `SELECT a.*, u.first_name as poster_first, u.last_name as poster_last
-           FROM announcements a JOIN users u ON a.posted_by = u.id
-           WHERE a.org_id = ? AND (a.home_id = ? OR a.home_id IS NULL)
-           ORDER BY a.is_pinned DESC, a.created_at DESC LIMIT 10`,
-          [org_id, homeId]
-        ),
-        fastify.db.execute<RowDataPacket[]>(
-          `SELECT id, first_name, last_name, room, is_active FROM residents WHERE home_id = ? AND is_active = 1`,
-          [homeId]
-        ),
-        fastify.db.execute<RowDataPacket[]>(
-          `SELECT m.id, m.scheduled_time, m.is_active FROM medications m
-           JOIN residents r ON m.resident_id = r.id
-           WHERE r.home_id = ? AND m.is_active = 1`,
-          [homeId]
-        ),
-        fastify.db.execute<RowDataPacket[]>(
-          `SELECT il.resident_id FROM ipos_logs il
-           WHERE il.home_id = ? AND il.log_date = ?${shift ? ' AND il.shift = ?' : ''}`,
-          shift ? [homeId, today, shift] : [homeId, today]
-        ),
-        fastify.db.execute<RowDataPacket[]>(
-          `SELECT a.*, u.first_name as scheduled_by_first, u.last_name as scheduled_by_last,
-                  r.first_name as resident_first, r.last_name as resident_last
-           FROM appointments a
-           JOIN users u ON a.scheduled_by = u.id
-           JOIN residents r ON a.resident_id = r.id
-           WHERE a.home_id = ? AND a.appointment_date >= CURDATE() AND a.appointment_date < DATE_ADD(CURDATE(), INTERVAL 3 DAY)
-           ORDER BY a.appointment_date, a.appointment_time LIMIT 10`,
-          [homeId]
-        ),
-        fastify.db.execute<RowDataPacket[]>(
-          `SELECT t.id, t.home_id, t.title, t.description, t.due_date, t.status,
-                  t.claimed_by, t.claimed_at, t.completed_at, t.created_at
-           FROM tasks t
-           WHERE t.home_id = ? AND t.status != 'completed'
-           ORDER BY t.due_date ASC LIMIT 20`,
-          [homeId]
-        ),
-        fastify.db.execute<RowDataPacket[]>(
-          `SELECT sr.*, u.first_name, u.last_name FROM shift_roster sr
-           JOIN users u ON sr.user_id = u.id
-           WHERE sr.home_id = ? AND sr.shift_date = ?${shift ? ' AND sr.shift = ?' : ''}`,
-          shift ? [homeId, today, shift] : [homeId, today]
-        ),
-        fastify.db.execute<RowDataPacket[]>(
-          `SELECT i.id, i.status, i.severity, i.resident_id FROM incidents i
-           WHERE i.home_id = ? AND i.status = 'open'`,
-          [homeId]
-        ),
-      ]);
-
-      return reply.send(success({
-        announcements,
-        residents,
-        appointments,
-        tasks,
-        roster,
-        openIncidents: incidents,
-        stats: {
-          residentCount:    residents.length,
-          overdueMedCount:  medications.filter((m: RowDataPacket) => {
-            if (!m.scheduled_time) return false;
-            const now = new Date();
-            const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-            return String(m.scheduled_time).slice(0,5) <= hhmm;
-          }).length,
-          unfiledIposCount: residents.filter((r: RowDataPacket) =>
-            !iposLogs.some((l: RowDataPacket) => l.resident_id === r.id)
-          ).length,
-          openIncidentCount: incidents.length,
-          staffOnShiftCount: (roster as RowDataPacket[]).filter((r: RowDataPacket) => r.clocked_in_at && !r.clocked_out_at).length,
-          isShiftActive:     (roster as RowDataPacket[]).some((r: RowDataPacket) => r.clocked_in_at && !r.clocked_out_at),
-        },
-      }));
-    }
-  );
 };

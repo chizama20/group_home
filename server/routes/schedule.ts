@@ -1,8 +1,8 @@
-import { FastifyInstance } from 'fastify';
+﻿import { FastifyInstance } from 'fastify';
 import { RowDataPacket } from 'mysql2';
 import { v4 as uuidv4 } from 'uuid';
 import { success, failure } from '../utils/response';
-import { managerOrAbove } from '../middleware/rbac';
+import { adminOnly } from '../middleware/rbac';
 import { canAccessHome, getAccessibleHomeIds } from '../utils/homeAccess';
 import { logAudit } from '../utils/audit';
 import {
@@ -10,7 +10,7 @@ import {
   sendShiftRequestReviewedEmail,
 } from '../services/email';
 
-// ── interfaces ────────────────────────────────────────────────────────────────
+// â”€â”€ interfaces â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface HomeParam   { homeId: string; }
 interface SlotParam   { homeId: string; slotId: string; }
@@ -47,7 +47,16 @@ interface ReviewRequestBody {
 
 const VALID_SHIFT_TYPES = ['day', 'evening', 'night'];
 
-// ── helpers ───────────────────────────────────────────────────────────────────
+interface CreateTradeBody { slot_id: string; reason?: string; }
+
+// â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+/** Default true (opt-out model) — a user with no prefs saved yet still gets schedule emails. */
+function wantsScheduleChangeEmail(notificationPrefs: unknown): boolean {
+  if (!notificationPrefs || typeof notificationPrefs !== 'object') return true;
+  const prefs = notificationPrefs as Record<string, unknown>;
+  return prefs.schedule_changes !== false;
+}
 
 /** Returns the 7-day window [monday, sunday] for a given ISO date string */
 function weekWindow(week: string): { start: string; end: string } {
@@ -59,18 +68,18 @@ function weekWindow(week: string): { start: string; end: string } {
   return { start, end };
 }
 
-// ── route plugin ──────────────────────────────────────────────────────────────
+// â”€â”€ route plugin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // GET /homes/:homeId/schedule
   // Returns all shift_slots for a 7-day week, grouped by date then shift_type
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.get<{ Params: HomeParam; Querystring: WeekQuery }>(
     '/homes/:homeId/schedule',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { homeId } = request.params;
       const { org_id } = request.user;
@@ -95,7 +104,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
         [homeId, start, end]
       );
 
-      // Group by date → shift_type
+      // Group by date â†’ shift_type
       const grouped: Record<string, Record<string, RowDataPacket[]>> = {};
       for (const row of rows as RowDataPacket[]) {
         const dateKey  = String(row.date).split('T')[0];
@@ -109,13 +118,13 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // POST /homes/:homeId/schedule/slots — create a slot
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // POST /homes/:homeId/schedule/slots â€” create a slot
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.post<{ Params: HomeParam; Body: CreateSlotBody }>(
     '/homes/:homeId/schedule/slots',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { homeId } = request.params;
       const { org_id, id: created_by } = request.user;
@@ -157,13 +166,13 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PATCH /homes/:homeId/schedule/slots/:slotId — update a slot
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // PATCH /homes/:homeId/schedule/slots/:slotId â€” update a slot
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.patch<{ Params: SlotParam; Body: PatchSlotBody }>(
     '/homes/:homeId/schedule/slots/:slotId',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { homeId, slotId } = request.params;
       const { org_id, id: userId } = request.user;
@@ -222,13 +231,13 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // DELETE /homes/:homeId/schedule/slots/:slotId — hard delete a slot
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // DELETE /homes/:homeId/schedule/slots/:slotId â€” hard delete a slot
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.delete<{ Params: SlotParam }>(
     '/homes/:homeId/schedule/slots/:slotId',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { homeId, slotId } = request.params;
       const { org_id, id: userId } = request.user;
@@ -257,10 +266,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // GET /homes/:homeId/schedule/requests
   // Managers see all; employees see only their own
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.get<{ Params: HomeParam }>(
     '/homes/:homeId/schedule/requests',
@@ -276,9 +285,9 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       if (!await canAccessHome(fastify, request.user, homeId))
         return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
 
-      const isManager = role === 'manager' || role === 'org_admin';
+      const isManager = role === 'admin';
 
-      const filters: string[] = ['sr.home_id = ?'];
+      const filters: string[] = ['sr.home_id = ?', "sr.type = 'time_off'"];
       const values: string[] = [homeId];
 
       if (!isManager) {
@@ -306,9 +315,9 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // POST /homes/:homeId/schedule/requests — staff submits time-off request
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // POST /homes/:homeId/schedule/requests â€” staff submits time-off request
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.post<{ Params: HomeParam; Body: CreateRequestBody }>(
     '/homes/:homeId/schedule/requests',
@@ -361,14 +370,15 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
       // Email all managers of this home
       const [managers] = await fastify.db.execute<RowDataPacket[]>(
-        `SELECT u.email FROM users u
+        `SELECT u.email, u.notification_prefs FROM users u
          JOIN home_staff hs ON u.id = hs.user_id
-         WHERE hs.home_id = ? AND u.role IN ('manager', 'org_admin') AND u.is_active = 1`,
+         WHERE hs.home_id = ? AND u.role = 'admin' AND u.is_active = 1`,
         [homeId]
       );
 
       const homeName = String(homeCheck[0].name ?? homeId);
       for (const mgr of managers as RowDataPacket[]) {
+        if (!wantsScheduleChangeEmail(mgr.notification_prefs)) continue;
         void sendShiftRequestSubmittedEmail(
           String(mgr.email),
           requesterName,
@@ -382,13 +392,13 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PATCH /homes/:homeId/schedule/requests/:requestId — manager approves/denies
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // PATCH /homes/:homeId/schedule/requests/:requestId â€” manager approves/denies
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.patch<{ Params: RequestParam; Body: ReviewRequestBody }>(
     '/homes/:homeId/schedule/requests/:requestId',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { homeId, requestId } = request.params;
       const { org_id, id: reviewerId } = request.user;
@@ -402,7 +412,8 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
       const [reqCheck] = await fastify.db.execute<RowDataPacket[]>(
         `SELECT sr.id, sr.slot_id, sr.status, sr.requester_id, sr.date, sr.shift_type,
-                u.email AS requester_email, u.first_name AS requester_first, u.last_name AS requester_last
+                u.email AS requester_email, u.first_name AS requester_first, u.last_name AS requester_last,
+                u.notification_prefs
          FROM shift_requests sr
          JOIN users u ON sr.requester_id = u.id
          WHERE sr.id = ? AND sr.home_id = ?`,
@@ -452,23 +463,288 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       });
 
       // Email requester
-      const requesterEmail = String(shiftReq.requester_email);
-      const requesterName  = `${String(shiftReq.requester_first)} ${String(shiftReq.requester_last)}`;
-      void sendShiftRequestReviewedEmail(
-        requesterEmail,
-        requesterName,
-        status,
-        String(shiftReq.date),
-        String(shiftReq.shift_type)
-      ).catch(() => { /* non-fatal */ });
+      if (wantsScheduleChangeEmail(shiftReq.notification_prefs)) {
+        const requesterEmail = String(shiftReq.requester_email);
+        const requesterName  = `${String(shiftReq.requester_first)} ${String(shiftReq.requester_last)}`;
+        void sendShiftRequestReviewedEmail(
+          requesterEmail,
+          requesterName,
+          status,
+          String(shiftReq.date),
+          String(shiftReq.shift_type)
+        ).catch(() => { /* non-fatal */ });
+      }
 
       return reply.send(success({ message: `Request ${status}` }));
     }
   );
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // GET /schedule/my-slots — upcoming slots for the authenticated user
-  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ── POST /homes/:homeId/schedule/trades — staff offers one of their own slots ──
+
+  fastify.post<{ Params: HomeParam; Body: CreateTradeBody }>(
+    '/homes/:homeId/schedule/trades',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { homeId } = request.params;
+      const { org_id, id: requesterId } = request.user;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, homeId))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const { slot_id, reason } = request.body;
+      if (!slot_id)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'slot_id is required'));
+
+      // Verify the slot belongs to this requester, this home, is still scheduled, and hasn't passed
+      const [slotCheck] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT id, date, shift_type FROM shift_slots
+         WHERE id = ? AND home_id = ? AND user_id = ? AND status = 'scheduled' AND date >= CURDATE()`,
+        [slot_id, homeId, requesterId]
+      );
+      if (!slotCheck[0])
+        return reply.code(403).send(failure('FORBIDDEN', 'Slot does not belong to you, is not upcoming, or does not exist in this home'));
+
+      // Only one open trade offer per slot at a time
+      const [existing] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT id FROM shift_requests WHERE slot_id = ? AND type = 'trade' AND status = 'pending'`,
+        [slot_id]
+      );
+      if (existing[0])
+        return reply.code(409).send(failure('CONFLICT', 'This shift is already offered for trade'));
+
+      const slot = slotCheck[0];
+      const id = uuidv4();
+      await fastify.db.execute(
+        `INSERT INTO shift_requests (id, home_id, requester_id, slot_id, type, date, shift_type, reason, status)
+         VALUES (?, ?, ?, ?, 'trade', ?, ?, ?, 'pending')`,
+        [id, homeId, requesterId, slot_id, slot.date, slot.shift_type, reason ?? null]
+      );
+
+      void logAudit(fastify, {
+        org_id, user_id: requesterId,
+        action: 'CREATE', entity_type: 'shift_request', entity_id: id,
+        description: `Offered shift for trade: ${String(slot.date)} (${String(slot.shift_type)})`,
+      });
+
+      return reply.code(201).send(success({ id }));
+    }
+  );
+
+  // ── GET /homes/:homeId/schedule/trades — { open, mine } ──────────────────
+
+  fastify.get<{ Params: HomeParam }>(
+    '/homes/:homeId/schedule/trades',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { homeId } = request.params;
+      const { org_id, id: userId } = request.user;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, homeId))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const selectCols = `sr.id, sr.slot_id, sr.date, sr.shift_type, sr.reason, sr.status,
+                req.id AS requester_id, req.first_name AS requester_first, req.last_name AS requester_last,
+                sr.replacement_user_id, sr.reviewed_at, sr.created_at`;
+
+      const [open] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT ${selectCols}
+         FROM shift_requests sr
+         JOIN users req ON sr.requester_id = req.id
+         WHERE sr.home_id = ? AND sr.type = 'trade' AND sr.status = 'pending' AND sr.requester_id != ?
+         ORDER BY sr.date ASC`,
+        [homeId, userId]
+      );
+
+      const [mine] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT ${selectCols}
+         FROM shift_requests sr
+         JOIN users req ON sr.requester_id = req.id
+         WHERE sr.home_id = ? AND sr.type = 'trade' AND sr.requester_id = ?
+         ORDER BY sr.created_at DESC`,
+        [homeId, userId]
+      );
+
+      return reply.send(success({ open, mine }));
+    }
+  );
+
+  // ── POST /homes/:homeId/schedule/trades/:requestId/claim — claim an open trade ──
+
+  fastify.post<{ Params: RequestParam }>(
+    '/homes/:homeId/schedule/trades/:requestId/claim',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { homeId, requestId } = request.params;
+      const { org_id, id: claimerId } = request.user;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, homeId))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      // Verify claimer is staff at this home
+      const [claimerCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT u.id FROM users u JOIN home_staff hs ON u.id = hs.user_id WHERE u.id = ? AND hs.home_id = ?',
+        [claimerId, homeId]
+      );
+      if (!claimerCheck[0])
+        return reply.code(403).send(failure('FORBIDDEN', 'You are not assigned to this home'));
+
+      const conn = await fastify.db.getConnection();
+      try {
+        await conn.beginTransaction();
+
+        const [reqRows] = await conn.execute<RowDataPacket[]>(
+          `SELECT id, slot_id, type, status, requester_id, date, shift_type
+           FROM shift_requests WHERE id = ? AND home_id = ? FOR UPDATE`,
+          [requestId, homeId]
+        );
+        const shiftReq = reqRows[0];
+        if (!shiftReq) {
+          await conn.rollback();
+          return reply.code(404).send(failure('NOT_FOUND', 'Trade offer not found'));
+        }
+        if (shiftReq.type !== 'trade' || shiftReq.status !== 'pending') {
+          await conn.rollback();
+          return reply.code(409).send(failure('CONFLICT', 'This trade offer is no longer available'));
+        }
+        if (shiftReq.requester_id === claimerId) {
+          await conn.rollback();
+          return reply.code(400).send(failure('INVALID', 'You cannot claim your own shift offer'));
+        }
+
+        await conn.execute(
+          `UPDATE shift_requests
+           SET status = 'approved', replacement_user_id = ?, reviewed_by = ?, reviewed_at = NOW(), updated_at = NOW()
+           WHERE id = ?`,
+          [claimerId, claimerId, requestId]
+        );
+
+        if (shiftReq.slot_id) {
+          await conn.execute(
+            'UPDATE shift_slots SET user_id = ?, updated_at = NOW() WHERE id = ?',
+            [claimerId, shiftReq.slot_id]
+          );
+        }
+
+        await conn.commit();
+      } catch (err) {
+        await conn.rollback();
+        throw err;
+      } finally {
+        conn.release();
+      }
+
+      void logAudit(fastify, {
+        org_id, user_id: claimerId,
+        action: 'UPDATE', entity_type: 'shift_request', entity_id: requestId,
+        description: `Shift trade claimed by ${claimerId}`,
+      });
+
+      return reply.send(success({ message: 'Shift claimed' }));
+    }
+  );
+
+  // ── POST /homes/:homeId/schedule/trades/:requestId/cancel — requester withdraws ──
+
+  fastify.post<{ Params: RequestParam }>(
+    '/homes/:homeId/schedule/trades/:requestId/cancel',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { homeId, requestId } = request.params;
+      const { org_id, id: userId } = request.user;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, homeId))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const [reqRows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT id, requester_id, status FROM shift_requests WHERE id = ? AND home_id = ? AND type = 'trade'`,
+        [requestId, homeId]
+      );
+      if (!reqRows[0]) return reply.code(404).send(failure('NOT_FOUND', 'Trade offer not found'));
+      if (reqRows[0].requester_id !== userId)
+        return reply.code(403).send(failure('FORBIDDEN', 'You can only cancel your own trade offers'));
+      if (reqRows[0].status !== 'pending')
+        return reply.code(409).send(failure('CONFLICT', 'This trade offer can no longer be cancelled'));
+
+      await fastify.db.execute(
+        `UPDATE shift_requests SET status = 'cancelled', updated_at = NOW() WHERE id = ?`,
+        [requestId]
+      );
+
+      void logAudit(fastify, {
+        org_id, user_id: userId,
+        action: 'UPDATE', entity_type: 'shift_request', entity_id: requestId,
+        description: 'Shift trade offer cancelled',
+      });
+
+      return reply.send(success({ message: 'Trade offer cancelled' }));
+    }
+  );
+
+  // ── GET /homes/:homeId/schedule/live-roster — who's on now / on later, today ──
+
+  fastify.get<{ Params: HomeParam }>(
+    '/homes/:homeId/schedule/live-roster',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { homeId } = request.params;
+      const { org_id } = request.user;
+
+      const [homeCheck] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT id FROM homes WHERE id = ? AND org_id = ?', [homeId, org_id]
+      );
+      if (!homeCheck[0]) return reply.code(404).send(failure('NOT_FOUND', 'Home not found'));
+      if (!await canAccessHome(fastify, request.user, homeId))
+        return reply.code(403).send(failure('FORBIDDEN', 'Access denied'));
+
+      const [onNow] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT u.id AS user_id, u.first_name, u.last_name, u.phone, u.role,
+                sr.shift, sr.clocked_in_at
+         FROM shift_roster sr
+         JOIN users u ON sr.user_id = u.id
+         WHERE sr.home_id = ? AND sr.shift_date = CURDATE()
+           AND sr.clocked_in_at IS NOT NULL AND sr.clocked_out_at IS NULL
+         ORDER BY sr.clocked_in_at ASC`,
+        [homeId]
+      );
+
+      const [onLater] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT ss.id AS slot_id, u.id AS user_id, u.first_name, u.last_name, u.phone, u.role,
+                ss.shift_type, ss.date
+         FROM shift_slots ss
+         JOIN users u ON ss.user_id = u.id
+         LEFT JOIN shift_roster sr
+           ON sr.home_id = ss.home_id AND sr.user_id = ss.user_id
+          AND sr.shift = ss.shift_type AND sr.shift_date = ss.date
+         WHERE ss.home_id = ? AND ss.date = CURDATE() AND ss.status = 'scheduled'
+           AND (sr.clocked_in_at IS NULL OR sr.clocked_out_at IS NOT NULL)
+         ORDER BY FIELD(ss.shift_type, 'day', 'evening', 'night'), u.last_name`,
+        [homeId]
+      );
+
+      return reply.send(success({ onNow, onLater }));
+    }
+  );
+
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // GET /schedule/my-slots â€” upcoming slots for the authenticated user
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   fastify.get(
     '/schedule/my-slots',
@@ -478,7 +754,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
       const accessibleHomeIds = await getAccessibleHomeIds(fastify, request.user);
 
-      // org_admin with null means all homes — no restriction needed; but for safety
+      // admin with null means all homes â€” no restriction needed; but for safety
       // we still return only their own slots via user_id = ?
       let homeFilter = '';
       const values: string[] = [userId];
@@ -504,6 +780,66 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       );
 
       return reply.send(success(rows));
+    }
+  );
+
+  // ── GET /schedule/recent-changes — shift_slot/shift_request activity feed ──
+
+  fastify.get(
+    '/schedule/recent-changes',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { id: userId, org_id } = request.user;
+
+      const accessibleHomeIds = await getAccessibleHomeIds(fastify, request.user);
+      if (accessibleHomeIds !== null && accessibleHomeIds.length === 0)
+        return reply.send(success({ items: [], unseenCount: 0 }));
+
+      const [[userRow]] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT last_seen_schedule_change_at FROM users WHERE id = ?', [userId]
+      );
+      const lastSeen = userRow?.last_seen_schedule_change_at ?? null;
+
+      let scopeFilter = '';
+      const scopeValues: string[] = [];
+      if (accessibleHomeIds !== null) {
+        scopeFilter = `AND COALESCE(ss.home_id, sr.home_id) IN (${accessibleHomeIds.map(() => '?').join(',')})`;
+        scopeValues.push(...accessibleHomeIds);
+      }
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        `SELECT al.id, al.action, al.entity_type, al.entity_id, al.description, al.created_at,
+                u.first_name AS actor_first, u.last_name AS actor_last,
+                COALESCE(ss.home_id, sr.home_id) AS home_id,
+                (? IS NULL OR al.created_at > ?) AS is_new
+         FROM audit_logs al
+         LEFT JOIN users u ON al.user_id = u.id
+         LEFT JOIN shift_slots ss ON al.entity_type = 'shift_slot' AND al.entity_id = ss.id
+         LEFT JOIN shift_requests sr ON al.entity_type = 'shift_request' AND al.entity_id = sr.id
+         WHERE al.org_id = ? AND al.entity_type IN ('shift_slot', 'shift_request')
+           ${scopeFilter}
+         ORDER BY al.created_at DESC
+         LIMIT 50`,
+        [lastSeen, lastSeen, org_id, ...scopeValues]
+      );
+
+      const unseenCount = (rows as RowDataPacket[]).filter(r => Number(r.is_new) === 1).length;
+
+      return reply.send(success({ items: rows, unseenCount }));
+    }
+  );
+
+  // ── POST /schedule/recent-changes/mark-seen ───────────────────────────────
+
+  fastify.post(
+    '/schedule/recent-changes/mark-seen',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { id: userId } = request.user;
+      await fastify.db.execute(
+        'UPDATE users SET last_seen_schedule_change_at = NOW() WHERE id = ?', [userId]
+      );
+      return reply.send(success({ message: 'Marked as seen' }));
     }
   );
 };

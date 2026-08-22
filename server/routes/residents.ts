@@ -1,9 +1,9 @@
-import { FastifyInstance } from 'fastify';
+﻿import { FastifyInstance } from 'fastify';
 import { RowDataPacket } from 'mysql2';
 import { v4 as uuidv4 } from 'uuid';
 import { success, failure } from '../utils/response';
 import { canAccessHome } from '../utils/homeAccess';
-import { orgAdminOnly, managerOrAbove } from '../middleware/rbac';
+import { adminOnly } from '../middleware/rbac';
 
 interface IdParam    { id: string; }
 interface BIdParam   { id: string; bId: string; }
@@ -82,7 +82,7 @@ interface DayProgramLogBody {
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
-  // ── GET /residents/:id — single resident profile (all roles) ──────────────
+  // â”€â”€ GET /residents/:id â€” single resident profile (all roles) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.get<{ Params: IdParam }>('/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const [rows] = await fastify.db.execute<RowDataPacket[]>(
       'SELECT * FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
@@ -95,10 +95,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     return reply.send(success(rows[0]));
   });
 
-  // ── PATCH /residents/:id — edit profile fields (manager+) ───────────────
+  // â”€â”€ PATCH /residents/:id â€” edit profile fields (manager+) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.patch<{ Params: IdParam; Body: PatchBody }>(
     '/:id',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
@@ -132,10 +132,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── PATCH /residents/:id/archive — set is_active=0 (org_admin only) ───────
+  // â”€â”€ PATCH /residents/:id/archive â€” set is_active=0 (admin only) â”€â”€â”€â”€â”€â”€â”€
   fastify.patch<{ Params: IdParam }>(
     '/:id/archive',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id, home_id FROM residents WHERE id = ?', [request.params.id]
@@ -150,7 +150,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /residents/:id/behaviors — list tracked behaviors (all roles) ──────
+  // â”€â”€ GET /residents/:id/behaviors â€” list tracked behaviors (all roles) â”€â”€â”€â”€â”€â”€
   fastify.get<{ Params: IdParam }>(
     '/:id/behaviors',
     { preHandler: [fastify.authenticate] },
@@ -171,10 +171,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /residents/:id/behaviors — add tracked behavior (manager+) ────────
+  // â”€â”€ POST /residents/:id/behaviors â€” add tracked behavior (manager+) â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.post<{ Params: IdParam; Body: BehaviorBody }>(
     '/:id/behaviors',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { name, description } = request.body;
 
@@ -198,10 +198,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── DELETE /residents/:id/behaviors/:bId — delete tracked behavior (manager+)
+  // â”€â”€ DELETE /residents/:id/behaviors/:bId â€” delete tracked behavior (manager+)
   fastify.delete<{ Params: BIdParam }>(
     '/:id/behaviors/:bId',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const [resident] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
@@ -222,7 +222,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /residents/:id/medications — all meds for resident (all roles) ─────
+  // â”€â”€ GET /residents/:id/medications â€” all meds for resident (all roles) â”€â”€â”€â”€â”€
   fastify.get<{ Params: IdParam }>(
     '/:id/medications',
     { preHandler: [fastify.authenticate] },
@@ -243,10 +243,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /residents/:id/medications — add medication (manager+) ────────────
+  // â”€â”€ POST /residents/:id/medications â€” add medication (manager+) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.post<{ Params: IdParam; Body: MedicationBody }>(
     '/:id/medications',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { id: created_by } = request.user;
       const { name, dosage, frequency, scheduled_time, instructions, prescriber } = request.body;
@@ -274,78 +274,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /residents/:id/medication-logs — MAR data for a date (all roles) ───
-  fastify.get<{ Params: IdParam; Querystring: { date?: string } }>(
-    '/:id/medication-logs',
-    { preHandler: [fastify.authenticate] },
-    async (request, reply) => {
-      const [resident] = await fastify.db.execute<RowDataPacket[]>(
-        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
-      );
-      if (!resident[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
-
-      if (!await canAccessHome(fastify, request.user, resident[0].home_id))
-        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
-
-      const date = request.query.date ?? new Date().toISOString().split('T')[0];
-
-      // Return all active meds with their log for the requested date (if any)
-      const [rows] = await fastify.db.execute<RowDataPacket[]>(
-        `SELECT
-           m.id            AS medication_id,
-           m.name          AS med_name,
-           m.dosage        AS med_dosage,
-           m.frequency     AS med_frequency,
-           m.scheduled_time,
-           m.instructions,
-           ml.id           AS log_id,
-           ml.outcome,
-           ml.notes        AS log_notes,
-           ml.administered_at,
-           ml.scheduled_date,
-           u.first_name    AS admin_first,
-           u.last_name     AS admin_last
-         FROM medications m
-         LEFT JOIN medication_logs ml
-           ON ml.medication_id = m.id AND ml.scheduled_date = ?
-         LEFT JOIN users u ON ml.administered_by = u.id
-         WHERE m.resident_id = ? AND m.is_active = 1
-         ORDER BY m.scheduled_time, m.name`,
-        [date, request.params.id]
-      );
-      return reply.send(success(rows));
-    }
-  );
-
-  // ── GET /residents/:id/incidents — incident history for resident (all roles) ─
-  fastify.get<{ Params: IdParam }>(
-    '/:id/incidents',
-    { preHandler: [fastify.authenticate] },
-    async (request, reply) => {
-      const [resident] = await fastify.db.execute<RowDataPacket[]>(
-        'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
-      );
-      if (!resident[0]) return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
-
-      if (!await canAccessHome(fastify, request.user, resident[0].home_id))
-        return reply.code(404).send(failure('NOT_FOUND', 'Resident not found'));
-
-      const [rows] = await fastify.db.execute<RowDataPacket[]>(
-        `SELECT i.*,
-                r.first_name AS resident_first, r.last_name AS resident_last,
-                u.first_name AS reporter_first, u.last_name AS reporter_last
-         FROM incidents i
-         JOIN residents r ON i.resident_id = r.id
-         JOIN users u ON i.reported_by = u.id
-         WHERE i.resident_id = ?
-         ORDER BY i.created_at DESC`,
-        [request.params.id]
-      );
-      return reply.send(success(rows));
-    }
-  );
-
-  // ── GET /residents/:id/ipos — IPOS history (all roles) ────────────────────
+  // â”€â”€ GET /residents/:id/ipos â€” IPOS history (all roles) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.get<{ Params: IdParam }>(
     '/:id/ipos',
     { preHandler: [fastify.authenticate] },
@@ -370,7 +299,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /residents/:id/appointments — all appointments (all roles) ─────────
+  // â”€â”€ GET /residents/:id/appointments â€” all appointments (all roles) â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.get<{ Params: IdParam }>(
     '/:id/appointments',
     { preHandler: [fastify.authenticate] },
@@ -395,7 +324,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /residents/:id/behavioral-logs — behavioral log history (all roles) ─
+  // â”€â”€ GET /residents/:id/behavioral-logs â€” behavioral log history (all roles) â”€
   fastify.get<{ Params: IdParam }>(
     '/:id/behavioral-logs',
     { preHandler: [fastify.authenticate] },
@@ -421,10 +350,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /residents/:id/discharge — discharge resident (org_admin only) ──
+  // â”€â”€ POST /residents/:id/discharge â€” discharge resident (admin only) â”€â”€
   fastify.post<{ Params: IdParam }>(
     '/:id/discharge',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const [rows] = await fastify.db.execute<RowDataPacket[]>(
         'SELECT id, home_id FROM residents WHERE id = ? AND is_active = 1', [request.params.id]
@@ -442,7 +371,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /residents/:id/contacts — list contacts (all roles) ──────────────
+  // â”€â”€ GET /residents/:id/contacts â€” list contacts (all roles) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.get<{ Params: IdParam }>(
     '/:id/contacts',
     { preHandler: [fastify.authenticate] },
@@ -463,10 +392,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /residents/:id/contacts — add contact (manager+) ────────────────
+  // â”€â”€ POST /residents/:id/contacts â€” add contact (manager+) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.post<{ Params: IdParam; Body: ContactBody }>(
     '/:id/contacts',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { name, relationship, phone, email, is_emergency_contact, notify_on_incident } = request.body;
 
@@ -493,7 +422,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /residents/:id/goals — list goals (all roles) ────────────────────
+  // â”€â”€ GET /residents/:id/goals â€” list goals (all roles) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.get<{ Params: IdParam }>(
     '/:id/goals',
     { preHandler: [fastify.authenticate] },
@@ -514,10 +443,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /residents/:id/goals — add goal (manager+) ──────────────────────
+  // â”€â”€ POST /residents/:id/goals â€” add goal (manager+) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.post<{ Params: IdParam; Body: GoalBody }>(
     '/:id/goals',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { goal_type, code, description } = request.body;
 
@@ -541,7 +470,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /residents/:id/vitals-config — list vitals config (all roles) ────
+  // â”€â”€ GET /residents/:id/vitals-config â€” list vitals config (all roles) â”€â”€â”€â”€
   fastify.get<{ Params: IdParam }>(
     '/:id/vitals-config',
     { preHandler: [fastify.authenticate] },
@@ -562,10 +491,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /residents/:id/vitals-config — add vitals config (manager+) ─────
+  // â”€â”€ POST /residents/:id/vitals-config â€” add vitals config (manager+) â”€â”€â”€â”€â”€
   fastify.post<{ Params: IdParam; Body: VitalsConfigBody }>(
     '/:id/vitals-config',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { vital_type, label, frequency, meal_timing, target_min, target_max, unit } = request.body;
 
@@ -592,7 +521,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /residents/:id/ipos-logs — create or contribute to today's IPOS log
+  // â”€â”€ POST /residents/:id/ipos-logs â€” create or contribute to today's IPOS log
   fastify.post<{ Params: IdParam; Body: IposLogBody }>(
     '/:id/ipos-logs',
     { preHandler: [fastify.authenticate] },
@@ -641,7 +570,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /residents/:id/vitals — list vitals logs ──────────────────────────
+  // â”€â”€ GET /residents/:id/vitals â€” list vitals logs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.get<{ Params: IdParam; Querystring: VitalsLogQuery }>(
     '/:id/vitals',
     { preHandler: [fastify.authenticate] },
@@ -670,7 +599,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /residents/:id/vitals — record a vital ───────────────────────────
+  // â”€â”€ POST /residents/:id/vitals â€” record a vital â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.post<{ Params: IdParam; Body: VitalsLogBody }>(
     '/:id/vitals',
     { preHandler: [fastify.authenticate] },
@@ -712,7 +641,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── GET /residents/:id/day-program-logs — list day program logs ───────────
+  // â”€â”€ GET /residents/:id/day-program-logs â€” list day program logs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.get<{ Params: IdParam }>(
     '/:id/day-program-logs',
     { preHandler: [fastify.authenticate] },
@@ -733,7 +662,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /residents/:id/day-program-logs — log day program departure ──────
+  // â”€â”€ POST /residents/:id/day-program-logs â€” log day program departure â”€â”€â”€â”€â”€â”€
   fastify.post<{ Params: IdParam; Body: DayProgramLogBody }>(
     '/:id/day-program-logs',
     { preHandler: [fastify.authenticate] },

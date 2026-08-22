@@ -9,13 +9,8 @@ interface Props {
   onCancel: () => void
 }
 
-const STEPS = ['Email', 'Role & Home', 'Review'] as const
+const STEPS = ['Email', 'Home', 'Review'] as const
 type Step = 0 | 1 | 2
-
-const ROLES: { value: 'employee' | 'manager'; label: string; description: string }[] = [
-  { value: 'employee', label: 'Employee', description: 'Can document and view assigned residents' },
-  { value: 'manager', label: 'Manager', description: 'Can manage staff and oversee home operations' },
-]
 
 export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
   const { homes } = useHome()
@@ -23,7 +18,6 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
 
   // Form fields
   const [email, setEmail] = useState('')
-  const [role, setRole] = useState<'employee' | 'manager'>('employee')
   const [selectedHomeId, setSelectedHomeId] = useState<string | null>(null)
 
   // State
@@ -42,7 +36,7 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
       case 0:
         return email.trim().length > 0 && isValidEmail(email.trim())
       case 1:
-        return true // Role always has a default, home is optional
+        return true // Home is optional
       case 2:
         return !submitting
       default:
@@ -72,8 +66,8 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
     try {
       const res = await inviteUser({
         email: email.trim().toLowerCase(),
-        role,
-        home_id: selectedHomeId ?? undefined,
+        role: 'staff',
+        home_ids: selectedHomeId ? [selectedHomeId] : undefined,
       })
 
       if (res.data.success) {
@@ -133,39 +127,6 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
   function renderStep1() {
     return (
       <div className='space-y-4'>
-        <div>
-          <label className={labelClass}>Role</label>
-          <div className='space-y-2'>
-            {ROLES.map(r => (
-              <label
-                key={r.value}
-                className={`flex items-start gap-3 p-3 bg-white dark:bg-zinc-800 border rounded-xl cursor-pointer transition-colors ${
-                  role === r.value
-                    ? 'border-primary bg-primary dark:bg-primary/10'
-                    : 'border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700/50'
-                }`}
-              >
-                <input
-                  type='radio'
-                  name='role'
-                  value={r.value}
-                  checked={role === r.value}
-                  onChange={() => setRole(r.value)}
-                  className='mt-0.5 w-4 h-4 accent-primary'
-                />
-                <div className='flex-1 min-w-0'>
-                  <p className='text-sm font-medium text-zinc-900 dark:text-white'>
-                    {r.label}
-                  </p>
-                  <p className='text-xs text-zinc-500 dark:text-zinc-400'>
-                    {r.description}
-                  </p>
-                </div>
-              </label>
-            ))}
-          </div>
-        </div>
-
         <div>
           <label className={labelClass}>Assign to Home (Optional)</label>
           <p className='text-xs text-zinc-500 dark:text-zinc-400 mb-2'>
@@ -247,12 +208,8 @@ export default function InviteStaffWizard({ onSuccess, onCancel }: Props) {
           <div className='border-t border-zinc-200 dark:border-zinc-700 pt-3 space-y-2'>
             <div className='flex justify-between items-center'>
               <span className='text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wide'>Role</span>
-              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                role === 'manager'
-                  ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
-                  : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
-              }`}>
-                {role === 'manager' ? 'Manager' : 'Employee'}
+              <span className='text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400'>
+                Staff
               </span>
             </div>
 
