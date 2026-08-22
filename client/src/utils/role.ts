@@ -2,11 +2,9 @@ import { useAuth } from '../context/AuthContext'
 
 export function useRole() {
   const { user } = useAuth()
-  const role = user?.role ?? 'employee'
+  const role = user?.role ?? 'staff'
   return {
-    isEmployee:       role === 'employee',
-    isManager:        role === 'manager',
-    isOrgAdmin:       role === 'org_admin',
-    isManagerOrAbove: role === 'manager' || role === 'org_admin',
+    isAdmin: role === 'admin',
+    isStaff: role === 'staff',
   }
 }

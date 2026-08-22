@@ -70,11 +70,6 @@ export const createMedicationSchema = z.object({
   prescriber:     z.string().max(200).optional(),
 })
 
-export const administerMedSchema = z.object({
-  outcome: z.enum(['given', 'partial', 'refused', 'missed', 'held']),
-  notes:   z.string().max(2000).optional(),
-})
-
 // ── Shift note ─────────────────────────────────────────────────────────────
 
 const SHIFTS = ['day', 'evening', 'night'] as const
@@ -86,16 +81,6 @@ export const createShiftNoteSchema = z.object({
   shift_date:  z.string().regex(dateRegex, 'shift_date must be YYYY-MM-DD'),
   content:     z.string().min(1).max(10000),
   flagged:     z.boolean().optional(),
-})
-
-// ── Incident ───────────────────────────────────────────────────────────────
-
-export const createIncidentSchema = z.object({
-  resident_id:   z.string().uuid(),
-  incident_type: z.string().min(1).max(200),
-  severity:      z.enum(['low', 'medium', 'high']),
-  description:   z.string().min(1).max(10000),
-  occurred_at:   z.string().min(1),
 })
 
 // ── IPOS log ───────────────────────────────────────────────────────────────
@@ -115,14 +100,6 @@ export const createAnnouncementSchema = z.object({
   body:        z.string().min(1).max(10000),
   is_pinned:   z.boolean().optional(),
   send_to_all: z.boolean().optional(),
-})
-
-// ── Task ───────────────────────────────────────────────────────────────────
-
-export const createTaskSchema = z.object({
-  title:       z.string().min(1).max(300),
-  description: z.string().max(2000).optional(),
-  due_date:    z.string().regex(dateRegex).optional(),
 })
 
 // ── Appointment ────────────────────────────────────────────────────────────
@@ -154,7 +131,7 @@ export const verifySigningPinSchema = z.object({
 
 export const createInviteSchema = z.object({
   email:   z.string().email(),
-  role:    z.enum(['employee', 'manager']),
+  role:    z.enum(['staff']),
   home_id: z.string().uuid().optional(),
 })
 

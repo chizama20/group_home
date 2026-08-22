@@ -1,7 +1,7 @@
-import { FastifyInstance } from 'fastify';
+﻿import { FastifyInstance } from 'fastify';
 import { RowDataPacket } from 'mysql2';
 import { success } from '../utils/response';
-import { orgAdminOnly } from '../middleware/rbac';
+import { adminOnly } from '../middleware/rbac';
 
 interface AuditLogQuery {
   action?: string;
@@ -21,10 +21,10 @@ interface AuditLogQuery {
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
-  // ── GET /audit-logs — paginated audit logs (org_admin only) ─────────────────
+  // â”€â”€ GET /audit-logs â€” paginated audit logs (admin only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.get<{ Querystring: AuditLogQuery }>(
     '/',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
       const {

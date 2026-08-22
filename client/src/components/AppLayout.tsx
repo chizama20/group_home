@@ -7,26 +7,22 @@ import { cn } from '@/lib/utils'
 import OfflineBanner from '@/components/OfflineBanner'
 import { getTheme, toggleTheme } from '@/lib/theme'
 import {
-  Home, Users, FileText, CalendarDays, Settings,
+  Home, Users, UserCog, CalendarDays, Settings,
   Sun, Moon, ChevronLeft, ChevronRight, ChevronsUpDown,
-  Building2, ClipboardList, LayoutDashboard,
 } from 'lucide-react'
 
-// Staff navigation (employees, managers)
+// Staff navigation
 const STAFF_NAV = [
-  { to: '/',          label: 'Home',      icon: Home,         exact: true },
-  { to: '/residents', label: 'Residents', icon: Users },
-  { to: '/logs',      label: 'Logs',      icon: FileText },
-  { to: '/calendar',  label: 'Calendar',  icon: CalendarDays },
-  { to: '/settings',  label: 'Settings',  icon: Settings },
+  { to: '/',         label: 'Home',     icon: Home,        exact: true },
+  { to: '/schedule', label: 'Schedule', icon: CalendarDays },
+  { to: '/settings', label: 'Settings', icon: Settings },
 ]
 
-// Org admin navigation
-const ORG_ADMIN_NAV = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-  { to: '/homes',     label: 'Homes',     icon: Building2 },
-  { to: '/org-logs',  label: 'Org Logs',  icon: ClipboardList },
-  { to: '/calendar',  label: 'Calendar',  icon: CalendarDays },
+// Admin navigation
+const ADMIN_NAV = [
+  { to: '/',          label: 'Home',      icon: Home,     exact: true },
+  { to: '/residents', label: 'Residents', icon: Users },
+  { to: '/staff',     label: 'Staff',     icon: UserCog },
   { to: '/settings',  label: 'Settings',  icon: Settings },
 ]
 
@@ -35,13 +31,13 @@ interface Props { children: React.ReactNode }
 export default function AppLayout({ children }: Props) {
   const { user }                            = useAuth()
   const { homes, selectedHome, selectHome } = useHome()
-  const { isOrgAdmin }                      = useRole()
+  const { isAdmin }                         = useRole()
   const [collapsed, setCollapsed]           = useState(false)
   const [showHomePicker, setShowHomePicker] = useState(false)
   const [theme, setThemeState]              = useState(getTheme)
 
   // Select navigation based on role
-  const NAV_ITEMS = useMemo(() => isOrgAdmin ? ORG_ADMIN_NAV : STAFF_NAV, [isOrgAdmin])
+  const NAV_ITEMS = useMemo(() => isAdmin ? ADMIN_NAV : STAFF_NAV, [isAdmin])
 
   function handleThemeToggle() {
     const next = toggleTheme()
@@ -53,11 +49,10 @@ export default function AppLayout({ children }: Props) {
     : '??'
 
   const roleColors: Record<string, string> = {
-    org_admin: 'bg-amber-500/20 text-amber-400',
-    manager:   'bg-violet-500/20 text-violet-400',
-    employee:  'bg-zinc-700 text-zinc-300',
+    admin: 'bg-amber-500/20 text-amber-400',
+    staff: 'bg-zinc-700 text-zinc-300',
   }
-  const avatarColor = roleColors[user?.role ?? 'employee'] ?? roleColors.employee
+  const avatarColor = roleColors[user?.role ?? 'staff'] ?? roleColors.staff
 
   return (
     <div className='flex h-screen overflow-hidden bg-zinc-50 dark:bg-zinc-950'>

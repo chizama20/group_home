@@ -579,9 +579,9 @@ interface EmployeePropsExport {
 }
 
 export default function IposTab({ homeId, residents, showFab, onFabHandled }: EmployeePropsExport) {
-  const { isManagerOrAbove } = useRole()
+  const { isAdmin } = useRole()
 
-  if (isManagerOrAbove) {
+  if (isAdmin) {
     return <IposCompliancePanel homeId={homeId} />
   }
 

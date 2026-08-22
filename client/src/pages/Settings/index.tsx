@@ -2,11 +2,8 @@ import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Home,
-  Users,
-  UserPlus,
   Building2,
   ClipboardList,
-  Download,
   User,
   Lock,
   Fingerprint,
@@ -17,16 +14,15 @@ import {
   Sun,
   FileText,
   Shield,
-  CalendarDays,
   ShieldCheck,
 } from 'lucide-react'
 import { getTheme, toggleTheme } from '@/lib/theme'
 import { useAuth } from '@/context/AuthContext'
 import { useHome } from '@/context/HomeContext'
 import { useRole } from '@/utils/role'
-import InviteStaffWizard from '@/components/InviteStaffWizard'
 import EditProfileSheet from '@/components/EditProfileSheet'
 import ChangePasswordSheet from '@/components/ChangePasswordSheet'
+import NotificationPrefsSheet from '@/components/NotificationPrefsSheet'
 
 // ---------------------------------------------------------------------------
 // Sub-item row inside a collapsible section
@@ -129,12 +125,12 @@ function usePlaceholder() {
 export default function SettingsPage() {
   const { user, org, logout } = useAuth()
   const { homes } = useHome()
-  const { isOrgAdmin } = useRole()
+  const { isAdmin } = useRole()
   const navigate = useNavigate()
   const [theme, setThemeState] = useState(getTheme)
-  const [showInviteWizard, setShowInviteWizard] = useState(false)
   const [showEditProfile, setShowEditProfile] = useState(false)
   const [showChangePassword, setShowChangePassword] = useState(false)
+  const [showNotificationPrefs, setShowNotificationPrefs] = useState(false)
   const noOp = usePlaceholder()
 
   function handleThemeToggle() {
@@ -144,25 +140,19 @@ export default function SettingsPage() {
 
   // Avatar colour by role
   const avatarColor =
-    user?.role === 'org_admin'
+    user?.role === 'admin'
       ? 'bg-amber-500/20 text-amber-400'
-      : user?.role === 'manager'
-        ? 'bg-violet-500/20 text-violet-400'
-        : 'bg-zinc-700 text-zinc-300'
+      : 'bg-zinc-700 text-zinc-300'
 
   // Role badge
   const roleBadge =
-    user?.role === 'org_admin' ? (
+    user?.role === 'admin' ? (
       <span className='border border-amber-500/30 text-amber-400/70 text-[10px] font-medium px-2 py-0.5 rounded-full'>
-        Org Admin
-      </span>
-    ) : user?.role === 'manager' ? (
-      <span className='border border-violet-400/30 text-violet-400/70 text-[10px] font-medium px-2 py-0.5 rounded-full'>
-        Manager
+        Admin
       </span>
     ) : (
       <span className='border border-zinc-600/40 text-zinc-400 text-[10px] font-medium px-2 py-0.5 rounded-full'>
-        Employee
+        Staff
       </span>
     )
 
@@ -227,22 +217,9 @@ export default function SettingsPage() {
         </CollapsibleSection>
 
         {/* ---------------------------------------------------------------- */}
-        {/* My Schedule — all roles                                          */}
+        {/* Organization — admin only                                        */}
         {/* ---------------------------------------------------------------- */}
-        <CollapsibleSection title='My Schedule'>
-          <SubItem
-            isFirst
-            icon={<CalendarDays className='h-4 w-4' />}
-            chipColor='bg-primary/10 text-primary'
-            label='View Schedule & Requests'
-            onClick={() => navigate('/my-schedule')}
-          />
-        </CollapsibleSection>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Organization — org_admin only                                    */}
-        {/* ---------------------------------------------------------------- */}
-        {isOrgAdmin && (
+        {isAdmin && (
           <CollapsibleSection title='Organization'>
             <SubItem
               isFirst
@@ -262,34 +239,7 @@ export default function SettingsPage() {
               icon={<ClipboardList className='h-4 w-4' />}
               chipColor='bg-primary/10 text-primary'
               label='Audit Logs'
-              onClick={() => navigate('/org-logs?tab=audit')}
-            />
-            <SubItem
-              icon={<Download className='h-4 w-4' />}
-              chipColor='bg-emerald-500/20 text-emerald-400'
-              label='Export Records'
-              onClick={() => navigate('/org-logs?tab=exports')}
-            />
-          </CollapsibleSection>
-        )}
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Staff — org_admin only                                           */}
-        {/* ---------------------------------------------------------------- */}
-        {isOrgAdmin && (
-          <CollapsibleSection title='Staff'>
-            <SubItem
-              isFirst
-              icon={<UserPlus className='h-4 w-4' />}
-              chipColor='bg-violet-500/20 text-violet-400'
-              label='Invite Staff'
-              onClick={() => setShowInviteWizard(true)}
-            />
-            <SubItem
-              icon={<Users className='h-4 w-4' />}
-              chipColor='bg-emerald-500/20 text-emerald-400'
-              label='Manage Roles'
-              onClick={() => navigate('/homes')}
+              onClick={() => navigate('/settings/audit-log')}
             />
           </CollapsibleSection>
         )}
@@ -309,12 +259,7 @@ export default function SettingsPage() {
             icon={<Bell className='h-4 w-4' />}
             chipColor='bg-zinc-500/20 text-zinc-400'
             label='Notifications'
-            badge={
-              <span className='text-xs text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full'>
-                Coming soon
-              </span>
-            }
-            onClick={noOp}
+            onClick={() => setShowNotificationPrefs(true)}
           />
         </CollapsibleSection>
 
@@ -345,7 +290,7 @@ export default function SettingsPage() {
             }
             onClick={noOp}
           />
-          {isOrgAdmin && (
+          {isAdmin && (
             <SubItem
               icon={<ShieldCheck className='h-4 w-4' />}
               chipColor='bg-emerald-500/20 text-emerald-400'
@@ -370,14 +315,6 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Invite Staff Wizard */}
-      {showInviteWizard && (
-        <InviteStaffWizard
-          onSuccess={() => setShowInviteWizard(false)}
-          onCancel={() => setShowInviteWizard(false)}
-        />
-      )}
-
       {/* Edit Profile Sheet */}
       {showEditProfile && (
         <EditProfileSheet
@@ -391,6 +328,14 @@ export default function SettingsPage() {
         <ChangePasswordSheet
           onSuccess={() => setShowChangePassword(false)}
           onCancel={() => setShowChangePassword(false)}
+        />
+      )}
+
+      {/* Notification Prefs Sheet */}
+      {showNotificationPrefs && (
+        <NotificationPrefsSheet
+          onSuccess={() => setShowNotificationPrefs(false)}
+          onCancel={() => setShowNotificationPrefs(false)}
         />
       )}
     </div>

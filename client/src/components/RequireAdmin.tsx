@@ -3,8 +3,8 @@ import { useRole } from '../utils/role'
 
 interface Props { children: React.ReactNode }
 
-export default function OrgAdminRoute({ children }: Props) {
-  const { isOrgAdmin } = useRole()
-  if (!isOrgAdmin) return <Navigate to="/" replace />
+export default function RequireAdmin({ children }: Props) {
+  const { isAdmin } = useRole()
+  if (!isAdmin) return <Navigate to="/" replace />
   return <>{children}</>
 }

@@ -1,20 +1,11 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { failure } from '../utils/response';
 
-export const orgAdminOnly = async (
+export const adminOnly = async (
   request: FastifyRequest,
   reply: FastifyReply
 ): Promise<void> => {
-  if (request.user.role !== 'org_admin') {
-    return reply.code(403).send(failure('FORBIDDEN', 'Org admin access required'));
-  }
-};
-
-export const managerOrAbove = async (
-  request: FastifyRequest,
-  reply: FastifyReply
-): Promise<void> => {
-  if (!['org_admin', 'manager'].includes(request.user.role)) {
-    return reply.code(403).send(failure('FORBIDDEN', 'Manager or above access required'));
+  if (request.user.role !== 'admin') {
+    return reply.code(403).send(failure('FORBIDDEN', 'Admin access required'));
   }
 };

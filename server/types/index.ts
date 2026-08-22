@@ -1,4 +1,4 @@
-export type Role = 'employee' | 'manager' | 'org_admin';
+export type Role = 'staff' | 'admin';
 
 export interface Org {
   id: string;
@@ -60,29 +60,6 @@ export interface Medication {
   instructions?: string;
   is_active: boolean;
   created_at: Date;
-}
-
-export interface MedicationLog {
-  id: string;
-  medication_id: string;
-  resident_id: string;
-  administered_by: string;
-  outcome: 'given' | 'refused' | 'missed' | 'held';
-  notes?: string;
-  administered_at: Date;
-}
-
-export interface Incident {
-  id: string;
-  resident_id: string;
-  home_id: string;
-  reported_by: string;
-  title: string;
-  description: string;
-  status: 'open' | 'reviewed' | 'closed';
-  signed_off_by?: string;
-  created_at: Date;
-  updated_at: Date;
 }
 
 export interface ShiftNote {

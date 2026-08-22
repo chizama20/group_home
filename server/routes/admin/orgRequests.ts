@@ -60,7 +60,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
         [orgId, req.org_name, req.facility_type, orgStatus]
       );
 
-      // Create org_admin user — hash a discarded random value, user sets their real password via the reset link below
+      // Create admin user — hash a discarded random value, user sets their real password via the reset link below
       const password_hash = await hashPassword(uuidv4());
       const nameParts     = (req.contact_name as string).trim().split(' ');
       const first_name    = nameParts[0] ?? req.contact_name;
@@ -68,10 +68,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
 
       await conn.execute(
         'INSERT INTO users (id, org_id, email, password_hash, first_name, last_name, role) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [userId, orgId, req.contact_email, password_hash, first_name, last_name, 'org_admin']
+        [userId, orgId, req.contact_email, password_hash, first_name, last_name, 'admin']
       );
 
-      // Generate a 48-hour set-password token so org_admin can set their own password
+      // Generate a 48-hour set-password token so admin can set their own password
       const resetToken  = uuidv4();
       const resetExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000);
       await conn.execute(

@@ -6,13 +6,13 @@ type RequestUser = { role: Role; id: string; org_id: string };
 
 /**
  * Returns home IDs the user can access.
- * null means "all homes" (org_admin — no restriction).
+ * null means "all homes" (admin — no restriction).
  */
 export async function getAccessibleHomeIds(
   fastify: FastifyInstance,
   user: RequestUser
 ): Promise<string[] | null> {
-  if (user.role === 'org_admin') return null;
+  if (user.role === 'admin') return null;
 
   const [rows] = await fastify.db.execute<RowDataPacket[]>(
     'SELECT home_id FROM home_staff WHERE user_id = ?', [user.id]
@@ -22,7 +22,7 @@ export async function getAccessibleHomeIds(
 
 /**
  * Builds a SQL fragment like " AND home_id IN (?,?,?)" or " AND 1=0" (no access).
- * Returns empty string for org_admins.
+ * Returns empty string for admins.
  */
 export function homeFilter(homeIds: string[] | null, column = 'home_id'): string {
   if (homeIds === null) return '';
@@ -38,7 +38,7 @@ export async function canAccessHome(
   user: RequestUser,
   homeId: string
 ): Promise<boolean> {
-  if (user.role === 'org_admin') return true;
+  if (user.role === 'admin') return true;
   const [rows] = await fastify.db.execute<RowDataPacket[]>(
     'SELECT 1 FROM home_staff WHERE user_id = ? AND home_id = ?', [user.id, homeId]
   );

@@ -13,6 +13,7 @@ export default function EditProfileSheet({ onSuccess, onCancel }: Props) {
   const [firstName, setFirstName] = useState(user?.first_name ?? '')
   const [lastName, setLastName] = useState(user?.last_name ?? '')
   const [email, setEmail] = useState(user?.email ?? '')
+  const [phone, setPhone] = useState(user?.phone ?? '')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -22,7 +23,8 @@ export default function EditProfileSheet({ onSuccess, onCancel }: Props) {
   const hasChanges =
     firstName !== (user?.first_name ?? '') ||
     lastName !== (user?.last_name ?? '') ||
-    email !== (user?.email ?? '')
+    email !== (user?.email ?? '') ||
+    phone !== (user?.phone ?? '')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -32,10 +34,11 @@ export default function EditProfileSheet({ onSuccess, onCancel }: Props) {
     setError(null)
 
     try {
-      const updates: { first_name?: string; last_name?: string; email?: string } = {}
+      const updates: { first_name?: string; last_name?: string; email?: string; phone?: string } = {}
       if (firstName !== user.first_name) updates.first_name = firstName.trim()
       if (lastName !== user.last_name) updates.last_name = lastName.trim()
       if (email !== user.email) updates.email = email.trim().toLowerCase()
+      if (phone !== (user.phone ?? '')) updates.phone = phone.trim()
 
       const res = await updateProfile(user.id, updates)
       if (res.data.success) {
@@ -103,6 +106,17 @@ export default function EditProfileSheet({ onSuccess, onCancel }: Props) {
                 onChange={e => setEmail(e.target.value)}
                 className={inputClass}
                 required
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>Phone <span className='font-normal text-zinc-400'>(optional)</span></label>
+              <input
+                type='tel'
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                placeholder='(555) 555-5555'
+                className={inputClass}
               />
             </div>
 

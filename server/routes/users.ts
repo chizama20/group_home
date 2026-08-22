@@ -1,25 +1,30 @@
-import { FastifyInstance } from 'fastify';
+﻿import { FastifyInstance } from 'fastify';
 import { RowDataPacket } from 'mysql2';
 import jwt from 'jsonwebtoken';
 import { success, failure } from '../utils/response';
-import { orgAdminOnly } from '../middleware/rbac';
+import { adminOnly } from '../middleware/rbac';
 import { logAudit } from '../utils/audit';
 import { hashPassword, comparePassword } from '../utils/password';
 import { Role } from '../types';
 
 interface IdParam            { id: string; }
-interface UpdateBody         { first_name?: string; last_name?: string; email?: string; }
+interface UpdateBody         { first_name?: string; last_name?: string; email?: string; phone?: string; }
 interface RoleBody           { role: Role; }
 interface SetPinBody         { current_password: string; pin: string; }
 interface VerifyPinBody      { pin: string; }
 interface ChangePasswordBody { current_password: string; new_password: string; }
+interface NotificationPrefsBody {
+  announcements?:     boolean;
+  schedule_changes?:  boolean;
+  trade_claimed?:     boolean;
+}
 
-// Roles that can be assigned via PATCH /users/:id/role (cannot elevate to org_admin)
-const ASSIGNABLE_ROLES: Role[] = ['employee', 'manager'];
+// Roles that can be assigned via PATCH /users/:id/role (cannot elevate to admin)
+const ASSIGNABLE_ROLES: Role[] = ['staff'];
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
-  // ── PATCH /users/:id — update profile (self or manager+) ─────────────────
+  // â”€â”€ PATCH /users/:id â€” update profile (self or manager+) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.patch<{ Params: IdParam; Body: UpdateBody }>(
     '/:id',
     { preHandler: [fastify.authenticate] },
@@ -27,11 +32,11 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       const { id: requesterId, role, org_id } = request.user;
       const targetId = request.params.id;
 
-      // Allow if self, or if manager/org_admin
-      const isSelf          = requesterId === targetId;
-      const isManagerAbove  = role === 'manager' || role === 'org_admin';
+      // Allow if self, or if admin
+      const isSelf  = requesterId === targetId;
+      const isAdmin = role === 'admin';
 
-      if (!isSelf && !isManagerAbove)
+      if (!isSelf && !isAdmin)
         return reply.code(403).send(failure('FORBIDDEN', 'Insufficient permissions'));
 
       // Verify target user is in same org
@@ -41,16 +46,17 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       if (!check[0])
         return reply.code(404).send(failure('NOT_FOUND', 'User not found'));
 
-      const { first_name, last_name, email } = request.body;
+      const { first_name, last_name, email, phone } = request.body;
 
-      if (!first_name && !last_name && !email)
-        return reply.code(400).send(failure('MISSING_FIELDS', 'At least one field (first_name, last_name, email) is required'));
+      if (!first_name && !last_name && !email && phone === undefined)
+        return reply.code(400).send(failure('MISSING_FIELDS', 'At least one field (first_name, last_name, email, phone) is required'));
 
       const updates: string[] = [];
-      const values: string[] = [];
-      if (first_name) { updates.push('first_name = ?'); values.push(first_name); }
-      if (last_name)  { updates.push('last_name = ?');  values.push(last_name); }
-      if (email)      { updates.push('email = ?');      values.push(email); }
+      const values: (string | null)[] = [];
+      if (first_name)           { updates.push('first_name = ?'); values.push(first_name); }
+      if (last_name)            { updates.push('last_name = ?');  values.push(last_name); }
+      if (email)                { updates.push('email = ?');      values.push(email); }
+      if (phone !== undefined)  { updates.push('phone = ?');      values.push(phone || null); }
 
       values.push(targetId);
       await fastify.db.execute(
@@ -61,10 +67,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── PATCH /users/:id/deactivate — set is_active=0 (org_admin only) ───────
+  // â”€â”€ PATCH /users/:id/deactivate â€” set is_active=0 (admin only) â”€â”€â”€â”€â”€â”€â”€
   fastify.patch<{ Params: IdParam }>(
     '/:id/deactivate',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { id: requesterId, org_id } = request.user;
       const targetId = request.params.id;
@@ -86,7 +92,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /users/me/password — change password (authenticated) ────────────────
+  // â”€â”€ POST /users/me/password â€” change password (authenticated) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.post<{ Body: ChangePasswordBody }>(
     '/me/password',
     { preHandler: [fastify.authenticate] },
@@ -120,7 +126,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /users/me/signing-pin — set or change 4-digit PIN ──────────────────
+  // â”€â”€ POST /users/me/signing-pin â€” set or change 4-digit PIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.post<{ Body: SetPinBody }>(
     '/me/signing-pin',
     { preHandler: [fastify.authenticate] },
@@ -154,7 +160,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── POST /users/me/signing-pin/verify — verify PIN, return short-lived sign_token ──
+  // â”€â”€ POST /users/me/signing-pin/verify â€” verify PIN, return short-lived sign_token â”€â”€
   fastify.post<{ Body: VerifyPinBody }>(
     '/me/signing-pin/verify',
     { preHandler: [fastify.authenticate] },
@@ -175,7 +181,7 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       if (!valid)
         return reply.code(401).send(failure('INVALID_PIN', 'Incorrect PIN'));
 
-      // Short-lived sign token — 5 minutes, sub = 'sign' to distinguish from auth tokens
+      // Short-lived sign token â€” 5 minutes, sub = 'sign' to distinguish from auth tokens
       const jwtSecret = process.env.JWT_SECRET!;
       const sign_token = jwt.sign({ sub: 'sign', user_id: id }, jwtSecret, { expiresIn: '5m' });
 
@@ -183,10 +189,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── PATCH /users/:id/role — change role (org_admin only) ──────────────────
+  // â”€â”€ PATCH /users/:id/role â€” change role (admin only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.patch<{ Params: IdParam; Body: RoleBody }>(
     '/:id/role',
-    { preHandler: [fastify.authenticate, orgAdminOnly] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { id: requesterId, org_id } = request.user;
       const targetId = request.params.id;
@@ -195,9 +201,9 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       if (!role)
         return reply.code(400).send(failure('MISSING_FIELDS', 'role is required'));
 
-      // Cannot promote to org_admin via this route
+      // Cannot promote to admin via this route
       if (!ASSIGNABLE_ROLES.includes(role))
-        return reply.code(400).send(failure('INVALID_ROLE', 'Role must be employee or manager'));
+        return reply.code(400).send(failure('INVALID_ROLE', 'Role must be staff'));
 
       if (targetId === requesterId)
         return reply.code(400).send(failure('INVALID', 'You cannot change your own role'));
@@ -225,6 +231,36 @@ export default async (fastify: FastifyInstance): Promise<void> => {
       });
 
       return reply.send(success({ user: updatedUser }));
+    }
+  );
+
+  // ── PATCH /users/me/notification-prefs — update notification toggles ──────
+  fastify.patch<{ Body: NotificationPrefsBody }>(
+    '/me/notification-prefs',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const { id } = request.user;
+
+      const [rows] = await fastify.db.execute<RowDataPacket[]>(
+        'SELECT notification_prefs FROM users WHERE id = ?', [id]
+      );
+      if (!rows[0])
+        return reply.code(404).send(failure('NOT_FOUND', 'User not found'));
+
+      const current = (rows[0].notification_prefs ?? {}) as Record<string, boolean>;
+      const merged = {
+        announcements:    current.announcements    ?? true,
+        schedule_changes: current.schedule_changes ?? true,
+        trade_claimed:    current.trade_claimed    ?? true,
+        ...request.body,
+      };
+
+      await fastify.db.execute(
+        'UPDATE users SET notification_prefs = ? WHERE id = ?',
+        [JSON.stringify(merged), id]
+      );
+
+      return reply.send(success({ notification_prefs: merged }));
     }
   );
 };

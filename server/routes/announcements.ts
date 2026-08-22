@@ -1,17 +1,17 @@
-import { FastifyInstance } from 'fastify';
+﻿import { FastifyInstance } from 'fastify';
 import { RowDataPacket } from 'mysql2';
 import { success, failure } from '../utils/response';
-import { managerOrAbove } from '../middleware/rbac';
+import { adminOnly } from '../middleware/rbac';
 import { canAccessHome } from '../utils/homeAccess';
 
 interface IdParam { id: string; }
 
 export default async (fastify: FastifyInstance): Promise<void> => {
 
-  // ── PATCH /announcements/:id/pin — toggle is_pinned (manager+) ──────────────
+  // â”€â”€ PATCH /announcements/:id/pin â€” toggle is_pinned (manager+) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.patch<{ Params: IdParam }>(
     '/:id/pin',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
 
@@ -35,10 +35,10 @@ export default async (fastify: FastifyInstance): Promise<void> => {
     }
   );
 
-  // ── DELETE /announcements/:id — hard delete (manager+) ──────────────────────
+  // â”€â”€ DELETE /announcements/:id â€” hard delete (manager+) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   fastify.delete<{ Params: IdParam }>(
     '/:id',
-    { preHandler: [fastify.authenticate, managerOrAbove] },
+    { preHandler: [fastify.authenticate, adminOnly] },
     async (request, reply) => {
       const { org_id } = request.user;
 

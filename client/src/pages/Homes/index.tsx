@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Search, Plus, Home, Users, MapPin, ChevronRight } from 'lucide-react'
 import { getHomes, type Home as HomeType } from '../../api/homes'
 import { getOrgDashboard } from '../../api/orgs'
+import EditHomeSheet from '../../components/EditHomeSheet'
 
 interface HomeWithCounts extends HomeType {
   resident_count: number
@@ -27,12 +28,10 @@ function SkeletonCard() {
   )
 }
 
-function HomeCard({ home }: { home: HomeWithCounts }) {
-  const navigate = useNavigate()
-
+function HomeCard({ home, onClick }: { home: HomeWithCounts; onClick: () => void }) {
   return (
     <div
-      onClick={() => navigate(`/homes/${home.id}`)}
+      onClick={onClick}
       className='bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 cursor-pointer hover:border-primary/30 dark:hover:border-primary/40 transition-colors'
     >
       <div className='flex items-start gap-3'>
@@ -72,42 +71,42 @@ export default function HomesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [editingHome, setEditingHome] = useState<HomeWithCounts | null>(null)
 
-  useEffect(() => {
-    async function fetchHomes() {
-      try {
-        const [homesRes, dashRes] = await Promise.all([
-          getHomes(),
-          getOrgDashboard(),
-        ])
+  async function fetchHomes() {
+    try {
+      const [homesRes, dashRes] = await Promise.all([
+        getHomes(),
+        getOrgDashboard(),
+      ])
 
-        if (homesRes.data.success && homesRes.data.data) {
-          const homesList = homesRes.data.data
+      if (homesRes.data.success && homesRes.data.data) {
+        const homesList = homesRes.data.data
 
-          // Build a count lookup from the org dashboard (avoids N×2 per-home requests)
-          const homeCounts: Record<string, { resident_count: number; staff_count: number }> = {}
-          if (dashRes.data.success && dashRes.data.data?.homes) {
-            for (const h of dashRes.data.data.homes) {
-              homeCounts[h.id] = { resident_count: h.resident_count, staff_count: h.staff_count }
-            }
+        // Build a count lookup from the org dashboard (avoids N×2 per-home requests)
+        const homeCounts: Record<string, { resident_count: number; staff_count: number }> = {}
+        if (dashRes.data.success && dashRes.data.data?.homes) {
+          for (const h of dashRes.data.data.homes) {
+            homeCounts[h.id] = { resident_count: h.resident_count, staff_count: h.staff_count }
           }
-
-          const homesWithCounts = homesList.map(home => ({
-            ...home,
-            resident_count: homeCounts[home.id]?.resident_count ?? 0,
-            staff_count:    homeCounts[home.id]?.staff_count    ?? 0,
-          }))
-
-          setHomes(homesWithCounts)
         }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load homes')
-      } finally {
-        setLoading(false)
+
+        const homesWithCounts = homesList.map(home => ({
+          ...home,
+          resident_count: homeCounts[home.id]?.resident_count ?? 0,
+          staff_count:    homeCounts[home.id]?.staff_count    ?? 0,
+        }))
+
+        setHomes(homesWithCounts)
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load homes')
+    } finally {
+      setLoading(false)
     }
-    fetchHomes()
-  }, [])
+  }
+
+  useEffect(() => { fetchHomes() }, [])
 
   const searchLower = search.toLowerCase()
   const filtered = homes.filter(h =>
@@ -166,7 +165,7 @@ export default function HomesPage() {
             {filtered.length > 0 ? (
               <div className='mx-4 grid gap-3 sm:grid-cols-2'>
                 {filtered.map(home => (
-                  <HomeCard key={home.id} home={home} />
+                  <HomeCard key={home.id} home={home} onClick={() => setEditingHome(home)} />
                 ))}
               </div>
             ) : (
@@ -179,6 +178,15 @@ export default function HomesPage() {
           </>
         )}
       </div>
+
+      {editingHome && (
+        <EditHomeSheet
+          home={editingHome}
+          onCancel={() => setEditingHome(null)}
+          onSuccess={() => { setEditingHome(null); fetchHomes() }}
+          onArchived={() => { setEditingHome(null); fetchHomes() }}
+        />
+      )}
     </div>
   )
 }

@@ -120,7 +120,7 @@ export default function VitalsLogForm({ residentId, residentVitalsConfig, onSucc
     }
   }
 
-  async function handleAcknowledge(vitalType: string, logId: string) {
+  async function handleAcknowledge(logId: string) {
     setAckLoading(prev => new Set(prev).add(logId))
     try {
       await acknowledgeVital(logId)
@@ -307,7 +307,7 @@ export default function VitalsLogForm({ residentId, residentVitalsConfig, onSucc
                   {/* Flagged acknowledgment button */}
                   {isFlagged && !isAcked && (
                     <button
-                      onClick={() => { void handleAcknowledge(config.vital_type, logId) }}
+                      onClick={() => { void handleAcknowledge(logId) }}
                       disabled={isAcking}
                       className='mt-3 w-full bg-red-500/10 border border-red-400 dark:border-red-500 text-red-500 dark:text-red-400 text-sm font-semibold py-2.5 rounded-xl min-h-[44px] disabled:opacity-50 active:bg-red-500/20 transition-colors'
                     >

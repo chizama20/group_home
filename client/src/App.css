@@ -163,9 +163,8 @@
   border-radius: 4px;
   text-transform: uppercase;
 }
-.role-badge.org_admin { background: #e8f0fe; color: #4f6ef7; }
-.role-badge.manager   { background: #fff3cd; color: #856404; }
-.role-badge.employee  { background: #e8f8f0; color: #00b894; }
+.role-badge.admin { background: #e8f0fe; color: #4f6ef7; }
+.role-badge.staff { background: #e8f8f0; color: #00b894; }
 
 .dashboard-main {
   padding: 2rem;
